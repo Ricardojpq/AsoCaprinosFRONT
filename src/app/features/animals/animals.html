@@ -1,0 +1,326 @@
+<div class="card">
+  <p-toast />
+  <p-toolbar class="mb-6">
+    <ng-template #start>
+      <p-button
+        styleClass="gap-1 btn btn-primary btn-sm"
+        label="Nuevo Animal"
+        (onClick)="openNew()"
+      >
+        <lucide-icon [img]="plusIcon" size="16"></lucide-icon>
+      </p-button>
+      <p-button
+        styleClass="gap-1 btn btn-danger btn-sm"
+        severity="danger"
+        label="Eliminar"
+        outlined
+        (onClick)="deleteSelectedAnimals()"
+        [disabled]="!selectedAnimals || !selectedAnimals.length"
+      >
+        <lucide-icon [img]="trashIcon" size="16"></lucide-icon>
+      </p-button>
+    </ng-template>
+    <ng-template #end>
+     
+    </ng-template>
+  </p-toolbar>
+
+  <p-table
+    #dt
+    [value]="animals"
+    [rows]="perPage"
+    [columns]="cols"
+    [paginator]="true"
+    [globalFilterFields]="['cod_animal', 'nomb_animal', 'sexo_animal']"
+    [tableStyle]="{ 'min-width': '75rem' }"
+    [(selection)]="selectedAnimals"
+    [rowHover]="true"
+    dataKey="cod_animal"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} animales"
+    [showCurrentPageReport]="true"
+    [totalRecords]="totalRecords"
+    [lazy]="true"
+    [loading]="loading"
+    (onLazyLoad)="onTableLazyLoad($event)"
+    [sortField]="sortField"
+    [sortOrder]="sortOrder === 'asc' ? 1 : -1"
+    [filterDelay]="300"
+  >
+    <ng-template #caption>
+      <div class="flex items-center justify-between">
+        <h5 class="m-0">Gestión de Animales</h5>
+        <div class="flex items-center gap-2">
+          <lucide-angular [img]="searchIcon" size="16"></lucide-angular>
+          <input pInputText type="text" placeholder="Buscar..." (input)="onGlobalFilter($event)" class="focus:border-golden-500" />
+        </div>
+      </div>
+    </ng-template>
+    <ng-template #header>
+      <tr>
+        <th style="width: 3rem">
+          <p-tableHeaderCheckbox />
+        </th>
+        <th style="min-width: 10rem">Código</th>
+        <th pSortableColumn="nomb_animal" style="min-width: 12rem">
+          <div class="flex items-center gap-2">
+            Nombre
+            <p-sortIcon field="nomb_animal" />
+          </div>
+        </th>
+        <th pSortableColumn="sexo_animal" style="min-width: 8rem">
+          <div class="flex items-center gap-2">
+            Sexo
+            <p-sortIcon field="sexo_animal" />
+          </div>
+        </th>
+        <th pSortableColumn="fec_nacim" style="min-width: 12rem">
+          <div class="flex items-center gap-2">
+            Fecha Nacimiento
+            <p-sortIcon field="fec_nacim" />
+          </div>
+        </th>
+        <th style="min-width: 8rem">Raza</th>
+        <th pSortableColumn="estatus" style="min-width: 8rem">
+          <div class="flex items-center gap-2">
+            Status
+            <p-sortIcon field="estatus" />
+          </div>
+        </th>
+        <th style="min-width: 8rem">Acciones</th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-animal>
+      <tr>
+        <td style="width: 3rem">
+          <p-tableCheckbox [value]="animal" />
+        </td>
+        <td>{{ animal.cod_animal }}</td>
+        <td>{{ animal.nomb_animal }}</td>
+        <td>
+          <p-tag 
+            [value]="animal.sexo_animal === 'H' ? 'Hembra' : 'Macho'"
+            [severity]="animal.sexo_animal === 'H' ? 'danger' : 'primary'"
+          ></p-tag>
+        </td>
+        <td>{{ animal.fec_nacim | date:'dd/MM/yyyy' }}</td>
+        <td>{{ animal.cod_raza }}</td>
+        <td>
+          <p-tag 
+            [value]="animal.estatus"
+            [severity]="animal.estatus === 'A' ? 'success' : animal.estatus === 'Vendido' ? 'warning' : animal.estatus === 'Retirado' ? 'danger' : animal.estatus === 'Enfermo' ? 'warning' : 'secondary'"
+          ></p-tag>
+        </td>
+        <td>
+          <p-button
+            class="mr-2"
+            [rounded]="true"
+            [outlined]="true"
+            (click)="editAnimal(animal)"
+            styleClass="p-button-sm"
+          >
+            <lucide-icon [img]="pencilIcon" size="18"></lucide-icon>
+          </p-button>
+          <p-button
+            severity="danger"
+            [rounded]="true"
+            [outlined]="true"
+            (click)="deleteAnimal(animal)"
+            styleClass="p-button-sm"
+          >
+            <lucide-icon [img]="trashIcon" size="18"></lucide-icon>
+          </p-button>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+
+  <p-dialog
+    [(visible)]="animalDialog"
+    [style]="{ width: '600px' }"
+    header="Detalles del Animal"
+    [modal]="true"
+  >
+    <ng-template #content>
+      <div class="grid grid-cols-2 gap-4">
+        <!-- Código de Finca -->
+        <div class="col-span-1">
+          <label for="cod_finca" class="block font-bold mb-2">Código de Finca *</label>
+          <input
+            type="text"
+            pInputText
+            id="cod_finca"
+            [(ngModel)]="animal.cod_finca"
+            [required]="true"
+            [disabled]="true"
+            class="w-full"
+          />
+        </div>
+
+        <!-- Código de Animal -->
+        <div class="col-span-1">
+          <label for="cod_animal" class="block font-bold mb-2">Código de Animal *</label>
+          <input
+            type="text"
+            pInputText
+            id="cod_animal"
+            [(ngModel)]="animal.cod_animal"
+            [required]="true"
+            [disabled]="isEditMode"
+            class="w-full"
+          />
+        </div>
+
+        <!-- Nombre -->
+        <div class="col-span-2">
+          <label for="nomb_animal" class="block font-bold mb-2">Nombre *</label>
+          <input
+            type="text"
+            pInputText
+            id="nomb_animal"
+            [(ngModel)]="animal.nomb_animal"
+            [required]="true"
+            class="w-full"
+          />
+        </div>
+
+        <!-- Sexo -->
+        <div class="col-span-1">
+          <label for="sexo_animal" class="block font-bold mb-2">Sexo *</label>
+          <p-select
+            id="sexo_animal"
+            [options]="sexoOptions"
+            [(ngModel)]="animal.sexo_animal"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Seleccionar sexo"
+            [required]="true"
+            class="w-full"
+          />
+        </div>
+
+        <!-- Fecha de Nacimiento -->
+        <div class="col-span-1">
+          <label for="fec_nacim" class="block font-bold mb-2">Fecha de Nacimiento</label>
+          <input
+            type="date"
+            pInputText
+            id="fec_nacim"
+            [(ngModel)]="animal.fec_nacim"
+            class="w-full"
+          />
+        </div>
+
+        <!-- Peso al Nacer -->
+        <div class="col-span-1">
+          <label for="peso_al_nacer" class="block font-bold mb-2">Peso al Nacer (kg)</label>
+          <input
+            type="number"
+            pInputText
+            id="peso_al_nacer"
+            [(ngModel)]="animal.peso_al_nacer"
+            step="0.01"
+            min="0"
+            max="999.99"
+            class="w-full"
+          />
+        </div>
+
+        <!-- Fecha de Ingreso -->
+        <div class="col-span-1">
+          <label for="fec_ingreso" class="block font-bold mb-2">Fecha de Ingreso</label>
+          <input
+            type="date"
+            pInputText
+            id="fec_ingreso"
+            [(ngModel)]="animal.fec_ingreso"
+            class="w-full"
+          />
+        </div>
+
+        <!-- Peso Actual -->
+        <div class="col-span-1">
+          <label for="peso_actual" class="block font-bold mb-2">Peso Actual (kg)</label>
+          <input
+            type="number"
+            pInputText
+            id="peso_actual"
+            [(ngModel)]="animal.peso_actual"
+            step="0.01"
+            min="0"
+            max="999.99"
+            class="w-full"
+          />
+        </div>
+
+        <!-- Raza -->
+        <div class="col-span-1">
+          <label for="cod_raza" class="block font-bold mb-2">Raza</label>
+          <input
+            type="text"
+            pInputText
+            id="cod_raza"
+            [(ngModel)]="animal.cod_raza"
+            class="w-full"
+          />
+        </div>
+
+        <!-- Color -->
+        <div class="col-span-1">
+          <label for="cod_color" class="block font-bold mb-2">Color</label>
+          <input
+            type="text"
+            pInputText
+            id="cod_color"
+            [(ngModel)]="animal.cod_color"
+            class="w-full"
+          />
+        </div>
+
+        <!-- Status -->
+        <div class="col-span-1">
+          <label for="estatus" class="block font-bold mb-2">Status</label>
+          <p-select
+            id="estatus"
+            [options]="statusOptions"
+            [(ngModel)]="animal.estatus"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Seleccionar status"
+            class="w-full"
+          />
+        </div>
+
+        <!-- Tatuaje -->
+        <div class="col-span-1">
+          <label for="tatuaje" class="block font-bold mb-2">Tatuaje</label>
+          <input
+            type="text"
+            pInputText
+            id="tatuaje"
+            [(ngModel)]="animal.tatuaje"
+            class="w-full"
+          />
+        </div>
+
+        <!-- Observaciones -->
+        <div class="col-span-2">
+          <label for="observac" class="block font-bold mb-2">Observaciones</label>
+          <textarea
+            pInputTextarea
+            id="observac"
+            [(ngModel)]="animal.observac"
+            rows="3"
+            class="w-full"
+            placeholder="Observaciones adicionales..."
+          ></textarea>
+        </div>
+      </div>
+    </ng-template>
+    <ng-template #footer>
+      <p-button label="Cancelar" icon="pi pi-times" text (click)="hideDialog()" />
+      <p-button label="Guardar" icon="pi pi-check" (click)="saveAnimal()" />
+    </ng-template>
+  </p-dialog>
+
+  <p-confirmDialog [style]="{ width: '450px' }" />
+</div>

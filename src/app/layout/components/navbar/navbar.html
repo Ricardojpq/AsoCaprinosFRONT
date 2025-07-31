@@ -1,0 +1,89 @@
+<div class="layout-topbar">
+  <div class="layout-topbar-logo-container">
+    <button
+      class="layout-menu-button layout-topbar-action"
+      (click)="layoutService.onMenuToggle()"
+    >
+      <lucide-icon [img]="menuIcon" size="18"></lucide-icon>
+    </button>
+    <a class="layout-topbar-logo" routerLink="/">
+      <img
+        src="assets/logos/logo.png"
+        alt="ASOCABRA Logo"
+        class="size-[50px] object-cover"
+      />
+      <span>AsoCabra</span>
+    </a>
+  </div>
+
+  <div class="layout-topbar-actions">
+    @for (item of menuItems; track $index) {
+    <a
+      [routerLink]="item.path"
+      class=" px-[0.50rem] py-[0.75rem] rounded-md text-sm font-medium transition-colors hover:bg-gray-100 dark:hover:bg-[#27272a]"
+      routerLinkActive="!font-bold text-golden-500 bg-golden-100 text-golden-800 dark:bg-golden-900/30 dark:text-golden-300"
+      [routerLinkActiveOptions]="{ exact: true }"
+    >
+      {{ item.name }}
+    </a>
+    }
+    <div class="layout-config-menu">
+      <app-theme-toggle></app-theme-toggle>
+    </div>
+
+    <div class="relative">
+      <a
+        pStyleClass="@next"
+        enterFromClass="hidden"
+        enterActiveClass="animate-scalein"
+        leaveActiveClass="animate-fadeout"
+        leaveToClass="hidden"
+        class="z-50"
+      >
+        <p-avatar
+          styleClass="!w-10 !h-10"
+          data-pc-name="avatar"
+          class="!h-10 !w-10 p-avatar p-component cursor-pointer bg-golden-100 dark:bg-[#27272a] hover:bg-golden-500 transition-colors !rounded-b-md"
+          pc5=""
+        >
+          <img src="assets/logos/logo.png" />
+        </p-avatar>
+      </a>
+      <div
+        class="list-none p-2 m-0 rounded-2xl border border-surface overflow-hidden absolute bg-surface-0 dark:bg-surface-900 origin-top w-52 mt-1 right-0 z-[999] top-auto hidden"
+      >
+        <ul class="flex flex-col gap-1">
+          <li>
+            <div class="label-small dark:text-surface-400 flex gap-2 py-2 px-2.5 rounded-lg items-center">
+              <lucide-icon [img]="userIcon" size="14"></lucide-icon>
+              <span>{{ currentUser?.name || 'Usuario' }}</span>
+            </div>
+          </li>
+          <li>
+            <div class="label-small dark:text-surface-400 flex gap-2 py-2 px-2.5 rounded-lg items-center">
+              <lucide-icon [img]="userIcon" size="14"></lucide-icon>
+              <span>{{ currentUser?.email || 'usuario@ejemplo.com' }}</span>
+            </div>
+          </li>
+          <li>
+            <a
+              class="label-small dark:text-surface-400 flex gap-2 py-2 px-2.5 rounded-lg items-center hover:bg-emphasis transition-colors duration-150 cursor-pointer"
+            >
+              <lucide-icon [img]="settingsIcon" size="14"></lucide-icon>
+              <span>Configuración</span>
+            </a>
+          </li>
+          <li>
+            <a
+              (click)="onLogout()"
+              class="label-small dark:text-surface-400 flex gap-2 py-2 px-2.5 rounded-lg items-center hover:bg-emphasis transition-colors duration-150 cursor-pointer"
+            >
+              <lucide-icon [img]="logoutIcon" size="14"></lucide-icon>
+              <span>Cerrar Sesión</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>

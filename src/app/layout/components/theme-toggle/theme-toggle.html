@@ -1,0 +1,8 @@
+<button (click)="toggleTheme()"
+        class="p-2 rounded-full text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+  @if (isDarkMode()) {
+    <lucide-icon [img]="SunIcon" size="20"></lucide-icon>
+  } @else {
+    <lucide-icon [img]="MoonIcon" size="20"></lucide-icon>
+  }
+</button>

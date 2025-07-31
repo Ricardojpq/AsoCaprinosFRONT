@@ -1,0 +1,68 @@
+/* Contenedor principal del menú */
+.layout-menu-container {
+    overflow-y: auto;
+    height: 100%;
+    padding: 1rem 0.75rem;
+}
+
+.layout-menu {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+/* Estilo base para cada enlace del menú (<a>) */
+li[app-menu-item] > a {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.25rem;
+    border-radius: 8px;
+    /* Usa la variable --muted-foreground para el texto inactivo */
+    color: hsl(var(--muted-foreground));
+    font-weight: 500;
+    transition: background-color 0.2s, color 0.2s;
+    cursor: pointer;
+}
+
+/* Efecto al pasar el mouse sobre un item */
+li[app-menu-item] > a:hover {
+    /* Usa la variable --muted para el fondo del hover */
+    background-color: hsl(var(--muted));
+    color: hsl(var(--foreground));
+}
+
+/* --- ESTILO PARA EL ITEM ACTIVO USANDO TUS VARIABLES --- */
+li[app-menu-item] > a.active-route {
+    /* Usa la variable --primary para el fondo dorado */
+    background-color: hsl(var(--primary));
+    /* Usa la variable --primary-foreground para el texto sobre el fondo dorado */
+    color: hsl(var(--primary-foreground));
+    font-weight: 700;
+}
+
+.layout-menuitem-icon {
+    margin-right: 1rem;
+    font-size: 1.25rem;
+}
+
+/* Estilos para el submenú */
+.layout-submenu {
+    overflow: hidden;
+    padding-left: 1rem;
+    padding-top: 0.5rem;
+}
+
+.layout-submenu li[app-menu-item] > a {
+    padding-left: 2rem;
+}
+
+/* Flecha para desplegar submenús */
+.layout-submenu-toggler {
+    margin-left: auto;
+    transition: transform 0.2s;
+}
+
+.layout-submenu-toggler.rotated {
+    transform: rotate(-180deg);
+}

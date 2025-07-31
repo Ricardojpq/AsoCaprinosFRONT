@@ -1,0 +1,26 @@
+<div class="layout-wrapper" [class]="containerClass">
+  <app-navbar></app-navbar>
+  <app-sidebar></app-sidebar>
+  <div class="layout-main-container">
+    <div
+      class="rounded-xs bg-gradient-to-r mb-3 from-[#f1f5f9] from-20% via-golden-200/70 via-50% to-[#f1f5f9] to-80% dark:from-[#09090b] dark:from-10% dark:via-golden-900/20 dark:via-50% dark:to-[#09090b] dark:to-90% border-b border-golden-200/30 dark:border-golden-700/30 px-6 py-2"
+    >
+      <div class="flex items-center justify-center">
+        <div class="text-center">
+          <p class="text-base font-bold text-gray-900 dark:text-white !m-0">
+            Finca El Dorado
+          </p>
+          <p class="text-sm text-gray-600 dark:text-gray-400 !m-0">
+            Juan Pérez
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="layout-main">
+      <router-outlet></router-outlet>
+    </div>
+    <app-footer></app-footer>
+  </div>
+  <div class="layout-mask animate-fadein"></div>
+</div>
+<app-loading [visible]="loading()"></app-loading>
