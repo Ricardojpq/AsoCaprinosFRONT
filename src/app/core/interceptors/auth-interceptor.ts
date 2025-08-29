@@ -16,8 +16,7 @@ export const authInterceptor: HttpInterceptorFn = (
   const isApiRequest = request.url.includes('/api/');
   const isAuthRequest = request.url.includes('/auth/login') || 
                        request.url.includes('/auth/register') ||
-                       request.url.includes('/auth/user') ||
-                       request.url.includes('/auth/logout');
+                       request.url.includes('/auth/user');
 
   // Si no es una petición a la API o es una petición de autenticación, no interceptar
   if (!isApiRequest || isAuthRequest) {
@@ -42,10 +41,11 @@ export const authInterceptor: HttpInterceptorFn = (
       if (error.status === 401) {
         const isLoginRequest = request.url.includes('/auth/login');
         const isRegisterRequest = request.url.includes('/auth/register');
+        const isLogoutRequest = request.url.includes('/auth/logout');
         const isAlreadyOnLogin = router.url.includes('/Auth/Login');
 
         // Si no es una petición de autenticación y no estamos ya en login
-        if (!isLoginRequest && !isRegisterRequest && !isAlreadyOnLogin) {
+        if (!isLoginRequest && !isRegisterRequest && !isLogoutRequest && !isAlreadyOnLogin) {
           console.log('🔒 Interceptor: Error 401, redirigiendo al login');
           jwtAuthService.handleUnauthorized();
         }

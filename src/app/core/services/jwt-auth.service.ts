@@ -83,7 +83,8 @@ export class JwtAuthService {
     if (accessToken) {
       this.http.post(
         `${environment.apiUrl}${environment.apiPrefix}/${environment.apiVersion}/auth/logout`,
-        { access_token: accessToken }
+        {},
+        { headers: this.getAuthHeaders() }
       ).subscribe({
         next: () => console.log('✅ Logout exitoso'),
         error: (error) => console.error('❌ Error en logout:', error)

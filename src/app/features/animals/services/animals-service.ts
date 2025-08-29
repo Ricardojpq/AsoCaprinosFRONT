@@ -18,6 +18,7 @@ export interface AnimalQueryParams {
   sexo_animal?: string;
   estatus?: string;
   cod_finca?: string;
+  search?: string;
   nomb_animal?: string;
   [key: string]: any;
 }

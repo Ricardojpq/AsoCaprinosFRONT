@@ -2,27 +2,27 @@
   <p-toast />
   <p-toolbar class="mb-6">
     <ng-template #start>
-      <p-button
-        styleClass="gap-1 btn btn-primary btn-sm"
-        label="Nuevo Animal"
-        (onClick)="openNew()"
-      >
-        <lucide-icon [img]="plusIcon" size="16"></lucide-icon>
-      </p-button>
-      <p-button
-        styleClass="gap-1 btn btn-danger btn-sm"
-        severity="danger"
-        label="Eliminar"
-        outlined
-        (onClick)="deleteSelectedAnimals()"
-        [disabled]="!selectedAnimals || !selectedAnimals.length"
-      >
-        <lucide-icon [img]="trashIcon" size="16"></lucide-icon>
-      </p-button>
+      <div class="flex gap-1">
+        <p-button
+          styleClass="btn btn-primary btn-sm"
+          label="Nuevo Animal"
+          (onClick)="openNew()"
+        >
+          <lucide-icon [img]="plusIcon" size="16"></lucide-icon>
+        </p-button>
+        <p-button
+          styleClass="btn btn-danger btn-sm"
+          severity="danger"
+          label="Eliminar"
+          outlined
+          (onClick)="deleteSelectedAnimals()"
+          [disabled]="!selectedAnimals || !selectedAnimals.length"
+        >
+          <lucide-icon [img]="trashIcon" size="16"></lucide-icon>
+        </p-button>
+      </div>
     </ng-template>
-    <ng-template #end>
-     
-    </ng-template>
+    <ng-template #end> </ng-template>
   </p-toolbar>
 
   <p-table
@@ -50,8 +50,24 @@
       <div class="flex items-center justify-between">
         <h5 class="m-0">Gestión de Animales</h5>
         <div class="flex items-center gap-2">
-          <lucide-angular [img]="searchIcon" size="16"></lucide-angular>
-          <input pInputText type="text" placeholder="Buscar..." (input)="onGlobalFilter($event)" class="focus:border-golden-500" />
+          <p-iconfield>
+            <p-inputicon>
+              <lucide-angular [img]="searchIcon" size="16"></lucide-angular>
+            </p-inputicon>
+            <input
+              pInputText
+              type="text"
+              placeholder="Buscar animal..."
+              (input)="onGlobalFilter($event)"
+              class="focus:border-golden-500"
+              [value]="globalFilterValue"
+            />
+            @if (globalFilterValue) {
+              <p-inputicon>
+                <lucide-angular [img]="xIcon" size="16" (click)="clearSearch()" class="cursor-pointer"></lucide-angular>
+            </p-inputicon>
+            }
+          </p-iconfield>
         </div>
       </div>
     </ng-template>
@@ -97,17 +113,19 @@
         <td>{{ animal.cod_animal }}</td>
         <td>{{ animal.nomb_animal }}</td>
         <td>
-          <p-tag 
+          <p-tag
             [value]="animal.sexo_animal === 'H' ? 'Hembra' : 'Macho'"
             [severity]="animal.sexo_animal === 'H' ? 'danger' : 'primary'"
+            [styleClass]="animal.sexo_animal === 'M' ? 'bg-golden-100' : ''"
           ></p-tag>
         </td>
-        <td>{{ animal.fec_nacim | date:'dd/MM/yyyy' }}</td>
+        <td>{{ animal.fec_nacim | date : "dd/MM/yyyy" }}</td>
         <td>{{ animal.cod_raza }}</td>
         <td>
-          <p-tag 
+          <p-tag
             [value]="animal.estatus"
-            [severity]="animal.estatus === 'A' ? 'success' : animal.estatus === 'Vendido' ? 'warning' : animal.estatus === 'Retirado' ? 'danger' : animal.estatus === 'Enfermo' ? 'warning' : 'secondary'"
+            [severity]="getStatusClass(animal.estatus)"
+            [styleClass]="getStatusClass(animal.estatus) === 'primary' ? 'bg-golden-100' : ''"
           ></p-tag>
         </td>
         <td>
@@ -144,7 +162,9 @@
       <div class="grid grid-cols-2 gap-4">
         <!-- Código de Finca -->
         <div class="col-span-1">
-          <label for="cod_finca" class="block font-bold mb-2">Código de Finca *</label>
+          <label for="cod_finca" class="block font-bold mb-2"
+            >Código de Finca *</label
+          >
           <input
             type="text"
             pInputText
@@ -158,7 +178,9 @@
 
         <!-- Código de Animal -->
         <div class="col-span-1">
-          <label for="cod_animal" class="block font-bold mb-2">Código de Animal *</label>
+          <label for="cod_animal" class="block font-bold mb-2"
+            >Código de Animal *</label
+          >
           <input
             type="text"
             pInputText
@@ -200,7 +222,9 @@
 
         <!-- Fecha de Nacimiento -->
         <div class="col-span-1">
-          <label for="fec_nacim" class="block font-bold mb-2">Fecha de Nacimiento</label>
+          <label for="fec_nacim" class="block font-bold mb-2"
+            >Fecha de Nacimiento</label
+          >
           <input
             type="date"
             pInputText
@@ -212,7 +236,9 @@
 
         <!-- Peso al Nacer -->
         <div class="col-span-1">
-          <label for="peso_al_nacer" class="block font-bold mb-2">Peso al Nacer (kg)</label>
+          <label for="peso_al_nacer" class="block font-bold mb-2"
+            >Peso al Nacer (kg)</label
+          >
           <input
             type="number"
             pInputText
@@ -227,7 +253,9 @@
 
         <!-- Fecha de Ingreso -->
         <div class="col-span-1">
-          <label for="fec_ingreso" class="block font-bold mb-2">Fecha de Ingreso</label>
+          <label for="fec_ingreso" class="block font-bold mb-2"
+            >Fecha de Ingreso</label
+          >
           <input
             type="date"
             pInputText
@@ -239,7 +267,9 @@
 
         <!-- Peso Actual -->
         <div class="col-span-1">
-          <label for="peso_actual" class="block font-bold mb-2">Peso Actual (kg)</label>
+          <label for="peso_actual" class="block font-bold mb-2"
+            >Peso Actual (kg)</label
+          >
           <input
             type="number"
             pInputText
@@ -304,7 +334,9 @@
 
         <!-- Observaciones -->
         <div class="col-span-2">
-          <label for="observac" class="block font-bold mb-2">Observaciones</label>
+          <label for="observac" class="block font-bold mb-2"
+            >Observaciones</label
+          >
           <textarea
             pInputTextarea
             id="observac"
@@ -317,7 +349,12 @@
       </div>
     </ng-template>
     <ng-template #footer>
-      <p-button label="Cancelar" icon="pi pi-times" text (click)="hideDialog()" />
+      <p-button
+        label="Cancelar"
+        icon="pi pi-times"
+        text
+        (click)="hideDialog()"
+      />
       <p-button label="Guardar" icon="pi pi-check" (click)="saveAnimal()" />
     </ng-template>
   </p-dialog>
