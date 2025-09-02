@@ -34,6 +34,10 @@ export const routes: Routes = [
                 path: 'Members',
                 loadComponent: () => import('@features/members/members').then(c => c.Members)
             },
+            {
+                path: 'Certificate-Demo',
+                loadComponent: () => import('@features/certificate/certificate-demo.component').then(c => c.CertificateDemoComponent)
+            },
         ]
     },
     {

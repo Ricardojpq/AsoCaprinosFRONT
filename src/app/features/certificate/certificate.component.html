@@ -1,0 +1,295 @@
+<!-- Certificate Container -->
+<div class="relative w-full max-w-6xl mx-auto bg-white shadow-2xl print:shadow-none" 
+     [class.print:shadow-none]="isPrintMode()">
+  
+  <!-- Background Image Layer -->
+  @if (showBackgroundImage()) {
+    <div class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-15"
+         style="background-image: url('/assets/images/certificadoBase-1.jpg')">
+    </div>
+  }
+  
+  <!-- Certificate Content with Black Border -->
+  <div class="relative z-10 bg-gradient-to-br from-yellow-400 via-yellow-300 to-yellow-500 border-4 border-black p-1">
+    <div class="bg-gradient-to-br from-yellow-400 via-yellow-300 to-yellow-500 p-6">
+      
+      <!-- Header Section -->
+      <div class="flex justify-between items-start mb-4">
+        <!-- Left Logo -->
+        <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-lg border-2 border-gray-300">
+          <div class="text-[8px] font-bold text-center leading-tight text-black">
+            <div>ASOCABRA</div>
+            <div class="text-[6px]">VENEZUELA</div>
+          </div>
+        </div>
+        
+        <!-- Center Title -->
+        <div class="flex-1 text-center mx-4">
+          <h1 class="text-xl font-bold text-black mb-1 tracking-wider" style="font-family: serif;">
+            ASOCIACIÓN DE CRIADORES DE CABRAS LECHERAS
+          </h1>
+          <p class="text-xs font-semibold text-black">
+            FUNDADA EN EL 2012 - CARORA - VENEZUELA
+          </p>
+          <h2 class="text-lg font-bold text-black mt-1 tracking-wide" style="font-family: serif;">
+            CERTIFICADO DE REGISTRO GENEALÓGICO
+          </h2>
+        </div>
+        
+        <!-- Right Logo -->
+        <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-lg border-2 border-gray-300">
+          <div class="text-[8px] font-bold text-center leading-tight text-black">
+            <div>ASOCABRA</div>
+            <div class="text-[6px]">VENEZUELA</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Main Content Grid -->
+      <div class="grid grid-cols-12 gap-3 mb-4">
+        
+        <!-- Left Column - Animal Information -->
+        <div class="col-span-8 space-y-3">
+          
+          <!-- Basic Information -->
+          <div class="grid grid-cols-2 gap-4">
+            <!-- Left Side Info -->
+            <div class="space-y-1 text-sm">
+              <div class="flex border-b border-dotted border-gray-600 pb-1">
+                <span class="font-semibold w-20 text-xs">Nombre:</span>
+                <span class="font-bold">{{ certificateData().animal.name }}</span>
+              </div>
+              <div class="flex border-b border-dotted border-gray-600 pb-1">
+                <span class="font-semibold w-20 text-xs">Criador:</span>
+                <span class="text-xs">{{ certificateData().breeder.farmName }}</span>
+              </div>
+              <div class="flex border-b border-dotted border-gray-600 pb-1">
+                <span class="font-semibold w-20 text-xs">Código:</span>
+                <span class="text-xs">{{ certificateData().animal.associationId }}</span>
+              </div>
+              <div class="flex border-b border-dotted border-gray-600 pb-1">
+                <span class="font-semibold w-20 text-xs">Propietario:</span>
+                <span class="text-xs">{{ certificateData().owner.farmName }}</span>
+              </div>
+              <div class="flex border-b border-dotted border-gray-600 pb-1">
+                <span class="font-semibold w-20 text-xs">Código:</span>
+                <span class="text-xs">{{ certificateData().owner.id }}</span>
+              </div>
+              <div class="flex border-b border-dotted border-gray-600 pb-1">
+                <span class="font-semibold w-20 text-xs">Dirección:</span>
+                <span class="text-[10px] leading-tight">{{ certificateData().owner.address }}</span>
+              </div>
+            </div>
+            
+            <!-- Registration Info Box -->
+            <div class="bg-white/90 p-2 rounded border border-gray-400 text-center">
+              <div class="text-[10px] font-semibold border-b border-dotted border-gray-400 pb-1 mb-1">REG INTL / ASOC:</div>
+              <div class="text-sm font-bold">N/P</div>
+            </div>
+          </div>
+          
+          <!-- Genealogy Section -->
+          <div class="bg-white/80 p-3 rounded border border-gray-400">
+            
+            <!-- Father Section -->
+            <div class="grid grid-cols-6 gap-2 mb-3">
+              <!-- Father Info -->
+              <div class="col-span-3 bg-gray-100 p-2 rounded border border-gray-400">
+                <div class="text-[10px] font-semibold border-b border-dotted border-gray-400 pb-1 mb-1">Padre:</div>
+                <div class="font-bold text-xs">{{ certificateData().genealogy.father.name }}</div>
+                <div class="text-[10px] mb-1">{{ certificateData().genealogy.father.associationId || 'N/P' }}</div>
+                <div class="bg-white p-1 rounded border text-center mb-1">
+                  <div class="text-[9px] font-semibold">REG /ASOCABRA:</div>
+                  <div class="text-[10px] font-bold">{{ certificateData().genealogy.father.internationalId || 'N/P' }}</div>
+                </div>
+                <div class="bg-white p-1 rounded border text-center">
+                  <div class="text-[9px] font-semibold">REG INTL / ASOC:</div>
+                  <div class="text-[10px] font-bold">N/P</div>
+                </div>
+              </div>
+              
+              <!-- Paternal Grandparents -->
+              <div class="col-span-3 space-y-2">
+                <!-- Paternal Grandfather -->
+                <div class="bg-gray-50 p-2 rounded border border-gray-300">
+                  <div class="text-[9px] font-semibold border-b border-dotted border-gray-400 pb-1 mb-1">Abuelo:</div>
+                  <div class="font-bold text-[10px]">{{ certificateData().genealogy.paternalGrandfather.name }}</div>
+                  <div class="text-[9px]">{{ certificateData().genealogy.paternalGrandfather.associationId || 'sí / s/i' }}</div>
+                  <div class="bg-white p-1 rounded text-center mb-1">
+                    <div class="text-[8px] font-semibold">REG /ASOCABRA:</div>
+                    <div class="text-[9px] font-bold">{{ certificateData().genealogy.paternalGrandfather.internationalId || 'N/P' }}</div>
+                  </div>
+                  <div class="bg-white p-1 rounded text-center">
+                    <div class="text-[8px] font-semibold">REG INTL / ASOC:</div>
+                    <div class="text-[9px] font-bold">N/P</div>
+                  </div>
+                </div>
+                
+                <!-- Paternal Grandmother -->
+                <div class="bg-gray-50 p-2 rounded border border-gray-300">
+                  <div class="text-[9px] font-semibold border-b border-dotted border-gray-400 pb-1 mb-1">Abuela:</div>
+                  <div class="font-bold text-[10px]">{{ certificateData().genealogy.paternalGrandmother.name }}</div>
+                  <div class="text-[9px]">{{ certificateData().genealogy.paternalGrandmother.associationId || 'sí / s/i' }}</div>
+                  <div class="bg-white p-1 rounded text-center mb-1">
+                    <div class="text-[8px] font-semibold">REG /ASOCABRA:</div>
+                    <div class="text-[9px] font-bold">{{ certificateData().genealogy.paternalGrandmother.internationalId || 'N/P' }}</div>
+                  </div>
+                  <div class="bg-white p-1 rounded text-center">
+                    <div class="text-[8px] font-semibold">REG INTL / ASOC:</div>
+                    <div class="text-[9px] font-bold">N/P</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Mother Section -->
+            <div class="grid grid-cols-6 gap-2">
+              <!-- Mother Info -->
+              <div class="col-span-3 bg-gray-100 p-2 rounded border border-gray-400">
+                <div class="text-[10px] font-semibold border-b border-dotted border-gray-400 pb-1 mb-1">Madre:</div>
+                <div class="font-bold text-xs">{{ certificateData().genealogy.mother.name }}</div>
+                <div class="text-[10px] mb-1">{{ certificateData().genealogy.mother.associationId || 'N/P' }}</div>
+                <div class="bg-white p-1 rounded border text-center mb-1">
+                  <div class="text-[9px] font-semibold">REG /ASOCABRA:</div>
+                  <div class="text-[10px] font-bold">{{ certificateData().genealogy.mother.internationalId || 'N/P' }}</div>
+                </div>
+                <div class="bg-white p-1 rounded border text-center">
+                  <div class="text-[9px] font-semibold">REG INTL / ASOC:</div>
+                  <div class="text-[10px] font-bold">N/P</div>
+                </div>
+              </div>
+              
+              <!-- Maternal Grandparents -->
+              <div class="col-span-3 space-y-2">
+                <!-- Maternal Grandfather -->
+                <div class="bg-gray-50 p-2 rounded border border-gray-300">
+                  <div class="text-[9px] font-semibold border-b border-dotted border-gray-400 pb-1 mb-1">Abuelo:</div>
+                  <div class="font-bold text-[10px]">{{ certificateData().genealogy.maternalGrandfather.name }}</div>
+                  <div class="text-[9px]">{{ certificateData().genealogy.maternalGrandfather.associationId || 'sí / s/i' }}</div>
+                  <div class="bg-white p-1 rounded text-center mb-1">
+                    <div class="text-[8px] font-semibold">REG /ASOCABRA:</div>
+                    <div class="text-[9px] font-bold">N/P</div>
+                  </div>
+                  <div class="bg-white p-1 rounded text-center">
+                    <div class="text-[8px] font-semibold">REG INTL / ASOC:</div>
+                    <div class="text-[9px] font-bold">N/P</div>
+                  </div>
+                </div>
+                
+                <!-- Maternal Grandmother -->
+                <div class="bg-gray-50 p-2 rounded border border-gray-300">
+                  <div class="text-[9px] font-semibold border-b border-dotted border-gray-400 pb-1 mb-1">Abuela:</div>
+                  <div class="font-bold text-[10px]">{{ certificateData().genealogy.maternalGrandmother.name }}</div>
+                  <div class="text-[9px]">{{ certificateData().genealogy.maternalGrandmother.associationId || 'sí / s/i' }}</div>
+                  <div class="bg-white p-1 rounded text-center mb-1">
+                    <div class="text-[8px] font-semibold">REG /ASOCABRA:</div>
+                    <div class="text-[9px] font-bold">N/P</div>
+                  </div>
+                  <div class="bg-white p-1 rounded text-center">
+                    <div class="text-[8px] font-semibold">REG INTL / ASOC:</div>
+                    <div class="text-[9px] font-bold">N/P</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Right Column - Certificate Details -->
+        <div class="col-span-4 space-y-3">
+          
+          <!-- Certificate Number Box -->
+          <div class="bg-white/90 p-3 rounded border-2 border-black">
+            <div class="text-right">
+              <div class="text-xs font-semibold">N°:</div>
+              <div class="text-3xl font-bold">{{ certificateData().animal.registrationNumber }}</div>
+              <div class="text-xs font-semibold mt-2">SEXO:</div>
+              <div class="text-lg font-bold">{{ certificateData().animal.sex }}</div>
+              <div class="text-xs font-semibold mt-2">FECHA DE NACIMIENTO:</div>
+              <div class="font-bold">{{ formattedBirthDate() }}</div>
+            </div>
+          </div>
+          
+          <!-- Tattoos Section -->
+          <div class="bg-white/90 p-3 rounded border border-gray-400">
+            <div class="space-y-2">
+              <div class="flex justify-between text-xs">
+                <span class="font-semibold">Tatuaje O.I.</span>
+                <span class="font-bold">{{ certificateData().animal.tattoos.leftEar || 'S/D' }}</span>
+              </div>
+              <div class="flex justify-between text-xs">
+                <span class="font-semibold">Tatuaje O.D.</span>
+                <span class="font-bold">{{ certificateData().animal.tattoos.rightEar || 'S/D' }}</span>
+              </div>
+              <div class="text-xs">
+                <div class="font-semibold">TATUAJE COLA / LABIO:</div>
+                <div class="font-bold text-center">{{ certificateData().animal.tattoos.tailLip || 'N/P' }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Bottom Section -->
+      <div class="grid grid-cols-3 gap-4 mt-4">
+        
+        <!-- Classification Info -->
+        <div class="bg-white/90 p-3 rounded border border-gray-400">
+          <div class="space-y-2 text-xs">
+            <div class="flex justify-between">
+              <span class="font-semibold">Clasificación:</span>
+              <span class="font-bold">{{ certificateData().animal.racialClassification }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="font-semibold">Tipo Racial:</span>
+              <span class="font-bold">{{ certificateData().animal.racialType }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="font-semibold">Fecha de Emisión:</span>
+              <span class="font-bold">{{ formattedIssueDate() }}</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Empty space for additional logos/watermarks -->
+        <div class="flex items-center justify-center">
+          <!-- Watermark logos can be placed here -->
+          <div class="opacity-20">
+            <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center">
+              <div class="text-[6px] font-bold text-center leading-tight">
+                <div>ASOCABRA</div>
+                <div class="text-[4px]">VENEZUELA</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- President Signature -->
+        <div class="bg-white/90 p-3 rounded border border-gray-400">
+          <div class="text-center">
+            <div class="text-xs font-semibold mb-4">Presidente</div>
+            <div class="border-t border-black mt-8 pt-2">
+              <div class="text-[10px]">Firma</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Action Buttons (Hidden in Print Mode) -->
+  @if (!isPrintMode()) {
+    <div class="absolute top-4 right-4 space-x-2 print:hidden">
+      <button 
+        (click)="printCertificate()"
+        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-lg transition-all hover:scale-105">
+        🖨️ Imprimir
+      </button>
+      <button 
+        (click)="downloadCertificate()"
+        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-lg transition-all hover:scale-105">
+        📄 Descargar
+      </button>
+    </div>
+  }
+</div>
