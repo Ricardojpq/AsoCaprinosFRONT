@@ -69,7 +69,6 @@ export class PassportOAuthService {
           this.errorSubject.next(null);
           
           // Los tokens se manejan automáticamente por las cookies
-          console.log('Login exitoso, tokens configurados automáticamente');
         }
       }),
       catchError(error => {
@@ -198,22 +197,17 @@ export class PassportOAuthService {
   }
 
   get idToken(): string {
-    return this.isAuthenticatedSubject.value ? 'valid' : '';
+    return '';
   }
 
   // Verificar sesión inicial
   private checkInitialSession() {
-    console.log('🔍 Verificando sesión inicial...');
     this.validateSession().subscribe({
       next: (isValid) => {
-        if (isValid) {
-          console.log('✅ Sesión válida encontrada al inicializar');
-        } else {
-          console.log('❌ No hay sesión válida al inicializar');
-        }
+        // Sesión verificada
       },
       error: (error) => {
-        console.log('❌ Error al verificar sesión inicial:', error);
+        // Error al verificar sesión inicial
       }
     });
   }
@@ -221,6 +215,5 @@ export class PassportOAuthService {
   // Configurar token manualmente (para Laravel Passport)
   setAccessToken(token: string, expiresIn: number) {
     // Los tokens se manejan automáticamente por las cookies
-    console.log('Token configurado:', token, 'Expira en:', expiresIn);
   }
-} 
+}

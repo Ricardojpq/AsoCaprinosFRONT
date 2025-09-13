@@ -5,6 +5,7 @@ import { Layout } from '@layout/layout';
 import { AuthGuard } from '@core/guards/auth-guard';
 import { NoAuthGuard } from '@core/guards/no-auth-guard';
 import { CanDeactivateGuard } from '@core/guards/can-deactivate-guard';
+import { CertificatePage1 } from '@features/certificates/components/certificate-page1/certificate-page1';
 
 export const routes: Routes = [
     {
@@ -34,6 +35,10 @@ export const routes: Routes = [
                 path: 'Members',
                 loadComponent: () => import('@features/members/members').then(c => c.Members)
             },
+            {
+                path: 'test',
+                loadComponent: () => import('@features/certificates/components/certificate-page1/certificate-page1').then(c => c.CertificatePage1)
+            }
         ]
     },
     {

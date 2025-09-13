@@ -82,7 +82,7 @@ export class AnimalsService {
     }));
   }
 
-  addAnimal$(data: AnimalCreateDto): Observable<AnimalDto> {
+  addAnimal$(data: Partial<AnimalCreateDto>): Observable<AnimalDto> {
     try {
       const uri = ApiAnimals.AddAnimal(this.animalsURL);
       return this.httpClient.post<ApiResponseSuccess<AnimalDto>>(uri, data).pipe(

@@ -63,10 +63,8 @@ export class JwtTest {
   ) {}
 
   loginAdmin() {
-    console.log('🔄 Iniciando login como Admin...');
     this.jwtAuthService.login('admin@asocabra.com', 'password123').subscribe({
       next: (response: any) => {
-        console.log('✅ Login Admin exitoso:', response);
         this.error = '';
       },
       error: (error: any) => {
@@ -77,10 +75,8 @@ export class JwtTest {
   }
 
   loginUser() {
-    console.log('🔄 Iniciando login como User...');
     this.jwtAuthService.login('user@asocabra.com', 'password123').subscribe({
       next: (response: any) => {
-        console.log('✅ Login User exitoso:', response);
         this.error = '';
       },
       error: (error: any) => {
@@ -91,10 +87,8 @@ export class JwtTest {
   }
 
   loadUserProfile() {
-    console.log('👤 Cargando perfil de usuario...');
     this.jwtAuthService.loadUserProfile().subscribe({
       next: (user: any) => {
-        console.log('✅ Perfil cargado:', user);
         this.userProfile = user;
         this.error = '';
       },
@@ -106,7 +100,6 @@ export class JwtTest {
   }
 
   logout() {
-    console.log('🚪 Haciendo logout...');
     this.jwtAuthService.logout();
     this.userProfile = null;
     this.error = '';

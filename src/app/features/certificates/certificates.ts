@@ -1,28 +1,49 @@
-import { ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { TableModule } from 'primeng/table';
-import { Dialog, DialogModule } from 'primeng/dialog';
-import { Ripple } from 'primeng/ripple';
+import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
 import { ToolbarModule } from 'primeng/toolbar';
-import { ConfirmDialog, ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
-import { CommonModule } from '@angular/common';
-import { FileUpload, FileUploadModule } from 'primeng/fileupload';
+import { FileUploadModule } from 'primeng/fileupload';
 import { SelectModule } from 'primeng/select';
-import { Tag, TagModule } from 'primeng/tag';
-import { RadioButton } from 'primeng/radiobutton';
-import { Rating } from 'primeng/rating';
+import { TagModule } from 'primeng/tag';
 import { FormsModule } from '@angular/forms';
-import { InputNumber } from 'primeng/inputnumber';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { Table } from 'primeng/table';
-import { ProductService } from '@core/services/product-service/product-service';
 import { GalleriaModule } from 'primeng/galleria';
-import { LucideAngularModule, Pencil, Trash2,Plus,Upload,Search  } from 'lucide-angular';
+import {
+  LucideAngularModule,
+  PrinterCheck,
+  Trash2,
+  Plus,
+  Upload,
+  Search,
+  Eye,
+} from 'lucide-angular';
+import { CertificatesService } from './services/certificates-service';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { CertificateViewer } from './components/certificate-viewer/certificate-viewer';
+import { PdfGeneratorService } from '@core/services/pdf-generator.service';
+import {
+  CertificateDto,
+  CertificateTableData,
+  CertificateFormData,
+  CreateCertificateDto,
+} from './models/certificate.dto';
+import { CertificatePage1 } from './components/certificate-page1/certificate-page1';
+import { CertificatePage2 } from './components/certificate-page2/certificate-page2';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 interface Column {
   field: string;
   header: string;
@@ -34,18 +55,6 @@ interface ExportColumn {
   dataKey: string;
 }
 
-interface Product {
-  id?: string;
-  code?: string;
-  name?: string;
-  description?: string;
-  price?: number;
-  quantity?: number;
-  inventoryStatus?: string;
-  category?: string;
-  image?: string;
-  rating?: number;
-}
 @Component({
   selector: 'app-certificates',
   imports: [
@@ -64,31 +73,56 @@ interface Product {
     ToastModule,
     InputTextModule,
     LucideAngularModule,
-    TextareaModule
+    TextareaModule,
+    ProgressSpinnerModule,
+    CertificateViewer,
+    CertificatePage1,
+    CertificatePage2,
   ],
   templateUrl: './certificates.html',
   styleUrl: './certificates.css',
-  providers: [MessageService, ConfirmationService, ProductService],
+  providers: [MessageService, ConfirmationService],
 })
-
 export class Certificates implements OnInit {
   readonly trashIcon = Trash2;
-  readonly pencilIcon = Pencil;
+  readonly printerIcon = PrinterCheck;
   readonly plusIcon = Plus;
   readonly uploadIcon = Upload;
   readonly searchIcon = Search;
+  readonly eyeIcon = Eye;
 
-  productDialog: boolean = false;
+  @ViewChild('certificatePage1', { read: ElementRef }) page1Ref!: ElementRef;
+  @ViewChild('certificatePage2', { read: ElementRef }) page2Ref!: ElementRef;
 
-  products!: Product[];
+  isLoading = false;
+  pdfUrl: SafeResourceUrl | null = null;
+  error: string | null = null;
 
-  product!: Product;
+  certificateDialog: boolean = false;
 
-  selectedProducts!: Product[] | null;
+  certificates: CertificateTableData[] = [];
+
+  certificate: CreateCertificateDto = this.getEmptyCreateCertificate();
+  isEditMode: boolean = false;
+  editCertificate: CertificateFormData = this.getEmptyCertificate();
+
+  selectedCertificates: CertificateTableData[] | null = null;
 
   submitted: boolean = false;
 
-  statuses!: any[];
+  // Paginación
+  currentPage: number = 1;
+  totalRecords: number = 0;
+  pageSize: number = 10;
+  loading: boolean = false;
+
+  // Filtros
+  searchTerm: string = '';
+  filters = {
+    cod_animal: '',
+    cod_criador: '',
+    cod_propietario: '',
+  };
 
   @ViewChild('dt') dt!: Table;
 
@@ -96,118 +130,291 @@ export class Certificates implements OnInit {
 
   exportColumns!: ExportColumn[];
 
+  // Modal para visualizar PDF
+  pdfViewerDialog: boolean = false;
+
+  certificateData!: CertificateDto;
+
   constructor(
-    private productService: ProductService,
     private messageService: MessageService,
     private confirmationService: ConfirmationService,
-    private cd: ChangeDetectorRef
-  ) { }
+    private certificatesService: CertificatesService,
+    private pdfGeneratorService: PdfGeneratorService,
+    private sanitizer: DomSanitizer
+  ) {}
 
   exportCSV(event: any) {
     this.dt.exportCSV();
   }
 
   ngOnInit() {
-    this.loadDemoData();
+    this.loadCertificatesData();
   }
 
-  loadDemoData() {
-    this.productService.getProducts().then((data) => {
-      this.products = data;
-      this.cd.markForCheck();
-    });
+  loadCertificatesData() {
+    this.loading = true;
 
-    this.statuses = [
-      { label: 'INSTOCK', value: 'instock' },
-      { label: 'LOWSTOCK', value: 'lowstock' },
-      { label: 'OUTOFSTOCK', value: 'outofstock' }
-    ];
+    const searchFilters = {
+      ...this.filters,
+      search: this.searchTerm || undefined,
+    };
+
+    this.certificatesService
+      .getCertificates(this.currentPage, this.pageSize, searchFilters)
+      .subscribe({
+        next: (response: any) => {
+          // El backend devuelve 'status' en lugar de 'success'
+          if (
+            (response.success || response.status === 'success') &&
+            response.data
+          ) {
+            console.log('Certificates data:', response);
+            // Convertir los datos del backend al formato de tabla
+            this.certificates = this.certificatesService.mapToTableData(
+              response.data.data
+            );
+            this.totalRecords = response.data.total;
+            this.currentPage = response.data.current_page;
+          }
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('Error loading certificates:', error);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Error al cargar certificados',
+          });
+          this.loading = false;
+        },
+      });
 
     this.cols = [
-      { field: 'code', header: 'Code', customExportHeader: 'Product Code' },
-      { field: 'name', header: 'Name' },
-      { field: 'image', header: 'Image' },
-      { field: 'price', header: 'Price' },
-      { field: 'category', header: 'Category' }
+      { field: 'numero_certificado', header: 'Número de Certificado' },
+      { field: 'nomb_animal', header: 'Nombre del Animal' },
+      { field: 'cod_animal', header: 'Código del Animal' },
+      { field: 'nombre_criador', header: 'Criador' },
+      { field: 'nombre_propietario', header: 'Propietario' },
+      { field: 'nombre_clasificador', header: 'Clasificador' },
+      { field: 'fecha_emision', header: 'Fecha de Emisión' },
     ];
 
-    this.exportColumns = this.cols.map((col) => ({ title: col.header, dataKey: col.field }));
+    this.exportColumns = this.cols.map((col) => ({
+      title: col.header,
+      dataKey: col.field,
+    }));
   }
 
   openNew() {
-    this.product = {};
+    this.certificate = this.getEmptyCreateCertificate();
+    this.isEditMode = false;
     this.submitted = false;
-    this.productDialog = true;
+    this.certificateDialog = true;
   }
 
-  editProduct(product: Product) {
-    this.product = { ...product };
-    this.productDialog = true;
+  private getEmptyCreateCertificate(): CreateCertificateDto {
+    return {
+      cod_animal: '',
+      ced_clasificador: '',
+      observaciones: '',
+    };
   }
 
-  deleteSelectedProducts() {
+  private getEmptyCertificate(): CertificateFormData {
+    return {
+      cod_animal: '',
+      cod_finca: '',
+      cod_criador: '',
+      cod_propietario: '',
+      cod_clasificador: '',
+      fecha_emision: new Date().toISOString().split('T')[0],
+      observaciones: '',
+    };
+  }
+
+  async viewCertificate(certificate: CertificateTableData) {
+    if (!certificate.id) return;
+
+    try {
+      this.pdfViewerDialog = true;
+      this.isLoading = true;
+
+      this.certificatesService
+        .getCertificateCompleteInfo(certificate.id)
+        .subscribe({
+          next: async (response: any) => {
+            if (
+              (response.success || response.status === 'success') &&
+              response.data
+            ) {
+              this.certificateData = response.data;
+              let success = await this.generatePDFForViewing();
+              if (success) this.isLoading = false;
+            }
+          },
+          error: (error) => {
+            this.isLoading = false;
+            console.error('Error loading certificate info:', error);
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'Error al cargar información del certificado',
+            });
+          },
+        });
+    } catch (error) {
+      console.error(error);
+      this.isLoading = false;
+    }
+  }
+
+  async handleDownloadCertificate(certificate: CertificateTableData) {
+    if (!certificate.id) return;
+    this.messageService.add({
+      severity: 'info',
+      summary: 'Procesando descarga',
+      detail: 'Generando PDF, por favor espere...',
+    });
+    try {
+      this.certificatesService
+        .getCertificateCompleteInfo(certificate.id)
+        .subscribe({
+          next: async (response: any) => {
+            if (
+              (response.success || response.status === 'success') &&
+              response.data
+            ) {
+              this.certificateData = response.data;
+              console.log('Certificate data for PDF:', response.data);
+
+              try {
+                await this.downloadCertificate();
+              } catch (pdfError) {
+                console.error('Error generating PDF:', pdfError);
+                this.messageService.add({
+                  severity: 'error',
+                  summary: 'Error',
+                  detail: 'Error al generar el PDF',
+                });
+              }
+            }
+          },
+          error: (error) => {
+            console.error('Error loading certificate info:', error);
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'Error al cargar información del certificado',
+            });
+          },
+        });
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  deleteSelectedCertificates() {
+    if (!this.selectedCertificates || this.selectedCertificates.length === 0)
+      return;
+
     this.confirmationService.confirm({
-      message: 'Are you sure you want to delete the selected products?',
-      header: 'Confirm',
+      message:
+        '¿Está seguro de que desea eliminar los certificados seleccionados?',
+      header: 'Confirmar',
       icon: 'pi pi-exclamation-triangle',
       rejectButtonProps: {
         label: 'No',
         severity: 'secondary',
-        variant: 'text'
+        variant: 'text',
       },
       acceptButtonProps: {
         severity: 'danger',
-        label: 'Yes'
+        label: 'Sí',
       },
       accept: () => {
-        this.products = this.products.filter((val) => !this.selectedProducts?.includes(val));
-        this.selectedProducts = null;
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Successful',
-          detail: 'Products Deleted',
-          life: 3000
+        const deletePromises = this.selectedCertificates!.map((cert) => {
+          if (cert.id) {
+            return this.certificatesService
+              .deleteCertificate(cert.id)
+              .toPromise();
+          }
+          return Promise.resolve();
         });
-      }
+
+        Promise.all(deletePromises)
+          .then(() => {
+            this.loadCertificatesData();
+            this.selectedCertificates = null;
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Exitoso',
+              detail: 'Certificados eliminados correctamente',
+              life: 3000,
+            });
+          })
+          .catch((error) => {
+            console.error('Error deleting certificates:', error);
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'Error al eliminar certificados',
+            });
+          });
+      },
     });
   }
 
   hideDialog() {
-    this.productDialog = false;
+    this.certificateDialog = false;
     this.submitted = false;
   }
 
-  deleteProduct(product: Product) {
+  deleteCertificate(certificate: CertificateTableData) {
+    if (!certificate.id) return;
+
     this.confirmationService.confirm({
-      message: 'Are you sure you want to delete ' + product.name + '?',
-      header: 'Confirm',
+      message: `¿Está seguro de que desea eliminar el certificado ${certificate.numero_certificado}?`,
+      header: 'Confirmar',
       icon: 'pi pi-exclamation-triangle',
       rejectButtonProps: {
         label: 'No',
         severity: 'secondary',
-        variant: 'text'
+        variant: 'text',
       },
       acceptButtonProps: {
         severity: 'danger',
-        label: 'Yes'
+        label: 'Sí',
       },
       accept: () => {
-        this.products = this.products.filter((val) => val.id !== product.id);
-        this.product = {};
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Successful',
-          detail: 'Product Deleted',
-          life: 3000
+        this.certificatesService.deleteCertificate(certificate.id!).subscribe({
+          next: (response: any) => {
+            if (response.success || response.status === 'success') {
+              this.loadCertificatesData();
+              this.messageService.add({
+                severity: 'success',
+                summary: 'Exitoso',
+                detail: 'Certificado eliminado correctamente',
+                life: 3000,
+              });
+            }
+          },
+          error: (error) => {
+            console.error('Error deleting certificate:', error);
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'Error al eliminar certificado',
+            });
+          },
         });
-      }
+      },
     });
   }
 
-  findIndexById(id: string): number {
+  findIndexById(id: number): number {
     let index = -1;
-    for (let i = 0; i < this.products.length; i++) {
-      if (this.products[i].id === id) {
+    for (let i = 0; i < this.certificates.length; i++) {
+      if (this.certificates[i].id === id) {
         index = i;
         break;
       }
@@ -218,53 +425,245 @@ export class Certificates implements OnInit {
 
   createId(): string {
     let id = '';
-    var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var chars =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     for (var i = 0; i < 5; i++) {
       id += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     return id;
   }
 
-  getSeverity(status: string) {
-    switch (status) {
-      case 'INSTOCK':
-        return 'success';
-      case 'LOWSTOCK':
-        return 'warn';
-      case 'OUTOFSTOCK':
-        return 'danger';
-      default:
-        return 'warn';
+  formatDate(dateString: string): string {
+    return this.certificatesService.formatDate(dateString);
+  }
+
+  onPageChange(event: any) {
+    this.currentPage = event.page + 1;
+    this.pageSize = event.rows;
+    this.loadCertificatesData();
+  }
+
+  onSearch(event: any) {
+    this.searchTerm = event.target.value;
+    this.currentPage = 1;
+    this.loadCertificatesData();
+  }
+
+  editCertificateData(certificate: CertificateTableData) {
+    if (!certificate.id) return;
+
+    this.certificatesService.getCertificateById(certificate.id).subscribe({
+      next: (response: any) => {
+        if (
+          (response.success || response.status === 'success') &&
+          response.data
+        ) {
+          this.editCertificate = {
+            id: response.data.id,
+            cod_animal: response.data.cod_animal || '',
+            cod_finca: response.data.cod_finca || '',
+            cod_criador: response.data.cod_criador || '',
+            cod_propietario: response.data.cod_propietario || '',
+            cod_clasificador: response.data.cod_clasificador || '',
+            fecha_emision: response.data.fecha_emision || '',
+            observaciones: response.data.observaciones || '',
+          };
+          this.isEditMode = true;
+          this.certificateDialog = true;
+        }
+      },
+      error: (error) => {
+        console.error('Error loading certificate:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Error al cargar certificado',
+        });
+      },
+    });
+  }
+
+  saveCertificate() {
+    this.submitted = true;
+
+    if (this.isEditMode) {
+      // Actualizar certificado existente
+      const errors = this.certificatesService.validateCertificateData(
+        this.editCertificate
+      );
+      if (errors.length > 0) {
+        errors.forEach((error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error de validación',
+            detail: error,
+          });
+        });
+        return;
+      }
+
+      this.certificatesService
+        .updateCertificate(this.editCertificate.id!, this.editCertificate)
+        .subscribe({
+          next: (response: any) => {
+            if (response.success || response.status === 'success') {
+              // Cerrar modal
+              this.certificateDialog = false;
+              // Limpiar formularios
+              this.certificate = this.getEmptyCreateCertificate();
+              this.editCertificate = this.getEmptyCertificate();
+              // Refrescar tabla
+              this.loadCertificatesData();
+              // Mostrar mensaje de éxito
+              this.messageService.add({
+                severity: 'success',
+                summary: 'Éxito',
+                detail: 'Certificado actualizado correctamente',
+                life: 3000,
+              });
+            }
+          },
+          error: (error) => {
+            console.error('Error updating certificate:', error);
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'Error al actualizar certificado',
+            });
+          },
+        });
+    } else {
+      // Crear nuevo certificado (método simplificado)
+      const errors = this.certificatesService.validateCreateCertificateData(
+        this.certificate
+      );
+      if (errors.length > 0) {
+        errors.forEach((error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error de validación',
+            detail: error,
+          });
+        });
+        return;
+      }
+
+      this.certificatesService.createCertificate(this.certificate).subscribe({
+        next: (response: any) => {
+          if (response.success || response.status === 'success') {
+            // Cerrar modal
+            this.certificateDialog = false;
+            // Limpiar formulario
+            this.certificate = this.getEmptyCreateCertificate();
+            // Refrescar tabla
+            this.loadCertificatesData();
+            // Mostrar mensaje de éxito
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Éxito',
+              detail: 'Certificado creado correctamente',
+              life: 3000,
+            });
+          }
+        },
+        error: (error) => {
+          console.error('Error creating certificate:', error);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: error.error?.message || 'Error al crear certificado',
+          });
+        },
+      });
     }
   }
 
-  saveProduct() {
-    this.submitted = true;
+  /**
+   * Cierra el modal del visor de PDF y limpia la URL
+   */
+  closePdfViewer() {
+    this.pdfViewerDialog = false;
+  }
 
-    if (this.product.name?.trim()) {
-      if (this.product.id) {
-        this.products[this.findIndexById(this.product.id)] = this.product;
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Successful',
-          detail: 'Product Updated',
-          life: 3000
-        });
-      } else {
-        this.product.id = this.createId();
-        this.product.image = 'product-placeholder.svg';
-        this.products.push(this.product);
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Successful',
-          detail: 'Product Created',
-          life: 3000
-        });
+  /**
+   * Genera el PDF para visualización embebida
+   */
+  async generatePDFForViewing(): Promise<boolean> {
+    try {
+      this.error = null;
+
+      if (!this.page1Ref?.nativeElement) {
+        throw new Error('No se encontró el elemento de la página 1');
       }
 
-      this.products = [...this.products];
-      this.productDialog = false;
-      this.product = {};
+      // Buscar el elemento real del certificado dentro del contenedor
+      const page1Element =
+        this.page1Ref.nativeElement.querySelector('app-certificate-page1') ||
+        this.page1Ref.nativeElement.querySelector('.container-certificate') ||
+        this.page1Ref.nativeElement;
+
+      const page2Element =
+        this.page2Ref?.nativeElement.querySelector('app-certificate-page2') ||
+        this.page2Ref?.nativeElement.querySelector('.certificate-page-2') ||
+        this.page2Ref?.nativeElement;
+
+      const animalName =
+        this.certificateData?.animal?.nomb_animal || 'certificado';
+
+      // Generar PDF como blob
+      const { blob } =
+        await this.pdfGeneratorService.generateCertificatePDFBlob(
+          page1Element as HTMLElement,
+          page2Element as HTMLElement,
+          animalName
+        );
+
+      // Crear URL para el PDF embebido
+      const url = URL.createObjectURL(blob);
+      this.pdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+      return true;
+    } catch (error) {
+      console.error('Error al generar PDF:', error);
+      this.error = 'Error al generar el PDF: ' + (error as Error).message;
+      return false;
+    }
+  }
+
+  /**
+   * Descarga el PDF del certificado
+   */
+  async downloadCertificate(): Promise<void> {
+    try {
+      if (!this.page1Ref?.nativeElement) {
+        throw new Error('No se encontró el elemento de la página 1');
+      }
+
+      const page1Element =
+        this.page1Ref.nativeElement.querySelector('app-certificate-page1') ||
+        this.page1Ref.nativeElement.querySelector('.container-certificate') ||
+        this.page1Ref.nativeElement;
+
+      const page2Element =
+        this.page2Ref?.nativeElement.querySelector('app-certificate-page2') ||
+        this.page2Ref?.nativeElement.querySelector('.certificate-page-2') ||
+        this.page2Ref?.nativeElement;
+
+      const animalName =
+        this.certificateData?.animal?.nomb_animal || 'certificado';
+
+      await this.pdfGeneratorService.generateCertificatePDF(
+        page1Element as HTMLElement,
+        page2Element as HTMLElement,
+        animalName
+      );
+    } catch (error) {
+      console.error('Error al descargar PDF:', error);
+    } finally {
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Éxito',
+        detail: 'PDF descargado correctamente',
+      });
     }
   }
 }

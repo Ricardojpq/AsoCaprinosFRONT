@@ -17,29 +17,29 @@ import {
 export interface MemberQueryParams {
   ced_socio?: string;
   cod_finca?: number;
-  estatus_socio?: 'A' | 'I';
-  nom_persona?: string;
-  ape_persona?: string;
+  estatus_socio?: string;
+  is_active?: boolean;
   global_search?: string;
   per_page?: 10 | 25 | 50 | 100;
-  sort_by?: 'ced_socio' | 'estatus_socio' | 'created_at' | 'updated_at' | 'cod_finca';
+  sort_by?: 'ced_socio' | 'cod_finca' | 'estatus_socio' | 'fec_ingreso' | 'created_at';
   sort_dir?: 'asc' | 'desc';
+  page?: number;
   [key: string]: any;
 }
 
 export interface MemberSearchParams {
-  cedula?: string;
-  nombre_completo?: string;
+  ced_socio?: string;
   cod_finca?: number;
-  estatus?: 'A' | 'I';
+  estatus_socio?: string;
+  is_active?: boolean;
   [key: string]: any;
 }
 
 // Tipo para la respuesta real del backend
 interface MemberListApiResponse {
   status: string;
-  data: string; // El mensaje
-  message: PaginatedMembersDto; // Los datos reales
+  message: string;
+  data: PaginatedMembersDto;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -118,20 +118,26 @@ export class MembersService {
   /**
    * Obtener lista paginada de socios
    */
-  getMembers$(query: MemberQueryParams = {}): Observable<PaginatedMembersDto> {
+  private buildQueryParams(params: MemberQueryParams): string {
+    let httpParams = new HttpParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        httpParams = httpParams.set(key, value.toString());
+      }
+    });
+    return httpParams.toString();
+  }
+
+  getMembers$(params: MemberQueryParams): Observable<PaginatedMembersDto> {
     try {
-      let params = new HttpParams();
-      Object.entries(query).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== '') {
-          params = params.set(key, value as string);
-        }
-      });
+      const queryParams = this.buildQueryParams(params);
+      const uri = `${this.membersURL}?${queryParams}`;
       
-      return this.httpClient.get<MemberListApiResponse>(this.membersURL, { params }).pipe(
+      return this.httpClient.get<any>(uri).pipe(
         map(res => {
           if (res.status === 'success' && res.message) {
-            // El backend devuelve los datos en 'message' y el mensaje en 'data'
-            return res.message as PaginatedMembersDto;
+            // The API returns data in 'message' field, not 'data'
+            return res.message;
           } else {
             throw new Error('Respuesta inválida del servidor');
           }

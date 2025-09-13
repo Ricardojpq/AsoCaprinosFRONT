@@ -105,10 +105,38 @@ export class Animals implements OnInit, OnDestroy {
   ];
 
   statusOptions = [
-    { label: 'Activo', value: 'A' },
+    { label: 'ACTIVO', value: 'ACTIVO' },
     { label: 'Vendido', value: 'Vendido' },
     { label: 'Retirado', value: 'Retirado' },
     { label: 'Enfermo', value: 'Enfermo' },
+  ];
+
+  origenOptions = [
+    { label: 'NACIDO EN FINCA', value: 'NACIDO EN FINCA' },
+    { label: 'COMPRADO', value: 'COMPRADO' },
+    { label: 'TRANSFERIDO', value: 'TRANSFERIDO' },
+  ];
+
+  tipoConcepcionOptions = [
+    { label: 'MONTA NATURAL', value: 'MONTA NATURAL' },
+    { label: 'INSEMINACION ARTIFICIAL', value: 'INSEMINACION ARTIFICIAL' },
+    { label: 'TRANSFERENCIA EMBRIONARIA', value: 'TRANSFERENCIA EMBRIONARIA' },
+  ];
+
+  tipoPartoOptions = [
+    { label: 'SIMPLE', value: 'SIMPLE' },
+    { label: 'GEMELAR', value: 'GEMELAR' },
+    { label: 'TRIPLE', value: 'TRIPLE' },
+  ];
+
+  materialGeneticoOptions = [
+    { label: 'NACIONAL', value: 'NACIONAL' },
+    { label: 'IMPORTADO', value: 'IMPORTADO' },
+  ];
+
+  protocoloImportacionOptions = [
+    { label: 'SI', value: 'SI' },
+    { label: 'NO', value: 'NO' },
   ];
 
   constructor(
@@ -119,13 +147,20 @@ export class Animals implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.cols = [
-      { field: 'cod_animal', header: 'Código' },
+      { field: 'cod_finca', header: 'Id Finca' },
       { field: 'nomb_animal', header: 'Nombre' },
-
+      { field: 'fec_nacim', header: 'Fec Nac' },
       { field: 'sexo_animal', header: 'Sexo' },
-      { field: 'fec_nacim', header: 'Fecha Nacimiento' },
-      { field: 'cod_raza', header: 'Raza' },
-      { field: 'estatus', header: 'Estado' },
+      { field: 'imagen', header: 'Imagen' },
+      { field: 'raza_info.nomb_raza', header: 'Raza' },
+      { field: 'estatus', header: 'Estatus' },
+      { field: 'origen', header: 'Origen' },
+      { field: 'tipo_concepcion', header: 'Tipo Concepción' },
+      { field: 'tipo_parto', header: 'Tipo Parto' },
+      { field: 'comp_racial', header: 'C. Racial' },
+      { field: 'porc_racial', header: '% Racial' },
+      { field: 'criador.nomb_finca', header: 'Criador' },
+      { field: 'propietario.nomb_finca', header: 'Propietario' },
     ];
     this.sortField = 'nomb_animal'; // Cambiar de 'cod_animal' a 'nomb_animal'
 
@@ -224,18 +259,32 @@ export class Animals implements OnInit, OnDestroy {
 
   openNew() {
     this.animal = {
-      cod_finca: 'FINCA001', // Valor por defecto
+      cod_finca: 1, // Valor por defecto
       cod_animal: '',
       nomb_animal: '',
       sexo_animal: 'M',
-      estatus: 'A',
-      fec_ingreso: new Date().toISOString().split('T')[0], // Fecha actual
-      cod_raza: '',
-      peso_actual: '0',
-      peso_al_nacer: '0',
-      cod_color: '',
-      tatuaje: '',
-      observac: '',
+      estatus: 'ACTIVO',
+      fec_nacim: new Date().toISOString().split('T')[0],
+      fec_ingreso: new Date().toISOString().split('T')[0],
+      cod_raza: 1,
+      cod_color: 1,
+      origen: 'NACIDO EN FINCA',
+      tipo_concepcion: 'MONTA NATURAL',
+      tipo_parto: 'SIMPLE',
+      material_genetico: 'NACIONAL',
+      protocolo_importacion: 'SI',
+      peso_al_nacer: 0,
+      fec_destete: '',
+      peso_al_destete: 0,
+      codigo_aso: '',
+      tatuaje_oreja_izq: '',
+      tatuaje_oreja_der: '',
+      tatuaje_cola: '',
+      comp_racial: 0,
+      porc_racial: 0,
+      precio_con_igv: 0,
+      stock_minimo: 0,
+      imagen: '',
     };
     this.isEditMode = false;
     this.animalDialog = true;
@@ -257,7 +306,7 @@ export class Animals implements OnInit, OnDestroy {
       accept: () => {
         this.loading = true;
         this.animalsService
-          .deleteAnimal$(animal.cod_finca, animal.cod_animal)
+          .deleteAnimal$(animal.cod_finca.toString(), animal.cod_animal)
           .subscribe({
             next: () => {
               this.loadAnimals();
@@ -292,7 +341,7 @@ export class Animals implements OnInit, OnDestroy {
       accept: () => {
         this.loading = true;
         const deletes = this.selectedAnimals.map((a) =>
-          this.animalsService.deleteAnimal$(a.cod_finca, a.cod_animal)
+          this.animalsService.deleteAnimal$(a.cod_finca.toString(), a.cod_animal)
         );
         Promise.all(deletes.map((obs) => firstValueFrom(obs)))
           .then(() => {
@@ -341,7 +390,7 @@ export class Animals implements OnInit, OnDestroy {
         severity: 'error',
         summary: 'Error',
         detail:
-          'Completa todos los campos obligatorios (Código de Finca, Código de Animal, Nombre, Sexo)',
+          'Completa todos los campos obligatorios marcados con *',
         life: 3000,
       });
       return;
@@ -368,7 +417,7 @@ export class Animals implements OnInit, OnDestroy {
 
       this.animalsService
         .updateAnimal$(
-          this.animal.cod_finca,
+          this.animal.cod_finca.toString(),
           this.animal.cod_animal,
           updateData
         )
@@ -405,7 +454,7 @@ export class Animals implements OnInit, OnDestroy {
         });
     } else {
       // Create - enviar todos los campos requeridos
-      const createData: AnimalCreateDto = {
+      const createData: Partial<AnimalCreateDto> = {
         cod_finca: this.animal.cod_finca!,
         cod_animal: this.animal.cod_animal!,
         nomb_animal: this.animal.nomb_animal!,
@@ -413,14 +462,15 @@ export class Animals implements OnInit, OnDestroy {
         fec_ingreso:
           this.animal.fec_ingreso || new Date().toISOString().split('T')[0],
         estatus: this.animal.estatus || 'A',
-        cod_raza: this.animal.cod_raza || '',
-        peso_actual: this.animal.peso_actual || '0',
-        peso_al_nacer: this.animal.peso_al_nacer || '0',
+        cod_raza: this.animal.cod_raza || 0,
+        peso_actual: this.animal.peso_actual || 0,
+        peso_al_nacer: this.animal.peso_al_nacer || 0,
         fec_nacim: this.animal.fec_nacim,
-        cod_color: this.animal.cod_color || '',
+        cod_color: this.animal.cod_color || 0,
         tatuaje: this.animal.tatuaje || '',
         observac: this.animal.observac || '',
-        foto: this.animal.foto?.toString() || undefined,
+        foto: this.animal.foto || undefined,
+
       };
 
       this.animalsService.addAnimal$(createData).subscribe({
@@ -459,10 +509,11 @@ export class Animals implements OnInit, OnDestroy {
 
   getStatusClass(status: string): string {
     switch (status) {
+      case 'ACTIVO':
       case 'Activo':
-        return 'primary';
-      case 'Vendido':
         return 'success';
+      case 'Vendido':
+        return 'info';
       case 'Enfermo':
         return 'danger';
       case 'Retirado':

@@ -76,32 +76,45 @@
         <th style="width: 3rem">
           <p-tableHeaderCheckbox />
         </th>
-        <th style="min-width: 10rem">Código</th>
+        <th pSortableColumn="cod_finca" style="min-width: 8rem">
+          <div class="flex items-center gap-2">
+            Id Finca
+            <p-sortIcon field="cod_finca" />
+          </div>
+        </th>
         <th pSortableColumn="nomb_animal" style="min-width: 12rem">
           <div class="flex items-center gap-2">
             Nombre
             <p-sortIcon field="nomb_animal" />
           </div>
         </th>
-        <th pSortableColumn="sexo_animal" style="min-width: 8rem">
+        <th pSortableColumn="fec_nacim" style="min-width: 10rem">
+          <div class="flex items-center gap-2">
+            Fec Nac
+            <p-sortIcon field="fec_nacim" />
+          </div>
+        </th>
+        <th pSortableColumn="sexo_animal" style="min-width: 6rem">
           <div class="flex items-center gap-2">
             Sexo
             <p-sortIcon field="sexo_animal" />
           </div>
         </th>
-        <th pSortableColumn="fec_nacim" style="min-width: 12rem">
-          <div class="flex items-center gap-2">
-            Fecha Nacimiento
-            <p-sortIcon field="fec_nacim" />
-          </div>
-        </th>
+        <th style="min-width: 8rem">Imagen</th>
         <th style="min-width: 8rem">Raza</th>
         <th pSortableColumn="estatus" style="min-width: 8rem">
           <div class="flex items-center gap-2">
-            Status
+            Estatus
             <p-sortIcon field="estatus" />
           </div>
         </th>
+        <th style="min-width: 10rem">Origen</th>
+        <th style="min-width: 12rem">Tipo Concepción</th>
+        <th style="min-width: 10rem">Tipo Parto</th>
+        <th style="min-width: 8rem">C. Racial</th>
+        <th style="min-width: 8rem">% Racial</th>
+        <th style="min-width: 12rem">Criador</th>
+        <th style="min-width: 12rem">Propietario</th>
         <th style="min-width: 8rem">Acciones</th>
       </tr>
     </ng-template>
@@ -110,24 +123,36 @@
         <td style="width: 3rem">
           <p-tableCheckbox [value]="animal" />
         </td>
-        <td>{{ animal.cod_animal }}</td>
+        <td>{{ animal.cod_finca }}</td>
         <td>{{ animal.nomb_animal }}</td>
+        <td>{{ animal.fec_nacim | date : "dd/MM/yyyy" }}</td>
         <td>
           <p-tag
-            [value]="animal.sexo_animal === 'H' ? 'Hembra' : 'Macho'"
+            [value]="animal.sexo_animal === 'H' ? 'H' : 'M'"
             [severity]="animal.sexo_animal === 'H' ? 'danger' : 'primary'"
-            [styleClass]="animal.sexo_animal === 'M' ? 'bg-golden-100' : ''"
           ></p-tag>
         </td>
-        <td>{{ animal.fec_nacim | date : "dd/MM/yyyy" }}</td>
-        <td>{{ animal.cod_raza }}</td>
+        <td>
+          @if (animal.imagen) {
+            <img [src]="animal.imagen" alt="Animal" class="w-8 h-8 rounded" />
+          } @else {
+            <span class="text-gray-400">Sin imagen</span>
+          }
+        </td>
+        <td>{{ animal.raza_info?.nomb_raza || 'N/A' }}</td>
         <td>
           <p-tag
             [value]="animal.estatus"
             [severity]="getStatusClass(animal.estatus)"
-            [styleClass]="getStatusClass(animal.estatus) === 'primary' ? 'bg-golden-100' : ''"
           ></p-tag>
         </td>
+        <td>{{ animal.origen || 'N/A' }}</td>
+        <td>{{ animal.tipo_concepcion || 'N/A' }}</td>
+        <td>{{ animal.tipo_parto || 'N/A' }}</td>
+        <td>{{ animal.comp_racial || '0.00' }}</td>
+        <td>{{ animal.porc_racial || '0.00' }}</td>
+        <td>{{ animal.criador?.nomb_finca || 'N/A' }}</td>
+        <td>{{ animal.propietario?.nomb_finca || 'N/A' }}</td>
         <td>
           <p-button
             class="mr-2"
@@ -154,197 +179,417 @@
 
   <p-dialog
     [(visible)]="animalDialog"
-    [style]="{ width: '600px' }"
-    header="Detalles del Animal"
+    [style]="{ width: '900px', height: '80vh' }"
+    header="Registro de Animal"
     [modal]="true"
+    [maximizable]="true"
   >
     <ng-template #content>
-      <div class="grid grid-cols-2 gap-4">
-        <!-- Código de Finca -->
+      <div class="grid grid-cols-3 gap-4 p-4">
+        <!-- Row 1: Id. Finca (TATUAJE), Nombre, Fec Nac, Sexo -->
         <div class="col-span-1">
-          <label for="cod_finca" class="block font-bold mb-2"
-            >Código de Finca *</label
-          >
+          <label for="cod_finca" class="block text-sm font-medium mb-1">
+            <i class="pi pi-hashtag"></i> Id. Finca (TATUAJE)
+          </label>
           <input
             type="text"
             pInputText
             id="cod_finca"
-            [(ngModel)]="animal.cod_finca"
-            [required]="true"
-            [disabled]="true"
-            class="w-full"
-          />
-        </div>
-
-        <!-- Código de Animal -->
-        <div class="col-span-1">
-          <label for="cod_animal" class="block font-bold mb-2"
-            >Código de Animal *</label
-          >
-          <input
-            type="text"
-            pInputText
-            id="cod_animal"
             [(ngModel)]="animal.cod_animal"
-            [required]="true"
-            [disabled]="isEditMode"
+            placeholder="Ingrese el tatuaje del animal"
             class="w-full"
           />
         </div>
 
-        <!-- Nombre -->
-        <div class="col-span-2">
-          <label for="nomb_animal" class="block font-bold mb-2">Nombre *</label>
+        <div class="col-span-1">
+          <label for="nomb_animal" class="block text-sm font-medium mb-1">
+            <i class="pi pi-user"></i> Nombre
+          </label>
           <input
             type="text"
             pInputText
             id="nomb_animal"
             [(ngModel)]="animal.nomb_animal"
-            [required]="true"
+            placeholder="Ingrese el nombre del animal"
             class="w-full"
           />
         </div>
 
-        <!-- Sexo -->
         <div class="col-span-1">
-          <label for="sexo_animal" class="block font-bold mb-2">Sexo *</label>
+          <label for="fec_nacim" class="block text-sm font-medium mb-1">
+            <i class="pi pi-calendar"></i> Fec Nac
+          </label>
+          <input
+            type="date"
+            pInputText
+            id="fec_nacim"
+            [(ngModel)]="animal.fec_nacim"
+            value="13-09-2025"
+            class="w-full"
+          />
+        </div>
+
+        <!-- Row 1 continued: Sexo -->
+        <div class="col-span-1">
+          <label for="sexo_animal" class="block text-sm font-medium mb-1">
+            <i class="pi pi-venus-mars"></i> Sexo *
+          </label>
           <p-select
             id="sexo_animal"
             [options]="sexoOptions"
             [(ngModel)]="animal.sexo_animal"
             optionLabel="label"
             optionValue="value"
-            placeholder="Seleccionar sexo"
-            [required]="true"
+            placeholder="--Seleccione el Sexo--"
             class="w-full"
           />
         </div>
 
-        <!-- Fecha de Nacimiento -->
+        <!-- Row 2: Raza, Color, Origen -->
         <div class="col-span-1">
-          <label for="fec_nacim" class="block font-bold mb-2"
-            >Fecha de Nacimiento</label
-          >
-          <input
-            type="date"
-            pInputText
-            id="fec_nacim"
-            [(ngModel)]="animal.fec_nacim"
-            class="w-full"
-          />
-        </div>
-
-        <!-- Peso al Nacer -->
-        <div class="col-span-1">
-          <label for="peso_al_nacer" class="block font-bold mb-2"
-            >Peso al Nacer (kg)</label
-          >
-          <input
-            type="number"
-            pInputText
-            id="peso_al_nacer"
-            [(ngModel)]="animal.peso_al_nacer"
-            step="0.01"
-            min="0"
-            max="999.99"
-            class="w-full"
-          />
-        </div>
-
-        <!-- Fecha de Ingreso -->
-        <div class="col-span-1">
-          <label for="fec_ingreso" class="block font-bold mb-2"
-            >Fecha de Ingreso</label
-          >
-          <input
-            type="date"
-            pInputText
-            id="fec_ingreso"
-            [(ngModel)]="animal.fec_ingreso"
-            class="w-full"
-          />
-        </div>
-
-        <!-- Peso Actual -->
-        <div class="col-span-1">
-          <label for="peso_actual" class="block font-bold mb-2"
-            >Peso Actual (kg)</label
-          >
-          <input
-            type="number"
-            pInputText
-            id="peso_actual"
-            [(ngModel)]="animal.peso_actual"
-            step="0.01"
-            min="0"
-            max="999.99"
-            class="w-full"
-          />
-        </div>
-
-        <!-- Raza -->
-        <div class="col-span-1">
-          <label for="cod_raza" class="block font-bold mb-2">Raza</label>
-          <input
-            type="text"
-            pInputText
+          <label for="cod_raza" class="block text-sm font-medium mb-1">
+            <i class="pi pi-tag"></i> Raza
+          </label>
+          <p-select
             id="cod_raza"
             [(ngModel)]="animal.cod_raza"
+            placeholder="--Seleccione una Raza--"
             class="w-full"
           />
         </div>
 
-        <!-- Color -->
         <div class="col-span-1">
-          <label for="cod_color" class="block font-bold mb-2">Color</label>
+          <label for="cod_color" class="block text-sm font-medium mb-1">
+            <i class="pi pi-palette"></i> Color
+          </label>
+          <p-select
+            id="cod_color"
+            [(ngModel)]="animal.cod_color"
+            placeholder="--Seleccione un Color--"
+            class="w-full"
+          />
+        </div>
+
+        <div class="col-span-1">
+          <label for="origen" class="block text-sm font-medium mb-1">
+            <i class="pi pi-map-marker"></i> Origen *
+          </label>
+          <p-select
+            id="origen"
+            [(ngModel)]="animal.origen"
+            placeholder="NACIDO EN FINCA"
+            class="w-full"
+          />
+        </div>
+
+        <!-- Row 3: TATUAJE fields, Estatus -->
+        <div class="col-span-1">
+          <label for="tatuaje_oreja_izq" class="block text-sm font-medium mb-1">
+            <i class="pi pi-hashtag"></i> TATUAJE (Oreja Izq)
+          </label>
           <input
             type="text"
             pInputText
-            id="cod_color"
-            [(ngModel)]="animal.cod_color"
+            id="tatuaje_oreja_izq"
+            [(ngModel)]="animal.tatuaje_oreja_izq"
+            placeholder="Ingrese el tatuaje Oreja Izq"
             class="w-full"
           />
         </div>
 
-        <!-- Status -->
         <div class="col-span-1">
-          <label for="estatus" class="block font-bold mb-2">Status</label>
+          <label for="tatuaje_oreja_der" class="block text-sm font-medium mb-1">
+            <i class="pi pi-hashtag"></i> TATUAJE (Oreja Der)
+          </label>
+          <input
+            type="text"
+            pInputText
+            id="tatuaje_oreja_der"
+            [(ngModel)]="animal.tatuaje_oreja_der"
+            placeholder="Ingrese el tatuaje del animal"
+            class="w-full"
+          />
+        </div>
+
+        <div class="col-span-1">
+          <label for="tatuaje_cola" class="block text-sm font-medium mb-1">
+            <i class="pi pi-hashtag"></i> TATUAJE (Cola)
+          </label>
+          <input
+            type="text"
+            pInputText
+            id="tatuaje_cola"
+            [(ngModel)]="animal.tatuaje_cola"
+            placeholder="Ingrese el tatuaje del animal"
+            class="w-full"
+          />
+        </div>
+
+        <!-- Row 3 continued: Estatus -->
+        <div class="col-span-1">
+          <label for="estatus" class="block text-sm font-medium mb-1">
+            <i class="pi pi-circle"></i> Estatus *
+          </label>
           <p-select
             id="estatus"
             [options]="statusOptions"
             [(ngModel)]="animal.estatus"
             optionLabel="label"
             optionValue="value"
-            placeholder="Seleccionar status"
+            placeholder="ACTIVO"
             class="w-full"
           />
         </div>
 
-        <!-- Tatuaje -->
+        <!-- Row 4: Tipo Concepción, Tipo Parto, Material Genético, Protocolo Importación -->
         <div class="col-span-1">
-          <label for="tatuaje" class="block font-bold mb-2">Tatuaje</label>
+          <label for="tipo_concepcion" class="block text-sm font-medium mb-1">
+            <i class="pi pi-heart"></i> Tipo Concepción *
+          </label>
+          <p-select
+            id="tipo_concepcion"
+            [(ngModel)]="animal.tipo_concepcion"
+            placeholder="MONTA NATURAL"
+            class="w-full"
+          />
+        </div>
+
+        <div class="col-span-1">
+          <label for="tipo_parto" class="block text-sm font-medium mb-1">
+            <i class="pi pi-users"></i> Tipo Parto *
+          </label>
+          <p-select
+            id="tipo_parto"
+            [(ngModel)]="animal.tipo_parto"
+            placeholder="SIMPLE"
+            class="w-full"
+          />
+        </div>
+
+        <div class="col-span-1">
+          <label for="material_genetico" class="block text-sm font-medium mb-1">
+            <i class="pi pi-dna"></i> Material Genético *
+          </label>
+          <p-select
+            id="material_genetico"
+            [(ngModel)]="animal.material_genetico"
+            placeholder="NACIONAL"
+            class="w-full"
+          />
+        </div>
+
+        <!-- Row 4 continued: Protocolo Importación -->
+        <div class="col-span-1">
+          <label for="protocolo_importacion" class="block text-sm font-medium mb-1">
+            <i class="pi pi-shield"></i> Protocolo Importación
+          </label>
+          <p-select
+            id="protocolo_importacion"
+            [(ngModel)]="animal.protocolo_importacion"
+            placeholder="SI"
+            class="w-full"
+          />
+        </div>
+
+        <!-- Row 5: Peso al Nacer, Fec Destete, Peso al Destete, Código ASO -->
+        <div class="col-span-1">
+          <label for="peso_al_nacer" class="block text-sm font-medium mb-1">
+            <i class="pi pi-chart-line"></i> Peso al Nacer
+          </label>
+          <input
+            type="number"
+            pInputText
+            id="peso_al_nacer"
+            [(ngModel)]="animal.peso_al_nacer"
+            placeholder="0,00"
+            step="0.01"
+            class="w-full"
+          />
+        </div>
+
+        <div class="col-span-1">
+          <label for="fec_destete" class="block text-sm font-medium mb-1">
+            <i class="pi pi-calendar"></i> Fec Destete
+          </label>
+          <input
+            type="date"
+            pInputText
+            id="fec_destete"
+            [(ngModel)]="animal.fec_destete"
+            class="w-full"
+          />
+        </div>
+
+        <div class="col-span-1">
+          <label for="peso_al_destete" class="block text-sm font-medium mb-1">
+            <i class="pi pi-chart-line"></i> Peso al Destete)
+          </label>
+          <input
+            type="number"
+            pInputText
+            id="peso_al_destete"
+            [(ngModel)]="animal.peso_al_destete"
+            placeholder="0,00"
+            step="0.01"
+            class="w-full"
+          />
+        </div>
+
+        <!-- Row 5 continued: Código ASO -->
+        <div class="col-span-1">
+          <label for="codigo_aso" class="block text-sm font-medium mb-1">
+            <i class="pi pi-id-card"></i> Código ASO)
+          </label>
           <input
             type="text"
             pInputText
-            id="tatuaje"
-            [(ngModel)]="animal.tatuaje"
+            id="codigo_aso"
+            [(ngModel)]="animal.codigo_aso"
+            placeholder="Ingrese el Cod ASO"
             class="w-full"
           />
         </div>
 
-        <!-- Observaciones -->
-        <div class="col-span-2">
-          <label for="observac" class="block font-bold mb-2"
-            >Observaciones</label
-          >
-          <textarea
-            pInputTextarea
-            id="observac"
-            [(ngModel)]="animal.observac"
-            rows="3"
+        <!-- Row 6: Siglas Criador, Nombre Criador, Comp. Racial -->
+        <div class="col-span-1">
+          <label for="siglas_criador" class="block text-sm font-medium mb-1">
+            <i class="pi pi-building"></i> Siglas Criador
+          </label>
+          <input
+            type="text"
+            pInputText
+            id="siglas_criador"
             class="w-full"
-            placeholder="Observaciones adicionales..."
-          ></textarea>
+          />
+        </div>
+
+        <div class="col-span-1">
+          <label for="nombre_criador" class="block text-sm font-medium mb-1">
+            <i class="pi pi-user"></i> Nombre Criador
+          </label>
+          <input
+            type="text"
+            pInputText
+            id="nombre_criador"
+            class="w-full"
+            disabled
+          />
+        </div>
+
+        <div class="col-span-1">
+          <label for="comp_racial" class="block text-sm font-medium mb-1">
+            <i class="pi pi-percentage"></i> Comp. Racial *
+          </label>
+          <p-select
+            id="comp_racial"
+            [(ngModel)]="animal.comp_racial"
+            placeholder="--Seleccione la Composición--"
+            class="w-full"
+          />
+        </div>
+
+        <!-- Row 7: Siglas Propietario, Nombre Propietario, % Racial -->
+        <div class="col-span-1">
+          <label for="siglas_propietario" class="block text-sm font-medium mb-1">
+            <i class="pi pi-building"></i> Siglas Propietario
+          </label>
+          <input
+            type="text"
+            pInputText
+            id="siglas_propietario"
+            class="w-full"
+          />
+        </div>
+
+        <div class="col-span-1">
+          <label for="nombre_propietario" class="block text-sm font-medium mb-1">
+            <i class="pi pi-user"></i> Nombre Propietario
+          </label>
+          <input
+            type="text"
+            pInputText
+            id="nombre_propietario"
+            class="w-full"
+            disabled
+          />
+        </div>
+
+        <div class="col-span-1">
+          <label for="porc_racial" class="block text-sm font-medium mb-1">
+            <i class="pi pi-percentage"></i> % Racial
+          </label>
+          <input
+            type="number"
+            pInputText
+            id="porc_racial"
+            [(ngModel)]="animal.porc_racial"
+            placeholder="0,00"
+            step="0.01"
+            class="w-full"
+          />
+        </div>
+
+        <!-- Row 8: Image Upload -->
+        <div class="col-span-3">
+          <label class="block text-sm font-medium mb-1">
+            <i class="pi pi-image"></i> Seleccione una imagen
+          </label>
+          <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+            <div class="flex flex-col items-center">
+              <i class="pi pi-image text-4xl text-gray-400 mb-4"></i>
+              <p class="text-gray-500 mb-4">Sin archivos seleccionados</p>
+              <p-button
+                label="Seleccionar archivo"
+                severity="secondary"
+                outlined
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 9: Fec Ingreso, Precio (con IGV), Stock Mínimo -->
+        <div class="col-span-1">
+          <label for="fec_ingreso" class="block text-sm font-medium mb-1">
+            <i class="pi pi-calendar"></i> Fec Ingreso
+          </label>
+          <input
+            type="date"
+            pInputText
+            id="fec_ingreso"
+            [(ngModel)]="animal.fec_ingreso"
+            value="2025-09-13"
+            class="w-full"
+          />
+        </div>
+
+        <div class="col-span-1">
+          <label for="precio_con_igv" class="block text-sm font-medium mb-1">
+            <i class="pi pi-dollar"></i> Precio (con IGV)
+          </label>
+          <input
+            type="number"
+            pInputText
+            id="precio_con_igv"
+            [(ngModel)]="animal.precio_con_igv"
+            placeholder="0,00"
+            step="0.01"
+            class="w-full"
+          />
+        </div>
+
+        <div class="col-span-1">
+          <label for="stock_minimo" class="block text-sm font-medium mb-1">
+            <i class="pi pi-box"></i> Stock Mínimo
+          </label>
+          <input
+            type="number"
+            pInputText
+            id="stock_minimo"
+            [(ngModel)]="animal.stock_minimo"
+            placeholder="0,00"
+            step="0.01"
+            class="w-full"
+          />
         </div>
       </div>
     </ng-template>

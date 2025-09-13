@@ -73,21 +73,15 @@ export class Login {
     }
 
     onSubmit() {
-        console.log('📝 Login: Enviando formulario con OAuth2...', this.loginForm.value);
         if (this.loginForm.valid) {
             const { email, password } = this.loginForm.value;
-            console.log('✅ Login: Formulario válido, iniciando login con OAuth2...');
-            console.log('🔄 Login: Llamando a authService.login...');
             this.authService.login(email, password);
-            console.log('📤 Login: authService.login llamado, esperando respuesta...');
         } else {
-            console.log('❌ Login: Formulario inválido, marcando campos...');
             this.markFormGroupTouched();
         }
     }
 
     onInputChange() {
-        console.log('⌨️ Login: Input cambiado, limpiando errores...');
         // Limpiar error cuando el usuario empiece a escribir
         if (this.error()) {
             // El error se limpiará automáticamente en el AuthService

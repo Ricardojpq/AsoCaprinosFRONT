@@ -1,0 +1,37 @@
+.certificate-page-2 {
+  width: 1123px !important;
+  height: 794px !important;
+  box-sizing: border-box;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+  position: relative;
+  z-index: 1;
+}
+
+/* Asegurar que las imágenes de fondo se rendericen correctamente en PDF */
+.certificate-page-2::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('/assets/images/certificates/certificadoBase-2.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: -1;
+}
+
+/* Optimizar texto para PDF */
+.certificate-page-2 h2,
+.certificate-page-2 h3,
+.certificate-page-2 p {
+  font-family: Arial, sans-serif !important;
+  color: black !important;
+}
+
+/* Asegurar que el fondo blanco semi-transparente se vea bien */
+.certificate-page-2 .bg-white {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+}

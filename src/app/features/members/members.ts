@@ -98,6 +98,11 @@ export class Members implements OnInit, OnDestroy {
     { label: 'Inactivo', value: 'I' },
   ];
 
+  activeOptions = [
+    { label: 'Activo', value: true },
+    { label: 'Inactivo', value: false },
+  ];
+
   sexoOptions = [
     { label: 'Masculino', value: 'M' },
     { label: 'Femenino', value: 'F' },
@@ -121,11 +126,19 @@ export class Members implements OnInit, OnDestroy {
   }
 
   get personaTelefono(): string {
-    return this.member.persona?.tel_persona || '';
+    return this.member.persona?.tlf_persona || '';
   }
   set personaTelefono(value: string) {
     if (!this.member.persona) this.member.persona = {} as any;
-    this.member.persona!.tel_persona = value;
+    this.member.persona!.tlf_persona = value;
+  }
+
+  get personaCelular(): string {
+    return this.member.persona?.cel_persona || '';
+  }
+  set personaCelular(value: string) {
+    if (!this.member.persona) this.member.persona = {} as any;
+    this.member.persona!.cel_persona = value;
   }
 
   get personaEmail(): string {
@@ -145,17 +158,17 @@ export class Members implements OnInit, OnDestroy {
   }
 
   get personaFechaNacimiento(): string {
-    return this.member.persona?.fec_nacim || '';
+    return this.member.persona?.fnac_persona || '';
   }
   set personaFechaNacimiento(value: string) {
     if (!this.member.persona) this.member.persona = {} as any;
-    this.member.persona!.fec_nacim = value;
+    this.member.persona!.fnac_persona = value;
   }
 
-  get personaSexo(): 'M' | 'F' | undefined {
+  get personaSexo(): string | undefined {
     return this.member.persona?.sexo_persona;
   }
-  set personaSexo(value: 'M' | 'F' | undefined) {
+  set personaSexo(value: string | undefined) {
     if (!this.member.persona) this.member.persona = {} as any;
     this.member.persona!.sexo_persona = value;
   }
@@ -171,7 +184,7 @@ export class Members implements OnInit, OnDestroy {
       { field: 'ced_socio', header: 'Cédula' },
       { field: 'persona.nom_persona', header: 'Nombre' },
       { field: 'persona.ape_persona', header: 'Apellido' },
-      { field: 'persona.tel_persona', header: 'Teléfono' },
+      { field: 'persona.tlf_persona', header: 'Teléfono' },
       { field: 'persona.dir_persona', header: 'Dirección' },
       { field: 'persona.email_persona', header: 'Email' },
       { field: 'estatus_socio', header: 'Estado' },
@@ -200,8 +213,8 @@ export class Members implements OnInit, OnDestroy {
       .subscribe((searchTerm) => {
         // Limpiar filtros anteriores
         this.filters.ced_socio = undefined;
-        this.filters.nom_persona = undefined;
-        this.filters.ape_persona = undefined;
+        this.filters['nom_persona'] = undefined;
+        this.filters['ape_persona'] = undefined;
         this.filters['global_search'] = undefined;
         
         if (searchTerm) {
@@ -220,8 +233,8 @@ export class Members implements OnInit, OnDestroy {
     this.globalFilterValue = '';
     this.searchSubject$.next('');
     this.filters.ced_socio = undefined;
-    this.filters.nom_persona = undefined;
-    this.filters.ape_persona = undefined;
+    this.filters['nom_persona'] = undefined;
+    this.filters['ape_persona'] = undefined;
     this.filters['global_search'] = undefined;
     this.loadMembers();
   }
@@ -247,7 +260,7 @@ export class Members implements OnInit, OnDestroy {
     }
     const query: MemberQueryParams = {
       per_page: this.perPage as 10 | 25 | 50 | 100,
-      sort_by: this.sortField as 'ced_socio' | 'estatus_socio' | 'created_at' | 'updated_at' | 'cod_finca',
+      sort_by: this.sortField as 'ced_socio' | 'cod_finca' | 'estatus_socio' | 'fec_ingreso' | 'created_at',
       sort_dir: this.sortOrder,
       ...this.filters,
     };
@@ -291,10 +304,11 @@ export class Members implements OnInit, OnDestroy {
         nom_persona: '',
         ape_persona: '',
         dir_persona: '',
-        tel_persona: '',
+        tlf_persona: '',
         email_persona: '',
-        fec_nacim: '',
+        fnac_persona: '',
         sexo_persona: undefined,
+        is_active: true,
       }
     };
     this.isEditMode = false;
@@ -310,10 +324,11 @@ export class Members implements OnInit, OnDestroy {
         nom_persona: '',
         ape_persona: '',
         dir_persona: '',
-        tel_persona: '',
+        tlf_persona: '',
         email_persona: '',
-        fec_nacim: '',
+        fnac_persona: '',
         sexo_persona: undefined,
+        is_active: true,
       }
     };
     this.isEditMode = true;
@@ -399,43 +414,81 @@ export class Members implements OnInit, OnDestroy {
     this.submitted = false;
   }
 
-  saveMember() {
-    this.submitted = true;
-
-    // Validaciones requeridas según el backend
-    if (
-      !this.member.ced_socio
-    ) {
+  validateMember(): boolean {
+    if (!this.member.ced_socio?.trim()) {
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
-        detail: 'Completa todos los campos obligatorios (Cédula del Socio)',
-        life: 3000,
+        detail: 'La cédula del socio es requerida'
       });
+      return false;
+    }
+
+    if (!this.member.cod_finca || this.member.cod_finca <= 0) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'El código de finca es requerido'
+      });
+      return false;
+    }
+
+    if (!this.personaNombre.trim()) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'El nombre es requerido'
+      });
+      return false;
+    }
+
+    if (!this.personaApellido.trim()) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'El apellido es requerido'
+      });
+      return false;
+    }
+
+    // Validate email format if provided
+    if (this.personaEmail && !this.isValidEmail(this.personaEmail)) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'El formato del email no es válido'
+      });
+      return false;
+    }
+
+    return true;
+  }
+
+  private isValidEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+
+  saveMember() {
+    if (!this.validateMember()) {
       return;
     }
+
+    this.submitted = true;
 
     this.loading = true;
 
     if (this.isEditMode) {
       // Update - enviar campos que se pueden actualizar incluyendo datos de persona
       const updateData: MemberUpdateDto = {
-        estatus_socio: this.member.estatus_socio,
-        persona: {
-          nom_persona: this.personaNombre || undefined,
-          ape_persona: this.personaApellido || undefined,
-          dir_persona: this.personaDireccion || undefined,
-          tel_persona: this.personaTelefono || undefined,
-          email_persona: this.personaEmail || undefined,
-          fec_nacim: this.personaFechaNacimiento || undefined,
-          sexo_persona: this.personaSexo || undefined,
-        }
+        estatus_socio: this.member.estatus_socio
       };
 
       this.membersService
         .updateMember$(
           this.member.ced_socio!,
-          updateData
+          updateData,
+          this.member.cod_finca!
         )
         .subscribe({
           next: () => {
@@ -469,21 +522,11 @@ export class Members implements OnInit, OnDestroy {
           },
         });
     } else {
-      // Create - enviar todos los campos requeridos incluyendo datos de persona
+      // Create - enviar todos los campos requeridos
       const createData: MemberCreateDto = {
         ced_socio: this.member.ced_socio!,
-        cod_finca: 1, // Por defecto
-        estatus_socio: this.member.estatus_socio || 'A',
-        persona: {
-          ced_persona: this.member.ced_socio!, // Usar la misma cédula
-          nom_persona: this.personaNombre || undefined,
-          ape_persona: this.personaApellido || undefined,
-          dir_persona: this.personaDireccion || undefined,
-          tel_persona: this.personaTelefono || undefined,
-          email_persona: this.personaEmail || undefined,
-          fec_nacim: this.personaFechaNacimiento || undefined,
-          sexo_persona: this.personaSexo || undefined,
-        }
+        cod_finca: this.member.cod_finca || 1,
+        estatus_socio: this.member.estatus_socio || 'A'
       };
 
       this.membersService.addMember$(createData).subscribe({

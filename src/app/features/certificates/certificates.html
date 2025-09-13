@@ -4,34 +4,33 @@
     <ng-template #start>
       <p-button
         styleClass="gap-1 btn btn-primary btn-sm"
-        label="New"
+        label="Nuevo"
         icon="pi pi-plus"
         class="mr-2"
         (onClick)="openNew()"
       >
-      <lucide-icon [img]="plusIcon" size="16"></lucide-icon>
-    </p-button>
+        <lucide-icon [img]="plusIcon" size="16"></lucide-icon>
+      </p-button>
       <p-button
         styleClass="gap-1 btn btn-danger btn-sm"
         severity="danger"
-        label="Delete"
+        label="Eliminar"
         icon="pi pi-trash"
         outlined
-        (onClick)="deleteSelectedProducts()"
-        [disabled]="!selectedProducts || !selectedProducts.length"
+        (onClick)="deleteSelectedCertificates()"
+        [disabled]="!selectedCertificates || !selectedCertificates.length"
       >
-       <lucide-icon [img]="trashIcon" size="16"></lucide-icon>
-    </p-button>
+        <lucide-icon [img]="trashIcon" size="16"></lucide-icon>
+      </p-button>
     </ng-template>
 
     <ng-template #end>
       <p-fileUpload
-      
         mode="basic"
         accept="image/*"
         [maxFileSize]="1000000"
-        label="Import"
-        chooseLabel="Import"
+        label="Importar"
+        chooseLabel="Importar"
         auto
         customUpload
         class="mr-2 inline-block"
@@ -39,43 +38,55 @@
       />
       <p-button
         styleClass="btn btn-secondary btn-sm"
-        label="Export"
+        label="Exportar"
         severity="secondary"
         (onClick)="exportCSV($event)"
       >
-      <lucide-icon [img]="uploadIcon" size="16"></lucide-icon>
-    </p-button>
+        <lucide-icon [img]="uploadIcon" size="16"></lucide-icon>
+      </p-button>
     </ng-template>
   </p-toolbar>
 
   <p-table
     #dt
-    [value]="products"
+    [value]="certificates"
     [rows]="10"
     [columns]="cols"
     [paginator]="true"
     [globalFilterFields]="[
-      'name',
-      'country.name',
-      'representative.name',
-      'status'
+      'numero_certificado',
+      'nomb_animal',
+      'cod_animal',
+      'nombre_criador',
+      'nombre_propietario',
+      'nombre_clasificador'
     ]"
     [tableStyle]="{ 'min-width': '75rem' }"
-    [(selection)]="selectedProducts"
+    [(selection)]="selectedCertificates"
     [rowHover]="true"
     dataKey="id"
     currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
     [showCurrentPageReport]="true"
-    [rows]="1"
-  > 
+    [rows]="pageSize"
+    [totalRecords]="totalRecords"
+    [loading]="loading"
+    (onPage)="onPageChange($event)"
+  >
     <ng-template #caption>
       <div class="flex items-center justify-between">
-        <h5 class="m-0">Manage Products</h5>
-        <p-iconfield >
-          <p-inputicon >
-              <lucide-angular [img]="searchIcon" size="16"></lucide-angular>
+        <h5 class="m-0">Gestionar Certificados</h5>
+        <p-iconfield>
+          <p-inputicon>
+            <lucide-angular [img]="searchIcon" size="16"></lucide-angular>
           </p-inputicon>
-          <input pInputText type="text" placeholder="Search..."  class="focus:border-golden-500"/>
+          <input
+            pInputText
+            type="text"
+            placeholder="Buscar por certificado, animal, criador..."
+            (input)="onSearch($event)"
+            class="focus:border-golden-500"
+            [value]="searchTerm"
+          />
         </p-iconfield>
       </div>
     </ng-template>
@@ -84,65 +95,115 @@
         <th style="width: 3rem">
           <p-tableHeaderCheckbox />
         </th>
-        <th style="min-width: 16rem">Code</th>
-        <th class="hover:bg-golden-100" pSortableColumn="name" style="min-width: 16rem">
+        <th
+          class="hover:bg-golden-100"
+          pSortableColumn="numero_certificado"
+          style="min-width: 14rem"
+        >
           <div class="flex items-center gap-2">
-            Name
-            <p-sortIcon field="name" />
+            Número de Certificado
+            <p-sortIcon field="numero_certificado" />
           </div>
         </th>
-        <th class="hover:bg-golden-100" pSortableColumn="price" style="min-width: 8rem">
+        <th
+          class="hover:bg-golden-100"
+          pSortableColumn="nomb_animal"
+          style="min-width: 16rem"
+        >
           <div class="flex items-center gap-2">
-            Price
-            <p-sortIcon field="price" />
+            Nombre del Animal
+            <p-sortIcon field="nomb_animal" />
           </div>
         </th>
-        <th class="hover:bg-golden-100" pSortableColumn="category" style="min-width: 10rem">
+        <th
+          class="hover:bg-golden-100"
+          pSortableColumn="cod_animal"
+          style="min-width: 12rem"
+        >
           <div class="flex items-center gap-2">
-            Category
-            <p-sortIcon field="category" />
+            Código Animal
+            <p-sortIcon field="cod_animal" />
           </div>
         </th>
-        <th class="hover:bg-golden-100" pSortableColumn="inventoryStatus" style="min-width: 12rem">
+        <th
+          class="hover:bg-golden-100"
+          pSortableColumn="nombre_criador"
+          style="min-width: 16rem"
+        >
           <div class="flex items-center gap-2">
-            Status
-            <p-sortIcon field="inventoryStatus" />
+            Criador
+            <p-sortIcon field="nombre_criador" />
+          </div>
+        </th>
+        <th
+          class="hover:bg-golden-100"
+          pSortableColumn="nombre_propietario"
+          style="min-width: 16rem"
+        >
+          <div class="flex items-center gap-2">
+            Propietario
+            <p-sortIcon field="nombre_propietario" />
+          </div>
+        </th>
+        <th
+          class="hover:bg-golden-100"
+          pSortableColumn="nombre_clasificador"
+          style="min-width: 16rem"
+        >
+          <div class="flex items-center gap-2">
+            Clasificador
+            <p-sortIcon field="nombre_clasificador" />
+          </div>
+        </th>
+        <th
+          class="hover:bg-golden-100"
+          pSortableColumn="fecha_emision"
+          style="min-width: 12rem"
+        >
+          <div class="flex items-center gap-2">
+            Fecha de Emisión
+            <p-sortIcon field="fecha_emision" />
           </div>
         </th>
         <th style="min-width: 12rem"></th>
       </tr>
     </ng-template>
-    <ng-template #body let-product>
+    <ng-template #body let-certificate>
       <tr>
         <td style="width: 3rem">
-          <p-tableCheckbox [value]="product" class=""/>
+          <p-tableCheckbox [value]="certificate" class="" />
         </td>
-        <td style="min-width: 12rem">{{ product.code }}</td>
-        <td style="min-width: 16rem">{{ product.name }}</td>
-        <td>{{ product.price | currency : "USD" }}</td>
-        <td>{{ product.category }}</td>
-        <td>
-          <p-tag
-            [value]="product.inventoryStatus"
-            [severity]="getSeverity(product.inventoryStatus)"
-          />
+        <td style="min-width: 14rem">{{ certificate.numero_certificado }}</td>
+        <td style="min-width: 16rem">{{ certificate.nomb_animal }}</td>
+        <td style="min-width: 12rem">{{ certificate.cod_animal }}</td>
+        <td style="min-width: 16rem">{{ certificate.nombre_criador }}</td>
+        <td style="min-width: 16rem">{{ certificate.nombre_propietario }}</td>
+        <td style="min-width: 16rem">{{ certificate.nombre_clasificador }}</td>
+        <td style="min-width: 12rem">
+          {{ formatDate(certificate.fecha_emision || '') }}
         </td>
-        <td>
+        <td class="text-center">
+          <!-- Botón para visualizar PDF -->
           <p-button
             class="mr-2"
             [rounded]="true"
             [outlined]="true"
-            (click)="editProduct(product)"
+            (click)="viewCertificate(certificate)"
+            severity="info"
+            pTooltip="Ver certificado"
           >
-            <lucide-icon [img]="pencilIcon" size="18"></lucide-icon>
+            <lucide-icon [img]="eyeIcon" size="18"></lucide-icon>
           </p-button>
+
+          <!-- Botón para descargar PDF -->
           <p-button
-            severity="danger"
+            class="mr-2"
             [rounded]="true"
             [outlined]="true"
-            (click)="deleteProduct(product)"
+            (click)="handleDownloadCertificate(certificate)"
+            pTooltip="Descargar PDF"
           >
-            <lucide-icon [img]="trashIcon" size="18"></lucide-icon>
+            <lucide-icon [img]="printerIcon" size="18"></lucide-icon>
           </p-button>
         </td>
       </tr>
@@ -150,124 +211,282 @@
   </p-table>
 
   <p-dialog
-    [(visible)]="productDialog"
-    [style]="{ width: '450px' }"
-    header="Product Details"
+    [(visible)]="certificateDialog"
+    [style]="{ width: '600px' }"
+    [header]="isEditMode ? 'Editar Certificado' : 'Crear Nuevo Certificado'"
     [modal]="true"
   >
     <ng-template #content>
       <div class="flex flex-col gap-6">
-        <div>
-          <label for="name" class="block font-bold mb-3">Name</label>
-          <input
-            type="text"
-            pInputText
-            id="name"
-            [(ngModel)]="product.name"
-            required
-            autofocus
-            fluid
-          />
-          @if (submitted && !product.name) {
-            <small class="text-red-500">Name is required.</small>
-          }
-        </div>
-        <div>
-          <label for="description" class="block font-bold mb-3"
-            >Description</label
-          >
-          <textarea
-            id="description"
-            pTextarea
-            [(ngModel)]="product.description"
-            required
-            rows="3"
-            cols="20"
-            fluid
-          ></textarea>
+        <!-- Formulario simplificado para crear certificado -->
+        @if (!isEditMode) {
+        <div class="grid grid-cols-12 gap-4">
+          <div class="col-span-6">
+            <label for="codAnimal" class="block font-bold mb-3"
+              >Código del Animal *</label
+            >
+            <input
+              type="text"
+              pInputText
+              id="codAnimal"
+              [(ngModel)]="certificate.cod_animal"
+              required
+              autofocus
+              fluid
+              placeholder="Ingrese código del animal"
+            />
+            @if (submitted && !certificate.cod_animal) {
+            <small class="text-red-500"
+              >El código del animal es requerido.</small
+            >
+            }
+          </div>
+          <div class="col-span-6">
+            <label for="cedClasificador" class="block font-bold mb-3"
+              >Cédula del Clasificador *</label
+            >
+            <input
+              type="text"
+              pInputText
+              id="cedClasificador"
+              [(ngModel)]="certificate.ced_clasificador"
+              required
+              fluid
+              placeholder="Ingrese cédula del clasificador"
+            />
+            @if (submitted && !certificate.ced_clasificador) {
+            <small class="text-red-500"
+              >La cédula del clasificador es requerida.</small
+            >
+            }
+          </div>
         </div>
 
-        <div>
-          <label for="inventoryStatus" class="block font-bold mb-3"
-            >Inventory Status</label
-          >
-          <p-select
-            [(ngModel)]="product.inventoryStatus"
-            inputId="inventoryStatus"
-            [options]="statuses"
-            optionLabel="label"
-            placeholder="Select a Status"
-            fluid
-          />
+        <div class="grid grid-cols-12 gap-4">
+          <div class="col-span-12">
+            <label for="observaciones" class="block font-bold mb-3"
+              >Observaciones</label
+            >
+            <textarea
+              pInputTextarea
+              id="observaciones"
+              [(ngModel)]="certificate.observaciones"
+              rows="3"
+              fluid
+              placeholder="Observaciones adicionales (opcional)"
+            ></textarea>
+          </div>
         </div>
 
-        <div>
-          <span class="block font-bold mb-4">Category</span>
-          <div class="grid grid-cols-12 gap-4">
-            <div class="flex items-center gap-2 col-span-6">
-              <p-radiobutton
-                id="category1"
-                name="category"
-                value="Accessories"
-                [(ngModel)]="product.category"
-              />
-              <label for="category1">Accessories</label>
-            </div>
-            <div class="flex items-center gap-2 col-span-6">
-              <p-radiobutton
-                id="category2"
-                name="category"
-                value="Clothing"
-                [(ngModel)]="product.category"
-              />
-              <label for="category2">Clothing</label>
-            </div>
-            <div class="flex items-center gap-2 col-span-6">
-              <p-radiobutton
-                id="category3"
-                name="category"
-                value="Electronics"
-                [(ngModel)]="product.category"
-              />
-              <label for="category3">Electronics</label>
-            </div>
-            <div class="flex items-center gap-2 col-span-6">
-              <p-radiobutton
-                id="category4"
-                name="category"
-                value="Fitness"
-                [(ngModel)]="product.category"
-              />
-              <label for="category4">Fitness</label>
-            </div>
+        <div class="bg-blue-50 p-4 rounded-lg">
+          <p class="text-sm text-blue-700">
+            <i class="pi pi-info-circle mr-2"></i>
+            La información de la finca, criador y propietario se obtendrá automáticamente 
+            del registro del animal. La fecha de emisión será la fecha actual.
+          </p>
+        </div>
+        }
+
+        <!-- Formulario completo para editar certificado -->
+        @if (isEditMode) {
+        <div class="grid grid-cols-12 gap-4">
+          <div class="col-span-6">
+            <label for="editCodAnimal" class="block font-bold mb-3"
+              >Código del Animal *</label
+            >
+            <input
+              type="text"
+              pInputText
+              id="editCodAnimal"
+              [(ngModel)]="editCertificate.cod_animal"
+              required
+              autofocus
+              fluid
+              placeholder="Ingrese código del animal"
+            />
+            @if (submitted && !editCertificate.cod_animal) {
+            <small class="text-red-500"
+              >El código del animal es requerido.</small
+            >
+            }
+          </div>
+          <div class="col-span-6">
+            <label for="editCodFinca" class="block font-bold mb-3"
+              >Código de la Finca *</label
+            >
+            <input
+              type="text"
+              pInputText
+              id="editCodFinca"
+              [(ngModel)]="editCertificate.cod_finca"
+              required
+              fluid
+              placeholder="Ingrese código de la finca"
+            />
+            @if (submitted && !editCertificate.cod_finca) {
+            <small class="text-red-500"
+              >El código de la finca es requerido.</small
+            >
+            }
           </div>
         </div>
 
         <div class="grid grid-cols-12 gap-4">
           <div class="col-span-6">
-            <label for="price" class="block font-bold mb-3">Price</label>
-            <p-inputnumber
-              id="price"
-              [(ngModel)]="product.price"
-              mode="currency"
-              currency="USD"
-              locale="en-US"
+            <label for="editCodCriador" class="block font-bold mb-3"
+              >Código del Criador *</label
+            >
+            <input
+              type="text"
+              pInputText
+              id="editCodCriador"
+              [(ngModel)]="editCertificate.cod_criador"
+              required
               fluid
+              placeholder="Ingrese código del criador"
             />
+            @if (submitted && !editCertificate.cod_criador) {
+            <small class="text-red-500"
+              >El código del criador es requerido.</small
+            >
+            }
           </div>
           <div class="col-span-6">
-            <label for="quantity" class="block font-bold mb-3">Quantity</label>
-            <p-inputnumber id="quantity" [(ngModel)]="product.quantity" fluid />
+            <label for="editCodPropietario" class="block font-bold mb-3"
+              >Código del Propietario *</label
+            >
+            <input
+              type="text"
+              pInputText
+              id="editCodPropietario"
+              [(ngModel)]="editCertificate.cod_propietario"
+              required
+              fluid
+              placeholder="Ingrese código del propietario"
+            />
+            @if (submitted && !editCertificate.cod_propietario) {
+            <small class="text-red-500"
+              >El código del propietario es requerido.</small
+            >
+            }
           </div>
         </div>
+
+        <div class="grid grid-cols-12 gap-4">
+          <div class="col-span-6">
+            <label for="editCodClasificador" class="block font-bold mb-3"
+              >Código del Clasificador *</label
+            >
+            <input
+              type="text"
+              pInputText
+              id="editCodClasificador"
+              [(ngModel)]="editCertificate.cod_clasificador"
+              required
+              fluid
+              placeholder="Ingrese código del clasificador"
+            />
+            @if (submitted && !editCertificate.cod_clasificador) {
+            <small class="text-red-500"
+              >El código del clasificador es requerido.</small
+            >
+            }
+          </div>
+          <div class="col-span-6">
+            <label for="editFechaEmision" class="block font-bold mb-3"
+              >Fecha de Emisión *</label
+            >
+            <input
+              type="date"
+              pInputText
+              id="editFechaEmision"
+              [(ngModel)]="editCertificate.fecha_emision"
+              required
+              fluid
+            />
+            @if (submitted && !editCertificate.fecha_emision) {
+            <small class="text-red-500"
+              >La fecha de emisión es requerida.</small
+            >
+            }
+          </div>
+        </div>
+
+        <div class="grid grid-cols-12 gap-4">
+          <div class="col-span-12">
+            <label for="editObservaciones" class="block font-bold mb-3"
+              >Observaciones</label
+            >
+            <textarea
+              pInputTextarea
+              id="editObservaciones"
+              [(ngModel)]="editCertificate.observaciones"
+              rows="3"
+              fluid
+              placeholder="Observaciones adicionales (opcional)"
+            ></textarea>
+          </div>
+        </div>
+        }
       </div>
     </ng-template>
 
     <ng-template #footer>
-      <p-button label="Cancel" icon="pi pi-times" text (click)="hideDialog()" />
-      <p-button label="Save" icon="pi pi-check" (click)="saveProduct()" />
+      <p-button
+        label="Cancelar"
+        icon="pi pi-times"
+        text
+        (click)="hideDialog()"
+      />
+      <p-button
+        label="Guardar"
+        icon="pi pi-check"
+        (click)="saveCertificate()"
+      />
+    </ng-template>
+  </p-dialog>
+
+  <!-- Modal para visualizar PDF -->
+  <p-dialog
+    [(visible)]="pdfViewerDialog"
+    [style]="{ width: '90vw', height: '90vh' }"
+    header="Certificado PDF"
+    [modal]="true"
+    [maximizable]="true"
+    [closable]="true"
+    (onHide)="closePdfViewer()"
+  >
+    <ng-template #content>
+      <div class="pdf-viewer-container">
+          <app-certificate-viewer [pdfUrl]="pdfUrl" [isLoading]="isLoading" [error]="error"></app-certificate-viewer>
+      </div>
+    </ng-template>
+
+    <ng-template #footer>
+      <p-button
+        label="Descargar PDF"
+        icon="pi pi-download"
+        (click)="downloadCertificate()"
+        [disabled]="!pdfUrl"
+      />
+      <p-button
+        label="Cerrar"
+        icon="pi pi-times"
+        severity="secondary"
+        (click)="closePdfViewer()"
+      />
     </ng-template>
   </p-dialog>
 
   <p-confirmDialog [style]="{ width: '450px' }" />
 </div>
+
+  <!-- Elementos ocultos para generación de PDF -->
+  <div class="offscreen">
+    <div #certificatePage1>
+      <app-certificate-page1 [certificateData]="certificateData"></app-certificate-page1>
+    </div>
+    <div #certificatePage2>
+      <app-certificate-page2 [certificateData]="certificateData"></app-certificate-page2>
+    </div>
+  </div>

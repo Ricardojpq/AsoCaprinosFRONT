@@ -1,6 +1,7 @@
 import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptors, withFetch } from '@angular/common/http';
+import { provideAngularSvgIcon } from 'angular-svg-icon';
 
 import { routes } from './app.routes';
 import { providePrimeNG } from 'primeng/config';
@@ -108,6 +109,7 @@ export const appConfig: ApplicationConfig = {
           }
         }
       }
-    })
+    }),
+    provideAngularSvgIcon()
   ]
 };

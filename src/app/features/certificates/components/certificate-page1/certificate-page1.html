@@ -1,0 +1,367 @@
+<div
+  class="flex flex-col p-5 border-yellow-400 border-[30px] container-certificate h-screen"
+>
+  <!-- Begin: Header -->
+  <div class="flex justify-between items-center">
+    <img src="assets/logos/logo.png" alt="" class="w-[130px] h-[130px]" />
+    <svg-icon
+      src="assets/svg/titulo.svg"
+      class="flex-grow-1"
+      [svgStyle]="{ 'width.%': 100 }"
+    ></svg-icon>
+    <!-- <img src="assets/images/titulo.png" alt="" /> -->
+    <img src="assets/logos/logo.png" alt="" class="w-[130px] h-[130px]" />
+  </div>
+  <!-- End: Header -->
+  <!-- Begin: Informacion Principal -->
+  <div class="flex">
+    <!-- COL IZQUIERDA -->
+    <div
+      class="flex border-black border-dashed border-[1.5px] w-[150px] h-[145px] flex-grow-1"
+    >
+      <div class="p-1 pe-2">
+        <p class="m-0! font-bold ps-[4px] pt-[1px]">Nombre:</p>
+        <p class="m-0! font-bold ps-[4px] pt-[1px]">Criador:</p>
+        <p class="m-0! font-bold ps-[4px] pt-[1px]">Codigo:</p>
+        <p class="m-0! font-bold ps-[4px] pt-[1px]">Propietario:</p>
+        <p class="m-0! font-bold ps-[4px] pt-[1px]">Codigo:</p>
+        <p class="m-0! font-bold ps-[4px] pt-[1px]">Direccion:</p>
+      </div>
+      <div
+        class="p-1 pe-2 flex-grow-1 border-black border-dashed border-s-[1.5px]"
+      >
+        <p class="m-0! font-bold ps-[4px] pt-[1px]">
+          {{ certificateData?.animal?.nomb_animal || "N/P" }}
+        </p>
+        <p class="m-0! font-bold ps-[4px] pt-[1px]">
+          {{ certificateData?.criador?.nomb_finca || "N/P" }}
+        </p>
+        <div class="m-0! font-bold ps-[4px] pt-[1px]">
+          <div class="flex gap-[200px]">
+            {{ certificateData?.criador?.cod_finca || "N/P" }}
+            {{ certificateData?.criador?.abr_finca || "" }}
+            <p>REG INTL / ASOC: N/P</p>
+          </div>
+        </div>
+        <p class="m-0! font-bold ps-[4px] pt-[1px]">
+          {{ certificateData?.propietario?.nomb_finca || "N/P" }}
+        </p>
+        <p class="m-0! font-bold ps-[4px] pt-[1px]">
+          {{ certificateData?.propietario?.cod_finca || "N/P" }}
+          {{ certificateData?.propietario?.abr_finca || "" }}
+        </p>
+        <p class="m-0! font-bold ps-[4px] pt-[1px]">
+          {{ certificateData?.propietario?.direccion || "N/P" }}
+        </p>
+      </div>
+    </div>
+    <!-- COL DERECHA -->
+    <div class="h-[160px] ms-4">
+      <div class="flex flex-col items-end p-1">
+        <p
+          class="m-0! font-bold ps-[4px] pt-[1px] border-[2px] border-black w-[150px] text-end pe-1 font-bold"
+        >
+          N°: {{ certificateData?.animal?.cod_animal || "N/P" }}
+        </p>
+        <div class="flex w-[150px] justify-between">
+          <p
+            class="m-0! font-bold ps-[4px] pt-[1px] border-s-[2px] border-b-[2px] border-black"
+          >
+            SEXO:
+          </p>
+          <p class="m-0! font-bold ps-[4px] pt-[1px]">
+            {{ certificateData?.animal?.sexo_animal || "N/P" }}
+          </p>
+        </div>
+      </div>
+      <p class="m-0! font-bold ps-[4px] pt-[1px]">
+        FECHA NACIMIENTO:
+        {{
+          (certificateData?.animal?.fec_nacim | date : "dd/MM/yyyy") || "N/P"
+        }}
+      </p>
+      <p class="m-0! font-bold ps-[4px] pt-[1px]">
+        TATUAJE O.I: {{ certificateData?.animal?.tat_oreja_izq || "N/P" }}
+      </p>
+      <p class="m-0! font-bold ps-[4px] pt-[1px]">
+        TATUAJE O.D: {{ certificateData?.animal?.tat_oreja_der || "N/P" }}
+      </p>
+      <p class="m-0! font-bold ps-[4px] pt-[1px]">
+        TATUAJE COLA/LABIO:
+        {{ certificateData?.animal?.tat_cola_labio || "N/P" }}
+      </p>
+    </div>
+  </div>
+  <!-- End: Informacion Principal -->
+  <!-- Begin: genealogia -->
+  <!-- Begin: padre -->
+  <div class="flex gap-[50px]">
+    <div class="w-1/2 flex flex-col justify-center items-end">
+      <div class="flex items-center justify-end gap-1.5">
+        <p class="m-0! font-bold">PADRE:</p>
+        <div
+          class="flex justify-between border-black border-dashed border-[1.5px] p-0.5"
+        >
+          <p class="m-0! font-bold">
+            {{ certificateData?.genealogy?.padre?.nomb_animal || "N/P" }}
+          </p>
+          <p class="m-0! font-bold ms-[100px]!">
+            {{ certificateData?.genealogy?.padre?.tat_oreja_izq || "N/P" }}/{{
+              certificateData?.genealogy?.padre?.tat_oreja_der || "N/P"
+            }}
+          </p>
+        </div>
+      </div>
+      <div class="flex justify-end gap-1.5">
+        <p class="m-0! font-bold text-end w-[150px]">REG ASOCABRA:</p>
+        <p
+          class="m-0! font-bold border-black border-dashed border-s-[1.5px] border-b-[1.5px] border-e-[1.5px] text-center w-[100px] p-0.5"
+        >
+          10650
+        </p>
+      </div>
+      <div class="flex justify-end gap-1.5">
+        <p class="m-0! font-bold text-end w-[150px]">REG INTL/ ASOC:</p>
+        <p
+          class="m-0! font-bold border-black border-dashed border-s-[1.5px] border-b-[1.5px] border-e-[1.5px] text-center w-[100px] p-0.5"
+        >
+          {{ certificateData?.genealogy?.padre?.cod_animal || "N/P" }}
+        </p>
+      </div>
+    </div>
+    <!-- abuelos -->
+    <div class="flex flex-col w-1/2">
+      <!-- Abuelo -->
+      <div class="flex items-center justify-start gap-1.5">
+        <p class="m-0! font-bold">Abuelo:</p>
+        <div
+          class="flex justify-between border-black border-dashed border-[1.5px] p-0.5 flex-grow-1"
+        >
+          <p class="m-0! font-bold">
+            {{
+              certificateData?.genealogy?.abuelo_paterno?.nomb_animal || "N/P"
+            }}
+          </p>
+          <p class="m-0! font-bold ms-[100px]!">
+            {{
+              certificateData?.genealogy?.abuelo_paterno?.tat_oreja_izq ||
+                "N/P"
+            }}/{{
+              certificateData?.genealogy?.abuelo_paterno?.tat_oreja_der || "N/P"
+            }}
+          </p>
+        </div>
+      </div>
+      <div class="flex justify-end gap-1.5">
+        <p class="m-0! font-bold text-end w-[150px]">REG ASOCABRA:</p>
+        <p
+          class="m-0! font-bold border-black border-dashed border-s-[1.5px] border-b-[1.5px] border-e-[1.5px] text-center w-[100px] p-0.5"
+        >
+          {{ certificateData?.genealogy?.abuelo_paterno?.cod_animal || "N/P" }}
+        </p>
+      </div>
+      <div class="flex justify-end gap-1.5 mb-5">
+        <p class="m-0! font-bold text-end w-[150px]">REG INTL/ ASOC:</p>
+        <p
+          class="m-0! font-bold border-black border-dashed border-s-[1.5px] border-b-[1.5px] border-e-[1.5px] text-center w-[100px] p-0.5"
+        >
+          N/P
+        </p>
+      </div>
+      <!-- -------------------- -->
+      <!-- Abuela -->
+      <div class="flex items-center justify-start gap-1.5">
+        <p class="m-0! font-bold">Abuela:</p>
+        <div
+          class="flex justify-between border-black border-dashed border-[1.5px] p-0.5 flex-grow-1"
+        >
+          <p class="m-0! font-bold">
+            {{
+              certificateData?.genealogy?.abuela_paterna?.nomb_animal || "N/P"
+            }}
+          </p>
+          <p class="m-0! font-bold ms-[100px]!">
+            {{
+              certificateData?.genealogy?.abuela_paterna?.tat_oreja_izq ||
+                "N/P"
+            }}/{{
+              certificateData?.genealogy?.abuela_paterna?.tat_oreja_der || "N/P"
+            }}
+          </p>
+        </div>
+      </div>
+      <div class="flex justify-end gap-1.5">
+        <p class="m-0! font-bold text-end w-[150px]">REG ASOCABRA:</p>
+        <p
+          class="m-0! font-bold border-black border-dashed border-s-[1.5px] border-b-[1.5px] border-e-[1.5px] text-center w-[100px] p-0.5"
+        >
+          {{ certificateData?.genealogy?.abuela_paterna?.cod_animal || "N/P" }}
+        </p>
+      </div>
+      <div class="flex justify-end gap-1.5">
+        <p class="m-0! font-bold text-end w-[150px]">REG INTL/ ASOC:</p>
+        <p
+          class="m-0! font-bold border-black border-dashed border-s-[1.5px] border-b-[1.5px] border-e-[1.5px] text-center w-[100px] p-0.5"
+        >
+          N/P
+        </p>
+      </div>
+      <!-- -------------------- -->
+    </div>
+  </div>
+  <!-- End: padre -->
+  <!-- Begin: Madre -->
+  <div class="flex gap-[50px]">
+    <!-- padre -->
+    <div class="w-1/2 flex flex-col justify-center items-end">
+      <div class="flex items-center justify-end gap-1.5">
+        <p class="m-0! font-bold">Madre:</p>
+        <div
+          class="flex justify-between border-black border-dashed border-[1.5px] p-0.5"
+        >
+          <p class="m-0! font-bold">
+            {{ certificateData?.genealogy?.madre?.nomb_animal || "N/P" }}
+          </p>
+          <p class="m-0! font-bold ms-[100px]!">
+            {{ certificateData?.genealogy?.madre?.tat_oreja_izq || "N/P" }}/{{
+              certificateData?.genealogy?.madre?.tat_oreja_der || "N/P"
+            }}
+          </p>
+        </div>
+      </div>
+      <div class="flex justify-end gap-1.5">
+        <p class="m-0! font-bold text-end w-[150px]">REG ASOCABRA:</p>
+        <p
+          class="m-0! font-bold border-black border-dashed border-s-[1.5px] border-b-[1.5px] border-e-[1.5px] text-center w-[100px] p-0.5"
+        >
+          {{ certificateData?.genealogy?.madre?.cod_animal || "N/P" }}
+        </p>
+      </div>
+      <div class="flex justify-end gap-1.5">
+        <p class="m-0! font-bold text-end w-[150px]">REG INTL/ ASOC:</p>
+        <p
+          class="m-0! font-bold border-black border-dashed border-s-[1.5px] border-b-[1.5px] border-e-[1.5px] text-center w-[100px] p-0.5"
+        >
+          N/P
+        </p>
+      </div>
+    </div>
+    <!-- abuelos -->
+    <div class="flex flex-col w-1/2">
+      <!-- Abuelo -->
+      <div class="flex items-center justify-start gap-1.5">
+        <p class="m-0! font-bold">Abuelo:</p>
+        <div
+          class="flex justify-between border-black border-dashed border-[1.5px] p-0.5 flex-grow-1"
+        >
+          <p class="m-0! font-bold">
+            {{
+              certificateData?.genealogy?.abuelo_materno?.nomb_animal || "N/P"
+            }}
+          </p>
+          <p class="m-0! font-bold ms-[100px]!">
+            {{
+              certificateData?.genealogy?.abuelo_materno?.tat_oreja_izq ||
+                "N/P"
+            }}/{{
+              certificateData?.genealogy?.abuelo_materno?.tat_oreja_der || "N/P"
+            }}
+          </p>
+        </div>
+      </div>
+      <div class="flex justify-end gap-1.5">
+        <p class="m-0! font-bold text-end w-[150px]">REG ASOCABRA:</p>
+        <p
+          class="m-0! font-bold border-black border-dashed border-s-[1.5px] border-b-[1.5px] border-e-[1.5px] text-center w-[100px] p-0.5"
+        >
+          {{ certificateData?.genealogy?.abuelo_materno?.cod_animal || "N/P" }}
+        </p>
+      </div>
+      <div class="flex justify-end gap-1.5 mb-5">
+        <p class="m-0! font-bold text-end w-[150px]">REG INTL/ ASOC:</p>
+        <p
+          class="m-0! font-bold border-black border-dashed border-s-[1.5px] border-b-[1.5px] border-e-[1.5px] text-center w-[100px] p-0.5"
+        >
+          N/P
+        </p>
+      </div>
+      <!-- -------------------- -->
+      <!-- Abuela -->
+      <div class="flex items-center justify-start gap-1.5">
+        <p class="m-0! font-bold">Abuela:</p>
+        <div
+          class="flex justify-between border-black border-dashed border-[1.5px] p-0.5 flex-grow-1"
+        >
+          <p class="m-0! font-bold">
+            {{
+              certificateData?.genealogy?.abuela_materna?.nomb_animal || "N/P"
+            }}
+          </p>
+          <p class="m-0! font-bold ms-[100px]!">
+            {{
+              certificateData?.genealogy?.abuela_materna?.tat_oreja_izq ||
+                "N/P"
+            }}/{{
+              certificateData?.genealogy?.abuela_materna?.tat_oreja_der || "N/P"
+            }}
+          </p>
+        </div>
+      </div>
+      <div class="flex justify-end gap-1.5">
+        <p class="m-0! font-bold text-end w-[150px]">REG ASOCABRA:</p>
+        <p
+          class="m-0! font-bold border-black border-dashed border-s-[1.5px] border-b-[1.5px] border-e-[1.5px] text-center w-[100px] p-0.5"
+        >
+          {{ certificateData?.genealogy?.abuela_materna?.cod_animal || "N/P" }}
+        </p>
+      </div>
+      <div class="flex justify-end gap-1.5">
+        <p class="m-0! font-bold text-end w-[150px]">REG INTL/ ASOC:</p>
+        <p
+          class="m-0! font-bold border-black border-dashed border-s-[1.5px] border-b-[1.5px] border-e-[1.5px] text-center w-[100px] p-0.5"
+        >
+          N/P
+        </p>
+      </div>
+      <!-- -------------------- -->
+    </div>
+  </div>
+  <!-- End: Madre -->
+  <!-- End: genealogia -->
+  <!-- Begin:Footer -->
+  <div class="flex justify-between">
+    <div class="w-1/2">
+      <div
+        class="flex border-s-[1.5px] border-t-[1.5px] border-e-[1.5px] border-black border-dashed ps-2 "
+      >
+        <p class="m-0! font-bold border-e-[1.5px] border-black border-dashed w-[125px]">
+          Clasificacíon:
+        </p>
+        <p class="m-0! font-bold border-black border-dashed ps-2">Alpina</p>
+      </div>
+      <div
+        class="flex border-s-[1.5px] border-b-[1.5px] border-e-[1.5px] border-black border-dashed ps-2  pb-1"
+      >
+        <p class="m-0! font-bold border-e-[1.5px] border-black border-dashed w-[125px]">
+          Tipo Racial:
+        </p>
+        <p class="m-0! font-bold border-black border-dashed ps-2">A5(50% A)</p>
+      </div>
+      <div
+        class="flex border-s-[1.5px] border-b-[1.5px] border-e-[1.5px] border-black border-dashed ps-2 w-[60%]"
+      >
+        <p class="m-0! font-bold border-e-[1.5px] border-black border-dashed  pb-1">
+          Fecha de Emisión:
+        </p>
+        <p class="m-0! font-bold border-black border-dashed ps-2">12/03/2024</p>
+      </div>
+    </div>
+    <div class="w-1/2 flex flex-col items-center justify-end">
+      <!-- Línea -->
+      <div class="w-64 border-t border-black"></div>
+      <!-- Nombre debajo -->
+      <span class="mt-2 text-sm font-medium">Presidente</span>
+    </div>
+  </div>
+  <!-- End:Footer -->
+</div>

@@ -1,6 +1,28 @@
-.pdf-viewer-container {
+/* Certificate viewer container */
+.certificate-viewer-container {
   width: 100%;
-  height: 70vh;
+  height: 100%;
+  position: relative;
+}
+
+/* PDF preview container */
+.pdf-preview-container {
+  width: 100%;
+  height: 100%;
+}
+
+.pdf-toolbar {
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.pdf-embed-container {
+  width: 100%;
+  height: 600px;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 /* Offscreen positioning for PDF generation */
