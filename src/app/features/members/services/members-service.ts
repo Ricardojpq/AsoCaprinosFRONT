@@ -49,7 +49,6 @@ export class MembersService {
   constructor(private httpClient: HttpClient) {}
 
   private handleError(error: HttpErrorResponse) {
-    console.error('MembersService error:', error);
     let errorMessage = 'Error desconocido';
     let errorDetails: any = null;
     

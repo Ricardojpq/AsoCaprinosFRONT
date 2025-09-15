@@ -86,7 +86,6 @@ export class JwtAuthService {
         {},
         { headers: this.getAuthHeaders() }
       ).subscribe({
-        next: () => console.log('✅ Logout exitoso'),
         error: (error) => console.error('❌ Error en logout:', error)
       });
     }

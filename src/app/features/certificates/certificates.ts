@@ -168,7 +168,6 @@ export class Certificates implements OnInit {
             (response.success || response.status === 'success') &&
             response.data
           ) {
-            console.log('Certificates data:', response);
             // Convertir los datos del backend al formato de tabla
             this.certificates = this.certificatesService.mapToTableData(
               response.data.data
@@ -285,7 +284,6 @@ export class Certificates implements OnInit {
               response.data
             ) {
               this.certificateData = response.data;
-              console.log('Certificate data for PDF:', response.data);
 
               try {
                 await this.downloadCertificate();

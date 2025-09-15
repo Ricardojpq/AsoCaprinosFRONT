@@ -50,7 +50,7 @@ export class PdfGeneratorService {
           useCORS: true,
           allowTaint: true,
           backgroundColor: '#ffffff',
-          logging: true, // Activar logs para debug
+          logging: false,
           width: element.offsetWidth || 1123,
           height: element.offsetHeight || 794,
           scrollX: 0,
