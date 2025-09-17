@@ -11,6 +11,8 @@ import { AnimalDto } from './models/DTOs/animal';
 import { AnimalCreateDto } from './models/DTOs/animal-create';
 import { AnimalUpdateDto } from './models/DTOs/animal-update';
 import { AnimalListResponse } from './models/DTOs/animal-list-response';
+import { CatalogsService } from './catalogs/services/catalogs-service';
+import { CatalogSelectOption } from '../../core/models/DTOs';
 import {
   ANIMAL_SEARCH_CONFIG,
   isValidSearchTerm,
@@ -98,54 +100,39 @@ export class Animals implements OnInit, OnDestroy {
   globalFilterValue = '';
   @ViewChild('dt') dt!: Table;
 
-  // Opciones para los selects
-  sexoOptions = [
-    { label: 'Macho', value: 'M' },
-    { label: 'Hembra', value: 'H' },
-  ];
-
-  statusOptions = [
-    { label: 'ACTIVO', value: 'ACTIVO' },
-    { label: 'Vendido', value: 'Vendido' },
-    { label: 'Retirado', value: 'Retirado' },
-    { label: 'Enfermo', value: 'Enfermo' },
-  ];
-
-  origenOptions = [
-    { label: 'NACIDO EN FINCA', value: 'NACIDO EN FINCA' },
-    { label: 'COMPRADO', value: 'COMPRADO' },
-    { label: 'TRANSFERIDO', value: 'TRANSFERIDO' },
-  ];
-
-  tipoConcepcionOptions = [
-    { label: 'MONTA NATURAL', value: 'MONTA NATURAL' },
-    { label: 'INSEMINACION ARTIFICIAL', value: 'INSEMINACION ARTIFICIAL' },
-    { label: 'TRANSFERENCIA EMBRIONARIA', value: 'TRANSFERENCIA EMBRIONARIA' },
-  ];
-
-  tipoPartoOptions = [
-    { label: 'SIMPLE', value: 'SIMPLE' },
-    { label: 'GEMELAR', value: 'GEMELAR' },
-    { label: 'TRIPLE', value: 'TRIPLE' },
-  ];
-
-  materialGeneticoOptions = [
-    { label: 'NACIONAL', value: 'NACIONAL' },
-    { label: 'IMPORTADO', value: 'IMPORTADO' },
-  ];
-
-  protocoloImportacionOptions = [
-    { label: 'SI', value: 'SI' },
-    { label: 'NO', value: 'NO' },
-  ];
+  // Opciones para los selects - se inicializan en ngOnInit
+  sexoOptions: any[] = [];
+  statusOptions: any[] = [];
+  origenOptions: any[] = [];
+  tipoConcepcionOptions: any[] = [];
+  tipoPartoOptions: any[] = [];
+  materialGeneticoOptions: any[] = [];
+  protocoloImportacionOptions: any[] = [];
+  compRacialOptions: any[] = [];
+  
+  // Opciones para catálogos dinámicos
+  razaOptions: CatalogSelectOption[] = [];
+  colorOptions: CatalogSelectOption[] = [];
+  tipoPeloOptions: CatalogSelectOption[] = [];
 
   constructor(
     private animalsService: AnimalsService,
+    private catalogsService: CatalogsService,
     private messageService: MessageService,
     private confirmationService: ConfirmationService
   ) {}
 
   ngOnInit() {
+    // Inicializar opciones de los selects usando enums
+    this.sexoOptions = this.animalsService.getSexoOptions();
+    this.statusOptions = this.animalsService.getEstatusOptions();
+    this.origenOptions = this.animalsService.getOrigenOptions();
+    this.tipoConcepcionOptions = this.animalsService.getTipoConcepcionOptions();
+    this.tipoPartoOptions = this.animalsService.getTipoPartoOptions();
+    this.materialGeneticoOptions = this.animalsService.getMaterialGeneticoOptions();
+    this.protocoloImportacionOptions = this.animalsService.getProtocoloImportacionOptions();
+    this.compRacialOptions = this.animalsService.getCompRacialOptions();
+
     this.cols = [
       { field: 'cod_finca', header: 'Id Finca' },
       { field: 'nomb_animal', header: 'Nombre' },
@@ -166,11 +153,76 @@ export class Animals implements OnInit, OnDestroy {
 
     // Configurar el pipe de búsqueda
     this.setupSearchPipe();
+    
+    // Cargar catálogos dinámicos
+    this.loadCatalogs();
   }
 
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  /**
+   * Carga los catálogos dinámicos desde el servicio
+   */
+  private loadCatalogs() {
+    // Cargar razas
+    this.catalogsService.getAllRazas$().subscribe({
+      next: (razas) => {
+        this.razaOptions = razas.map(raza => ({
+          label: raza.descripcion,
+          value: raza.cod_raza
+        }));
+      },
+      error: (error) => {
+        console.error('Error loading razas:', error);
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Advertencia',
+          detail: 'No se pudieron cargar las razas',
+          life: 3000,
+        });
+      }
+    });
+
+    // Cargar colores
+    this.catalogsService.getAllColors$().subscribe({
+      next: (colores) => {
+        this.colorOptions = colores.map(color => ({
+          label: color.nomb_color,
+          value: color.cod_color
+        }));
+      },
+      error: (error) => {
+        console.error('Error loading colores:', error);
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Advertencia',
+          detail: 'No se pudieron cargar los colores',
+          life: 3000,
+        });
+      }
+    });
+
+    // Cargar tipos de pelo
+    this.catalogsService.getAllTiposPelo$().subscribe({
+      next: (tiposPelo: any[]) => {
+        this.tipoPeloOptions = tiposPelo.map((tipoPelo: any) => ({
+          label: tipoPelo.nomb_tipo_pelo,
+          value: tipoPelo.cod_tipo_pelo
+        }));
+      },
+      error: (error: any) => {
+        console.error('Error loading tipos de pelo:', error);
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Advertencia',
+          detail: 'No se pudieron cargar los tipos de pelo',
+          life: 3000,
+        });
+      }
+    });
   }
 
   /**
@@ -262,17 +314,18 @@ export class Animals implements OnInit, OnDestroy {
       cod_finca: 1, // Valor por defecto
       cod_animal: '',
       nomb_animal: '',
-      sexo_animal: 'M',
-      estatus: 'ACTIVO',
+      sexo_animal: 'M', // SexoAnimalEnum.Macho
+      estatus: 'A', // EstatusAnimalEnum.ACTIVO
       fec_nacim: new Date().toISOString().split('T')[0],
       fec_ingreso: new Date().toISOString().split('T')[0],
       cod_raza: 1,
       cod_color: 1,
-      origen: 'NACIDO EN FINCA',
-      tipo_concepcion: 'MONTA NATURAL',
-      tipo_parto: 'SIMPLE',
-      material_genetico: 'NACIONAL',
-      protocolo_importacion: 'SI',
+      cod_tipo_pelo: 1,
+      origen: 'N', // OrigenAnimalEnum.NacidoFinca
+      tipo_concepcion: 'M', // TipoConcepcionEnum.MN
+      tipo_parto: 'S', // TipoPartoEnum.Simple
+      material_genetico: 'A', // MaterialGeneticoEnum.Nacional
+      protocolo_importacion: 'S', // 'S' para SI
       peso_al_nacer: 0,
       fec_destete: '',
       peso_al_destete: 0,
@@ -280,7 +333,7 @@ export class Animals implements OnInit, OnDestroy {
       tatuaje_oreja_izq: '',
       tatuaje_oreja_der: '',
       tatuaje_cola: '',
-      comp_racial: 0,
+      comp_racial: 0, // Default numeric value
       porc_racial: 0,
       precio_con_igv: 0,
       stock_minimo: 0,
@@ -455,22 +508,51 @@ export class Animals implements OnInit, OnDestroy {
     } else {
       // Create - enviar todos los campos requeridos
       const createData: Partial<AnimalCreateDto> = {
+        // Campos básicos requeridos
         cod_finca: this.animal.cod_finca!,
         cod_animal: this.animal.cod_animal!,
         nomb_animal: this.animal.nomb_animal!,
         sexo_animal: this.animal.sexo_animal!,
-        fec_ingreso:
-          this.animal.fec_ingreso || new Date().toISOString().split('T')[0],
+        fec_nacim: this.animal.fec_nacim,
+        fec_ingreso: this.animal.fec_ingreso || new Date().toISOString().split('T')[0],
+        
+        // Campos de catálogos
         estatus: this.animal.estatus || 'A',
         cod_raza: this.animal.cod_raza || 0,
+        cod_color: this.animal.cod_color || 0,
+        cod_tipo_pelo: this.animal.cod_tipo_pelo || undefined, // Campo faltante
+        
+        // Campos de peso
         peso_actual: this.animal.peso_actual || 0,
         peso_al_nacer: this.animal.peso_al_nacer || 0,
-        fec_nacim: this.animal.fec_nacim,
-        cod_color: this.animal.cod_color || 0,
-        tatuaje: this.animal.tatuaje || '',
-        observac: this.animal.observac || '',
+        peso_destete: this.animal.peso_al_destete || undefined, // Mapeo correcto
+        fec_destete: this.animal.fec_destete || undefined,
+        
+        // Campos de tatuaje
+        tatuaje: this.animal.tatuaje || undefined,
+        tatuaje_oreja_izq: this.animal.tatuaje_oreja_izq || undefined,
+        tatuaje_oreja_der: this.animal.tatuaje_oreja_der || undefined,
+        tatuaje_cola: this.animal.tatuaje_cola || undefined,
+        
+        // Campos de origen y tipo
+        origen: this.animal.origen || 'N', // N = Nacido en finca
+        tipo_concepcion: this.animal.tipo_concepcion || 'M', // M = Monta Natural
+        tipo_parto: this.animal.tipo_parto || 'S', // S = Simple
+        
+        // Campos de material genético y protocolo
+        tipo_material_gen: this.animal.material_genetico || undefined, // Mapeo correcto
+        protocolo_imp: this.animal.protocolo_importacion || undefined, // Mapeo correcto
+        
+        // Campos de asociación y composición racial
+        cod_asociacion: this.animal.codigo_aso || undefined, // String field
+        porcen_sangre: this.animal.porc_racial || undefined, // Mapeo correcto
+        
+        // Campos adicionales
+        observac: this.animal.observac || undefined,
+        imagen: this.animal.imagen || undefined,
+        
+        // Campos que no están en el formulario pero pueden ser útiles
         foto: this.animal.foto || undefined,
-
       };
 
       this.animalsService.addAnimal$(createData).subscribe({

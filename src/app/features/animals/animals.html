@@ -252,7 +252,10 @@
           </label>
           <p-select
             id="cod_raza"
+            [options]="razaOptions"
             [(ngModel)]="animal.cod_raza"
+            optionLabel="label"
+            optionValue="value"
             placeholder="--Seleccione una Raza--"
             class="w-full"
           />
@@ -264,8 +267,26 @@
           </label>
           <p-select
             id="cod_color"
+            [options]="colorOptions"
             [(ngModel)]="animal.cod_color"
+            optionLabel="label"
+            optionValue="value"
             placeholder="--Seleccione un Color--"
+            class="w-full"
+          />
+        </div>
+
+        <div class="col-span-1">
+          <label for="cod_tipo_pelo" class="block text-sm font-medium mb-1">
+            <i class="pi pi-scissors"></i> Tipo de Pelo
+          </label>
+          <p-select
+            id="cod_tipo_pelo"
+            [options]="tipoPeloOptions"
+            [(ngModel)]="animal.cod_tipo_pelo"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="--Seleccione Tipo de Pelo--"
             class="w-full"
           />
         </div>
@@ -276,8 +297,11 @@
           </label>
           <p-select
             id="origen"
+            [options]="origenOptions"
             [(ngModel)]="animal.origen"
-            placeholder="NACIDO EN FINCA"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="--Seleccione el Origen--"
             class="w-full"
           />
         </div>
@@ -348,8 +372,11 @@
           </label>
           <p-select
             id="tipo_concepcion"
+            [options]="tipoConcepcionOptions"
             [(ngModel)]="animal.tipo_concepcion"
-            placeholder="MONTA NATURAL"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="--Seleccione Tipo Concepción--"
             class="w-full"
           />
         </div>
@@ -360,8 +387,11 @@
           </label>
           <p-select
             id="tipo_parto"
+            [options]="tipoPartoOptions"
             [(ngModel)]="animal.tipo_parto"
-            placeholder="SIMPLE"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="--Seleccione Tipo Parto--"
             class="w-full"
           />
         </div>
@@ -372,8 +402,11 @@
           </label>
           <p-select
             id="material_genetico"
+            [options]="materialGeneticoOptions"
             [(ngModel)]="animal.material_genetico"
-            placeholder="NACIONAL"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="--Seleccione Material Genético--"
             class="w-full"
           />
         </div>
@@ -385,8 +418,11 @@
           </label>
           <p-select
             id="protocolo_importacion"
+            [options]="protocoloImportacionOptions"
             [(ngModel)]="animal.protocolo_importacion"
-            placeholder="SI"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="--Seleccione Protocolo--"
             class="w-full"
           />
         </div>
@@ -482,7 +518,10 @@
           </label>
           <p-select
             id="comp_racial"
+            [options]="compRacialOptions"
             [(ngModel)]="animal.comp_racial"
+            optionLabel="label"
+            optionValue="value"
             placeholder="--Seleccione la Composición--"
             class="w-full"
           />

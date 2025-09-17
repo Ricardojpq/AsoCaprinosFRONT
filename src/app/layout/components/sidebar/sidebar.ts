@@ -23,24 +23,9 @@ export class Sidebar implements OnInit {
   readonly settingsIcon = Settings;
 
 
-  menuModel: MenuItem[] = [];
 
   constructor(public layoutService: LayoutService, public router: Router,public el: ElementRef) { }
 
   ngOnInit() {
-    this.menuModel = [
-            { label: 'Dashboard', icon: this.homeIcon, routerLink: ['Dashboard'] },
-            { label: 'Certificados', icon: this.awardIcon, routerLink: ['Certificates'] },
-            { label: 'Animales', icon: this.pawPrintIcon, routerLink: ['Animals'] },
-            { label: 'Socios', icon: this.userIcon, routerLink: ['Members'] },
-            {
-                label: 'Configuración',
-                icon: this.settingsIcon,
-                items: [
-                    { label: 'General', icon: this.slidersHorizontalIcon, routerLink: ['settings/general'] },
-                    { label: 'Usuarios', icon: this.usersIcon, routerLink: ['settings/users'] }
-                ]
-            }
-        ];
   }
 }

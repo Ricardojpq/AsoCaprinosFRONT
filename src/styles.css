@@ -41,6 +41,7 @@
   --surface-ground: var(--p-surface-100);
   --code-background: var(--p-surface-900);
   --code-color: var(--p-surface-200);
+  
 }
 
 :root[class*='dark'] {
@@ -400,9 +401,11 @@ p:last-child {
   transition:
     transform var(--layout-section-transition-duration),
     left var(--layout-section-transition-duration);
-  background-color: var(--surface-overlay);
+  /* background-color: var(--surface-overlay); */
   border-radius: var(--content-border-radius);
   padding: 0.5rem 1.5rem;
+
+  @apply bg-golden-200 dark:bg-golden-900/30 dark:text-white shadow-sm;
 }
 
 .layout-menu {
@@ -467,7 +470,6 @@ p:last-child {
 
 .layout-menu ul a.active-route {
   font-weight: 700;
-  color: var(--primary-color);
 }
 
 .layout-menu ul a:hover {

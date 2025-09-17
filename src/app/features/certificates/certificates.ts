@@ -115,6 +115,7 @@ export class Certificates implements OnInit {
   totalRecords: number = 0;
   pageSize: number = 10;
   loading: boolean = false;
+  downloadLoading: boolean = false;
 
   // Filtros
   searchTerm: string = '';
@@ -127,6 +128,10 @@ export class Certificates implements OnInit {
   @ViewChild('dt') dt!: Table;
 
   cols!: Column[];
+  
+  // Propiedades para manejo de carga de datos
+  waitingForDataLoad: boolean = false;
+  isDownloadMode: boolean = false;
 
   exportColumns!: ExportColumn[];
 
@@ -235,8 +240,12 @@ export class Certificates implements OnInit {
     if (!certificate.id) return;
 
     try {
+      // Limpiar datos anteriores
+      this.clearCertificateData();
+      
       this.pdfViewerDialog = true;
       this.isLoading = true;
+      this.waitingForDataLoad = true; // Flag para indicar que estamos esperando la carga
 
       this.certificatesService
         .getCertificateCompleteInfo(certificate.id)
@@ -247,12 +256,11 @@ export class Certificates implements OnInit {
               response.data
             ) {
               this.certificateData = response.data;
-              let success = await this.generatePDFForViewing();
-              if (success) this.isLoading = false;
             }
           },
           error: (error) => {
             this.isLoading = false;
+            this.waitingForDataLoad = false;
             console.error('Error loading certificate info:', error);
             this.messageService.add({
               severity: 'error',
@@ -264,6 +272,7 @@ export class Certificates implements OnInit {
     } catch (error) {
       console.error(error);
       this.isLoading = false;
+      this.waitingForDataLoad = false;
     }
   }
 
@@ -275,6 +284,9 @@ export class Certificates implements OnInit {
       detail: 'Generando PDF, por favor espere...',
     });
     try {
+      this.waitingForDataLoad = true;
+      this.isDownloadMode = true;
+
       this.certificatesService
         .getCertificateCompleteInfo(certificate.id)
         .subscribe({
@@ -284,20 +296,11 @@ export class Certificates implements OnInit {
               response.data
             ) {
               this.certificateData = response.data;
-
-              try {
-                await this.downloadCertificate();
-              } catch (pdfError) {
-                console.error('Error generating PDF:', pdfError);
-                this.messageService.add({
-                  severity: 'error',
-                  summary: 'Error',
-                  detail: 'Error al generar el PDF',
-                });
-              }
             }
           },
           error: (error) => {
+            this.waitingForDataLoad = false;
+            this.isDownloadMode = false;
             console.error('Error loading certificate info:', error);
             this.messageService.add({
               severity: 'error',
@@ -308,6 +311,8 @@ export class Certificates implements OnInit {
         });
     } catch (error) {
       console.error(error);
+      this.waitingForDataLoad = false;
+      this.isDownloadMode = false;
     }
   }
 
@@ -584,6 +589,54 @@ export class Certificates implements OnInit {
   }
 
   /**
+   * Limpia los datos del certificado anterior
+   */
+  private clearCertificateData() {
+    this.certificateData = {} as CertificateDto;
+    this.pdfUrl = null;
+    this.error = null;
+    this.waitingForDataLoad = false;
+    this.isDownloadMode = false;
+  }
+
+  /**
+   * Método llamado cuando todos los datos han sido cargados en los componentes
+   */
+  async onAllDataLoaded() {
+    if (this.waitingForDataLoad) {
+      console.log('Todos los datos han sido cargados, procesando...');
+      this.waitingForDataLoad = false;
+      
+      try {
+        if (this.isDownloadMode) {
+          // Modo descarga
+          console.log('Ejecutando descarga de PDF...');
+          await this.downloadCertificate();
+          this.isDownloadMode = false;
+        } else {
+          // Modo visualización
+          console.log('Generando PDF para visualización...');
+          let success = await this.generatePDFForViewing();
+          if (success) {
+            this.isLoading = false;
+          }
+        }
+      } catch (error) {
+        console.error('Error al procesar PDF después de cargar datos:', error);
+        this.isLoading = false;
+        this.isDownloadMode = false;
+        this.error = 'Error al generar el PDF: ' + (error as Error).message;
+        
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Error al generar el PDF',
+        });
+      }
+    }
+  }
+
+  /**
    * Genera el PDF para visualización embebida
    */
   async generatePDFForViewing(): Promise<boolean> {
@@ -631,6 +684,8 @@ export class Certificates implements OnInit {
    * Descarga el PDF del certificado
    */
   async downloadCertificate(): Promise<void> {
+    this.downloadLoading = true;
+    
     try {
       if (!this.page1Ref?.nativeElement) {
         throw new Error('No se encontró el elemento de la página 1');
@@ -654,14 +709,21 @@ export class Certificates implements OnInit {
         page2Element as HTMLElement,
         animalName
       );
-    } catch (error) {
-      console.error('Error al descargar PDF:', error);
-    } finally {
+
       this.messageService.add({
         severity: 'success',
         summary: 'Éxito',
         detail: 'PDF descargado correctamente',
       });
+    } catch (error) {
+      console.error('Error al descargar PDF:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Error al descargar el PDF',
+      });
+    } finally {
+      this.downloadLoading = false;
     }
   }
 }

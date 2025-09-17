@@ -1,68 +1,63 @@
 <ng-container>
   @if (root && item.visible !== false) {
-    <div class="layout-menuitem-root-text">{{ item.label }}</div>
-  } 
-
-  @if ((!item.routerLink || item.items) && item.visible !== false) {
-    <a
-        [attr.href]="item.url"
-        (click)="itemClick($event)"
-        [ngClass]="item.styleClass"
-        [attr.target]="item.target"
-        tabindex="0"
-        pRipple
-    >
-        @if (item.icon) {
-         <lucide-icon [img]="item.icon" size="20" class="mr-1"></lucide-icon>
-        }
-         <span class="layout-menuitem-text">{{ item.label }}</span>
-    </a>
-  } 
-
-  @if (item.routerLink && !item.items && item.visible !== false) {
-    <a
-        (click)="itemClick($event)"
-        [class]="item.styleClass"
-        class="text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
-        [routerLink]="item.routerLink"
-        routerLinkActive="active-route bg-golden-100 text-golden-800 dark:bg-golden-900/30 dark:text-golden-300 shadow-sm"
-        [routerLinkActiveOptions]="
-        item.routerLinkActiveOptions || {
-            paths: 'exact',
-            queryParams: 'ignored',
-            matrixParams: 'ignored',
-            fragment: 'ignored'
-        }
-        "
-        [fragment]="item.fragment"
-        [queryParamsHandling]="item.queryParamsHandling"
-        [preserveFragment]="item.preserveFragment"
-        [skipLocationChange]="item.skipLocationChange"
-        [replaceUrl]="item.replaceUrl"
-        [state]="item.state"
-        [queryParams]="item.queryParams"
-        [attr.target]="item.target"
-        tabindex="0"
-        pRipple
-    >
-        @if (item.icon) {
-            <lucide-icon [img]="item.icon" size="20" class="mr-1"></lucide-icon>
-        }
-            <span class="layout-menuitem-text">{{ item.label }}</span>
-    </a>
-  } 
-  @if (item.items && item.visible !== false) {
-    <ul [@children]="submenuAnimation">
-        @for (child of item.items; track $index) {
-            <li
-            app-menuitem
-            [item]="child"
-            [index]="$index"
-            [parentKey]="key"
-            [class]="child['badgeClass']"
-            >
-            </li>
-        }
-    </ul>
+  <div class="layout-menuitem-root-text">{{ item.label }}</div>
+  } @if ((!item.routerLink || item.items) && item.visible !== false) {
+  <a
+    [attr.href]="item.url"
+    (click)="itemClick($event)"
+    [ngClass]="item.styleClass"
+    [attr.target]="item.target"
+    tabindex="0"
+    class="hover:bg-white! dark:hover:bg-[#18181b]!"
+    pRipple
+  >
+    @if (item.icon) {
+    <lucide-icon [img]="item.icon" size="20" class="mr-1"></lucide-icon>
+    }
+    <span class="layout-menuitem-text">{{ item.label }}</span>
+  </a>
+  } @if (item.routerLink && !item.items && item.visible !== false) {
+  <a
+    (click)="itemClick($event)"
+    [class]="item.styleClass"
+    class="hover:bg-white! dark:hover:bg-[#18181b]!"
+    [routerLink]="item.routerLink"
+    routerLinkActive="active-route bg-white dark:bg-[#18181b] shadow-sm"
+    [routerLinkActiveOptions]="
+      item.routerLinkActiveOptions || {
+        paths: 'exact',
+        queryParams: 'ignored',
+        matrixParams: 'ignored',
+        fragment: 'ignored'
+      }
+    "
+    [fragment]="item.fragment"
+    [queryParamsHandling]="item.queryParamsHandling"
+    [preserveFragment]="item.preserveFragment"
+    [skipLocationChange]="item.skipLocationChange"
+    [replaceUrl]="item.replaceUrl"
+    [state]="item.state"
+    [queryParams]="item.queryParams"
+    [attr.target]="item.target"
+    tabindex="0"
+    pRipple
+  >
+    @if (item.icon) {
+    <lucide-icon [img]="item.icon" size="20" class="mr-1"></lucide-icon>
+    }
+    <span class="layout-menuitem-text">{{ item.label }}</span>
+  </a>
+  } @if (item.items && item.visible !== false) {
+  <ul [@children]="submenuAnimation">
+    @for (child of item.items; track $index) {
+    <li
+      app-menuitem
+      [item]="child"
+      [index]="$index"
+      [parentKey]="key"
+      [class]="child['badgeClass'] + ' my-2'"
+    ></li>
+    }
+  </ul>
   }
 </ng-container>

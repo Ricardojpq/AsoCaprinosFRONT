@@ -22,7 +22,7 @@ export interface AnimalCreateDto {
   cod_madre?: number;
   cod_finca_embrion?: number;
   cod_embrion?: number;
-  cod_asociacion?: number;
+  cod_asociacion?: string;
   id_finca?: string;
   id_electronico?: string;
   origen?: string;

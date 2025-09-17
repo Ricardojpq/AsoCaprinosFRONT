@@ -1,0 +1,187 @@
+<div class="card">
+  <p-toast />
+  <p-toolbar class="mb-6">
+    <ng-template #start>
+      <div class="flex gap-1">
+        <p-button
+          styleClass="btn btn-primary btn-sm"
+          label="Nuevo Tipo de Pelo"
+          (onClick)="openNew()"
+        >
+          <lucide-icon [img]="plusIcon" size="16"></lucide-icon>
+        </p-button>
+        <p-button
+          styleClass="btn btn-danger btn-sm"
+          severity="danger"
+          label="Eliminar"
+          outlined
+          (onClick)="deleteSelectedHairTypes()"
+          [disabled]="!selectedHairTypes || !selectedHairTypes.length"
+        >
+          <lucide-icon [img]="trashIcon" size="16"></lucide-icon>
+        </p-button>
+      </div>
+    </ng-template>
+    <ng-template #end> </ng-template>
+  </p-toolbar>
+
+  <p-table
+    #dt
+    [value]="hairTypes"
+    [rows]="perPage"
+    [columns]="cols"
+    [paginator]="true"
+    [globalFilterFields]="['nomb_tipo_pelo']"
+    [tableStyle]="{ 'min-width': '50rem' }"
+    [(selection)]="selectedHairTypes"
+    [rowHover]="true"
+    dataKey="cod_tipo_pelo"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} tipos de pelo"
+    [showCurrentPageReport]="true"
+    [totalRecords]="totalRecords"
+    [lazy]="true"
+    [loading]="loading"
+    (onLazyLoad)="onTableLazyLoad($event)"
+    [sortField]="sortField"
+    [sortOrder]="sortOrder === 'asc' ? 1 : -1"
+    [filterDelay]="300"
+  >
+    <ng-template #caption>
+      <div class="flex items-center justify-between">
+        <h5 class="m-0">Gestión de Tipos de Pelo</h5>
+        <div class="flex items-center gap-2">
+          <p-iconfield>
+            <p-inputicon>
+              <lucide-angular [img]="searchIcon" size="16"></lucide-angular>
+            </p-inputicon>
+            <input
+              pInputText
+              type="text"
+              placeholder="Buscar tipo de pelo..."
+              (input)="onGlobalFilter($event)"
+              class="focus:border-golden-500"
+              [value]="globalFilterValue"
+            />
+            @if (globalFilterValue) {
+              <p-inputicon>
+                <lucide-angular [img]="xIcon" size="16" (click)="clearSearch()" class="cursor-pointer"></lucide-angular>
+            </p-inputicon>
+            }
+          </p-iconfield>
+        </div>
+      </div>
+    </ng-template>
+    <ng-template #header>
+      <tr>
+        <th style="width: 3rem">
+          <p-tableHeaderCheckbox />
+        </th>
+        <th pSortableColumn="cod_tipo_pelo" style="min-width: 8rem">
+          <div class="flex items-center gap-2">
+            ID
+            <p-sortIcon field="cod_tipo_pelo" />
+          </div>
+        </th>
+        <th pSortableColumn="nomb_tipo_pelo" style="min-width: 15rem">
+          <div class="flex items-center gap-2">
+            Nombre
+            <p-sortIcon field="nomb_tipo_pelo" />
+          </div>
+        </th>
+        <th pSortableColumn="created_at" style="min-width: 12rem">
+          <div class="flex items-center gap-2">
+            Fecha Creación
+            <p-sortIcon field="created_at" />
+          </div>
+        </th>
+        <th style="min-width: 8rem">Acciones</th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-hairType>
+      <tr>
+        <td style="width: 3rem">
+          <p-tableCheckbox [value]="hairType" />
+        </td>
+        <td>{{ hairType.cod_tipo_pelo }}</td>
+        <td>{{ hairType.nomb_tipo_pelo }}</td>
+        <td>{{ hairType.created_at | date : "dd/MM/yyyy HH:mm" }}</td>
+        <td>
+          <p-button
+            class="mr-2"
+            [rounded]="true"
+            [outlined]="true"
+            (click)="editHairType(hairType)"
+            styleClass="p-button-sm"
+          >
+            <lucide-icon [img]="pencilIcon" size="18"></lucide-icon>
+          </p-button>
+          <p-button
+            severity="danger"
+            [rounded]="true"
+            [outlined]="true"
+            (click)="deleteHairType(hairType)"
+            styleClass="p-button-sm"
+          >
+            <lucide-icon [img]="trashIcon" size="18"></lucide-icon>
+          </p-button>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+
+  <p-dialog
+    [(visible)]="hairTypeDialog"
+    [style]="{ width: '450px' }"
+    [header]="isEditMode ? 'Editar Tipo de Pelo' : 'Nuevo Tipo de Pelo'"
+    [modal]="true"
+    [maximizable]="false"
+  >
+    <ng-template #content>
+      <form [formGroup]="hairTypeForm" (ngSubmit)="saveHairType()">
+        <div class="field mb-4">
+          <label for="nomb_tipo_pelo" class="block text-sm font-medium mb-2">
+            <i class="pi pi-tag"></i> Nombre del Tipo de Pelo *
+          </label>
+          <input
+            type="text"
+            pInputText
+            id="nomb_tipo_pelo"
+            formControlName="nomb_tipo_pelo"
+            placeholder="Ingrese el nombre del tipo de pelo"
+            class="w-full"
+            [class.ng-invalid]="f['nomb_tipo_pelo'].invalid && (f['nomb_tipo_pelo'].dirty || submitted)"
+            [class.ng-dirty]="f['nomb_tipo_pelo'].dirty"
+          />
+          @if (f['nomb_tipo_pelo'].invalid && (f['nomb_tipo_pelo'].dirty || submitted)) {
+            <small class="text-red-500">
+              @if (f['nomb_tipo_pelo'].errors?.['required']) {
+                El nombre del tipo de pelo es requerido.
+              }
+              @if (f['nomb_tipo_pelo'].errors?.['maxlength']) {
+                El nombre no puede exceder 30 caracteres.
+              }
+            </small>
+          }
+        </div>
+
+        <!-- Campo foto_tipo_pelo removido temporalmente -->
+      </form>
+    </ng-template>
+    <ng-template #footer>
+      <p-button
+        label="Cancelar"
+        icon="pi pi-times"
+        text
+        (click)="hideDialog()"
+      />
+      <p-button 
+        label="Guardar" 
+        icon="pi pi-check" 
+        (click)="saveHairType()"
+        [loading]="loading"
+      />
+    </ng-template>
+  </p-dialog>
+
+  <p-confirmDialog [style]="{ width: '450px' }" />
+</div>

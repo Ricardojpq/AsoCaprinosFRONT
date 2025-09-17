@@ -28,6 +28,22 @@ export const routes: Routes = [
                 canDeactivate: [CanDeactivateGuard]
             },
             {
+                path: 'Animals/Breeds',
+                loadComponent: () => import('@features/animals/catalogs/breeds/breeds').then(c => c.Breeds)
+            },
+            {
+                path: 'Animals/HairTypes',
+                loadComponent: () => import('@features/animals/catalogs/hair-type/hair-type').then(c => c.HairType)
+            },
+            {
+                path: 'Animals/Colors',
+                loadComponent: () => import('@features/animals/catalogs/colors/colors').then(c => c.Colors)
+            },
+            {
+                path: 'Animals/PhysicalConditions',
+                loadComponent: () => import('@features/animals/catalogs/physical-condition/physical-condition').then(c => c.PhysicalCondition)
+            },
+            {
                 path: 'Certificates',
                 loadComponent: () => import('@features/certificates/certificates').then(c => c.Certificates)
             },

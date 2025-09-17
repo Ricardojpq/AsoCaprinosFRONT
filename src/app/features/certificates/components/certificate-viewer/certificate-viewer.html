@@ -29,12 +29,18 @@
   </div>
 
   <!-- Elementos ocultos para generación de PDF -->
-  <!-- <div class="offscreen">
+  <div class="offscreen">
     <div #certificatePage1>
-      <app-certificate-page1 [certificateData]="certificateData"></app-certificate-page1>
+      <app-certificate-page1 
+        [certificateData]="certificateData"
+        (dataLoaded)="onPage1DataLoaded()">
+      </app-certificate-page1>
     </div>
     <div #certificatePage2>
-      <app-certificate-page2 [certificateData]="certificateData"></app-certificate-page2>
+      <app-certificate-page2 
+        [certificateData]="certificateData"
+        (dataLoaded)="onPage2DataLoaded()">
+      </app-certificate-page2>
     </div>
-  </div> -->
+  </div>
 </div>

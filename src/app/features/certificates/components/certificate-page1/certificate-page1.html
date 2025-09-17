@@ -117,7 +117,7 @@
         <p
           class="m-0! font-bold border-black border-dashed border-s-[1.5px] border-b-[1.5px] border-e-[1.5px] text-center w-[100px] p-0.5"
         >
-          10650
+           {{ certificateData?.genealogy?.padre?.cod_animal || "N/P" }}
         </p>
       </div>
       <div class="flex justify-end gap-1.5">
@@ -125,7 +125,7 @@
         <p
           class="m-0! font-bold border-black border-dashed border-s-[1.5px] border-b-[1.5px] border-e-[1.5px] text-center w-[100px] p-0.5"
         >
-          {{ certificateData?.genealogy?.padre?.cod_animal || "N/P" }}
+          N/P
         </p>
       </div>
     </div>
