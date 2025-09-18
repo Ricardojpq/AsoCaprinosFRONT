@@ -1,0 +1,306 @@
+<div class="states-tab-container">
+  
+  <!-- Toolbar -->
+  <div class="flex justify-between items-center mb-4">
+    <!-- Búsqueda -->
+    <div class="flex items-center gap-2">
+      <span class="p-input-icon-left">
+        <i class="pi pi-search"></i>
+        <input 
+          type="text" 
+          pInputText 
+          [(ngModel)]="searchTerm"
+          (keyup.enter)="onSearch()"
+          placeholder="Buscar estados..." 
+          class="w-80" />
+      </span>
+      <p-button 
+        (onClick)="onSearch()"
+        pTooltip="Buscar"
+        tooltipPosition="bottom">
+        <lucide-icon [img]="searchIcon" size="16"></lucide-icon>
+      </p-button>
+      <p-button 
+        icon="pi pi-times" 
+        severity="secondary"
+        (onClick)="clearSearch()"
+        pTooltip="Limpiar búsqueda"
+        tooltipPosition="bottom">
+        <lucide-icon [img]="brushCleaningIcon" size="16"></lucide-icon>
+      </p-button>
+    </div>
+
+    <!-- Acciones -->
+    <div class="flex gap-2">
+      @if (canCreate) {
+        <p-button 
+          icon="pi pi-plus" 
+          label="Nuevo Estado"
+          (onClick)="openCreateModal()"
+          pTooltip="Crear nuevo estado"
+          tooltipPosition="bottom">
+            <lucide-icon [img]="plusIcon" size="16"></lucide-icon>
+        </p-button>
+      }
+      <p-button 
+        icon="pi pi-refresh" 
+        severity="secondary"
+        (onClick)="loadStates()"
+        pTooltip="Actualizar"
+        tooltipPosition="bottom">
+          <lucide-icon [img]="rotateCcwIcon" size="16"></lucide-icon>
+      </p-button>
+    </div>
+  </div>
+
+  <!-- Tabla de estados -->
+  <p-table 
+    [value]="states"
+    [lazy]="true"
+    [paginator]="true"
+    [rows]="rows"
+    [totalRecords]="totalRecords"
+    [loading]="loading"
+    [first]="first"
+    [rowsPerPageOptions]="rowsPerPageOptions"
+    [showCurrentPageReport]="true"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} estados"
+    [sortField]="sortField"
+    [sortOrder]="sortOrder"
+    (onLazyLoad)="loadStates($event)"
+    class="p-datatable-striped p-datatable-gridlines">
+
+    <!-- Header -->
+    <ng-template pTemplate="header">
+      <tr>
+        <th pSortableColumn="cod_estado">
+          Código <p-sortIcon field="cod_estado"></p-sortIcon>
+        </th>
+        <th pSortableColumn="nom_estado">
+          Nombre <p-sortIcon field="nom_estado"></p-sortIcon>
+        </th>
+        <th>Siglas</th>
+        <th pSortableColumn="cod_pais">
+          País <p-sortIcon field="cod_pais"></p-sortIcon>
+        </th>
+        <th>Capital</th>
+        <th>Estado</th>
+        @if (canUpdate || canDelete) {
+          <th>Acciones</th>
+        }
+      </tr>
+    </ng-template>
+
+    <!-- Body -->
+    <ng-template pTemplate="body" let-state>
+      <tr [pSelectableRow]="state">
+        <td>{{ state.cod_estado }}</td>
+        <td>
+          <span class="font-semibold">{{ state.nom_estado }}</span>
+        </td>
+        <td>
+          <span class="text-sm bg-green-100 text-green-800 px-2 py-1 rounded">
+            {{ state.siglas_estado || 'N/A' }}
+          </span>
+        </td>
+        <td>{{ state.pais?.nom_pais || 'No definido' }}</td>
+        <td>{{ state.capital_estado || 'No definido' }}</td>
+        <td>
+          <span 
+            class="text-xs px-2 py-1 rounded-full"
+            [ngClass]="{
+              'bg-green-100 text-green-800': state.is_active,
+              'bg-red-100 text-red-800': !state.is_active
+            }">
+            {{ state.is_active ? 'Activo' : 'Inactivo' }}
+          </span>
+        </td>
+        @if (canUpdate || canDelete) {
+          <td>
+            <div class="flex gap-1">
+              @if (canUpdate) {
+                <p-button 
+                  icon="pi pi-pencil" 
+                  severity="info"
+                  size="small"
+                  (onClick)="openEditModal(state)"
+                  pTooltip="Editar"
+                  tooltipPosition="top">
+                  <lucide-icon [img]="pencilIcon" size="16"></lucide-icon>
+                </p-button>
+              }
+              @if (canDelete) {
+                <p-button 
+                  icon="pi pi-trash" 
+                  severity="danger"
+                  size="small"
+                  (onClick)="confirmDelete(state)"
+                  pTooltip="Eliminar"
+                  tooltipPosition="top">
+                    <lucide-icon [img]="trashIcon" size="16"></lucide-icon>
+                </p-button>
+              }
+            </div>
+          </td>
+        }
+      </tr>
+    </ng-template>
+
+    <!-- Empty message -->
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="7" class="text-center py-8">
+          <div class="flex flex-col items-center gap-3">
+            <i class="pi pi-map text-4xl text-gray-400"></i>
+            <span class="text-gray-500">No se encontraron estados</span>
+            @if (canCreate) {
+              <p-button 
+                label="Crear primer estado" 
+                icon="pi pi-plus"
+                (onClick)="openCreateModal()">
+              </p-button>
+            }
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+
+  <!-- Modal para crear/editar estado -->
+  <p-dialog 
+    [(visible)]="displayModal"
+    [modal]="true"
+    [closable]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [style]="{width: '500px'}"
+    [header]="modalMode === 'create' ? 'Crear Nuevo Estado' : 'Editar Estado'">
+    
+    <form [formGroup]="stateForm" (ngSubmit)="saveState()">
+      
+      <!-- Código del estado -->
+      <div class="field mb-4">
+        <label for="cod_estado" class="block text-sm font-medium text-gray-700 mb-2">
+          Código del Estado *
+        </label>
+        <input 
+          id="cod_estado"
+          type="number"
+          pInputText
+          formControlName="cod_estado"
+          [disabled]="modalMode === 'edit'"
+          placeholder="Ej: 1, 2, 3..."
+          class="w-full"
+          [class.ng-invalid]="hasFieldError('cod_estado')" />
+        @if (hasFieldError('cod_estado')) {
+          <small class="text-red-500">
+            {{ getFieldError('cod_estado') }}
+          </small>
+        }
+      </div>
+
+      <!-- Nombre del estado -->
+      <div class="field mb-4">
+        <label for="nom_estado" class="block text-sm font-medium text-gray-700 mb-2">
+          Nombre del Estado *
+        </label>
+        <input 
+          id="nom_estado"
+          type="text"
+          pInputText
+          formControlName="nom_estado"
+          placeholder="Ej: Zulia, Miranda..."
+          class="w-full"
+          [class.ng-invalid]="hasFieldError('nom_estado')" />
+        @if (hasFieldError('nom_estado')) {
+          <small class="text-red-500">
+            {{ getFieldError('nom_estado') }}
+          </small>
+        }
+      </div>
+
+      <!-- Siglas del estado -->
+      <div class="field mb-4">
+        <label for="siglas_estado" class="block text-sm font-medium text-gray-700 mb-2">
+          Siglas del Estado
+        </label>
+        <input 
+          id="siglas_estado"
+          type="text"
+          pInputText
+          formControlName="siglas_estado"
+          placeholder="Ej: ZU, MI..."
+          class="w-full"
+          [class.ng-invalid]="hasFieldError('siglas_estado')" />
+        @if (hasFieldError('siglas_estado')) {
+          <small class="text-red-500">
+            {{ getFieldError('siglas_estado') }}
+          </small>
+        }
+      </div>
+
+      <!-- País -->
+      <div class="field mb-4">
+        <label for="cod_pais" class="block text-sm font-medium text-gray-700 mb-2">
+          País *
+        </label>
+        <p-select 
+          id="cod_pais"
+          [options]="filteredCountryOptions"
+          formControlName="cod_pais"
+          optionLabel="label" 
+          optionValue="value"
+          placeholder="Seleccionar país"
+          class="w-full"
+          [class.ng-invalid]="hasFieldError('cod_pais')">
+        </p-select>
+        @if (hasFieldError('cod_pais')) {
+          <small class="text-red-500">
+            {{ getFieldError('cod_pais') }} 
+          </small>
+        }
+      </div>
+
+      <!-- Capital del estado -->
+      <div class="field mb-6">
+        <label for="capital_estado" class="block text-sm font-medium text-gray-700 mb-2">
+          Capital del Estado
+        </label>
+        <input 
+          id="capital_estado"
+          type="text"
+          pInputText
+          formControlName="capital_estado"
+          placeholder="Ej: Caracas, Valencia, Maracaibo..."
+          class="w-full"
+          [class.ng-invalid]="hasFieldError('capital_estado')" />
+        @if (hasFieldError('capital_estado')) {
+          <small class="text-red-500">
+            {{ getFieldError('capital_estado') }}
+          </small>
+        }
+      </div>
+
+    </form>
+
+    <!-- Footer -->
+    <ng-template pTemplate="footer">
+      <div class="flex justify-end gap-2">
+        <p-button 
+          label="Cancelar" 
+          icon="pi pi-times"
+          severity="secondary"
+          (onClick)="closeModal()">
+        </p-button>
+        <p-button 
+          [label]="modalMode === 'create' ? 'Crear' : 'Actualizar'"
+          [icon]="modalMode === 'create' ? 'pi pi-plus' : 'pi pi-check'"
+          [loading]="loading"
+          (onClick)="saveState()">
+        </p-button>
+      </div>
+    </ng-template>
+
+  </p-dialog>
+
+</div>

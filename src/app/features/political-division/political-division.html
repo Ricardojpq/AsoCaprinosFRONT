@@ -1,1 +1,85 @@
-<p>political-division works!</p>
+<div class="card">
+  <!-- Tabs principales -->
+  <p-tabs 
+    [value]="activeTabIndex.toString()"
+    (onTabChange)="onTabChange($event)"
+    class="political-division-tabs">
+    
+    <p-tablist>
+      <p-tab value="0">
+        <i class="pi pi-globe mr-2"></i>
+        Países
+      </p-tab>
+      <p-tab value="1">
+        <i class="pi pi-map mr-2"></i>
+        Estados
+      </p-tab>
+      <p-tab value="2">
+        <i class="pi pi-building mr-2"></i>
+        Municipios
+      </p-tab>
+      <p-tab value="3">
+        <i class="pi pi-home mr-2"></i>
+        Parroquias
+      </p-tab>
+      <p-tab value="4">
+        <i class="pi pi-map-marker mr-2"></i>
+        Ciudades
+      </p-tab>
+    </p-tablist>
+
+    <p-tabpanels>
+      <!-- Panel Países -->
+      <p-tabpanel value="0">
+        <app-countries-tab
+          [canCreate]="canCreate()"
+          [canUpdate]="canUpdate()"
+          [canDelete]="canDelete()"
+          (dataChanged)="refreshCurrentTab()">
+        </app-countries-tab>
+      </p-tabpanel>
+
+      <!-- Panel Estados -->
+      <p-tabpanel value="1">
+        <app-states-tab
+          [canCreate]="canCreate()"
+          [canUpdate]="canUpdate()"
+          [canDelete]="canDelete()"
+          (dataChanged)="refreshCurrentTab()">
+        </app-states-tab>
+      </p-tabpanel>
+
+      <!-- Panel Municipios -->
+      <p-tabpanel value="2">
+        <app-municipalities-tab
+          [canCreate]="canCreate()"
+          [canUpdate]="canUpdate()"
+          [canDelete]="canDelete()"
+          (dataChanged)="refreshCurrentTab()">
+        </app-municipalities-tab>
+      </p-tabpanel>
+
+      <!-- Panel Parroquias -->
+      <p-tabpanel value="3">
+        <app-parishes-tab
+          [canCreate]="canCreate()"
+          [canUpdate]="canUpdate()"
+          [canDelete]="canDelete()"
+          (dataChanged)="refreshCurrentTab()">
+        </app-parishes-tab>
+      </p-tabpanel>
+
+      <!-- Panel Ciudades -->
+      <p-tabpanel value="4">
+        <app-cities-tab
+          [canCreate]="canCreate()"
+          [canUpdate]="canUpdate()"
+          [canDelete]="canDelete()"
+          (dataChanged)="refreshCurrentTab()">
+        </app-cities-tab>
+      </p-tabpanel>
+    </p-tabpanels>
+
+  </p-tabs>
+
+</div>

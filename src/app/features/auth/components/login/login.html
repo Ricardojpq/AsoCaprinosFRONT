@@ -34,10 +34,10 @@
         <!-- Mensaje de error -->
         @if (error()) {
           <p-message 
-            severity="error" 
-            [text]="error() || ''" 
+            severity="error"        
             styleClass="my-6"
             [closable]="false">
+            {{error() || ''}}
           </p-message>
         }
 
@@ -68,7 +68,7 @@
               id="password1"
               placeholder="Password"
               [toggleMask]="true"
-              styleClass="mb-4"
+              class="mb-4"
               [fluid]="true"
               [feedback]="false"
               formControlName="password"
@@ -109,7 +109,7 @@
   <div class="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
     <div class="bg-white/90 backdrop-blur-md rounded-xl p-8 flex flex-col items-center shadow-2xl">
       <img src="assets/logos/logo.png" alt="ASOCABRA Logo" class="w-16 h-16 mb-4" />
-      <p-progressSpinner styleClass="w-8 h-8" strokeWidth="4" fill="var(--surface-ground)" animationDuration=".5s"></p-progressSpinner>
+      <p-progressSpinner class="w-8 h-8" strokeWidth="4" fill="var(--surface-ground)" animationDuration=".5s"></p-progressSpinner>
       <p class="mt-4 text-gray-700 font-medium">Iniciando sesión...</p>
     </div>
   </div>

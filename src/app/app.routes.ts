@@ -44,6 +44,10 @@ export const routes: Routes = [
                 loadComponent: () => import('@features/animals/catalogs/physical-condition/physical-condition').then(c => c.PhysicalCondition)
             },
             {
+                path: 'PoliticalDivision',
+                loadComponent: () => import('@features/political-division/political-division').then(c => c.PoliticalDivisionComponent)
+            },
+            {
                 path: 'Certificates',
                 loadComponent: () => import('@features/certificates/certificates').then(c => c.Certificates)
             },

@@ -1,0 +1,301 @@
+<div class="countries-tab-container">
+  <!-- Toolbar -->
+  <div class="flex justify-between items-center mb-4">
+    <!-- Búsqueda -->
+    <div class="flex items-center gap-2">
+      <span class="p-input-icon-left">
+        <i class="pi pi-search"></i>
+        <input
+          type="text"
+          pInputText
+          [(ngModel)]="searchTerm"
+          (keyup.enter)="onSearch()"
+          placeholder="Buscar países..."
+          class="w-80"
+        />
+      </span>
+      <p-button
+        (onClick)="onSearch()"
+        pTooltip="Buscar"
+        tooltipPosition="bottom"
+      >
+        <lucide-icon [img]="searchIcon" size="16"></lucide-icon>
+      </p-button>
+      <p-button
+        severity="secondary"
+        (onClick)="clearSearch()"
+        pTooltip="Limpiar búsqueda"
+        tooltipPosition="bottom"
+      >
+        <lucide-icon [img]="brushCleaningIcon" size="16"></lucide-icon>
+      </p-button>
+    </div>
+
+    <!-- Acciones -->
+    <div class="flex gap-2">
+      @if (canCreate) {
+      <p-button
+        label="Nuevo País"
+        (onClick)="openCreateModal()"
+        pTooltip="Crear nuevo país"
+        tooltipPosition="bottom"
+      >
+        <lucide-icon [img]="plusIcon" size="16"></lucide-icon>
+      </p-button>
+      }
+      <p-button
+        icon="pi pi-refresh"
+        severity="secondary"
+        (onClick)="loadCountries()"
+        pTooltip="Actualizar"
+        tooltipPosition="bottom"
+      >
+        <lucide-icon [img]="rotateCcwIcon" size="16"></lucide-icon>
+      </p-button>
+    </div>
+  </div>
+
+  <!-- Tabla de países -->
+  <p-table
+    [value]="countries"
+    [lazy]="true"
+    [paginator]="true"
+    [rows]="rows"
+    [totalRecords]="totalRecords"
+    [loading]="loading"
+    [first]="first"
+    [rowsPerPageOptions]="rowsPerPageOptions"
+    [showCurrentPageReport]="true"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} países"
+    [sortField]="sortField"
+    [sortOrder]="sortOrder"
+    (onLazyLoad)="loadCountries($event)"
+    class="p-datatable-striped p-datatable-gridlines"
+  >
+    <!-- Columna Código -->
+    <ng-template pTemplate="header">
+      <tr>
+        <th pSortableColumn="cod_pais">
+          Código <p-sortIcon field="cod_pais"></p-sortIcon>
+        </th>
+        <th pSortableColumn="nom_pais">
+          Nombre <p-sortIcon field="nom_pais"></p-sortIcon>
+        </th>
+        <th pSortableColumn="siglas_pais">
+          Siglas <p-sortIcon field="siglas_pais"></p-sortIcon>
+        </th>
+        <th>Capital</th>
+        <th>Estado</th>
+        @if (canUpdate || canDelete) {
+        <th>Acciones</th>
+        }
+      </tr>
+    </ng-template>
+
+    <!-- Filas de datos -->
+    <ng-template pTemplate="body" let-country>
+      <tr [pSelectableRow]="country">
+        <td>{{ country.cod_pais }}</td>
+        <td>
+          <span class="font-semibold">{{ country.nom_pais }}</span>
+        </td>
+        <td>
+          <span class="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">
+            {{ country.siglas_pais || "N/A" }}
+          </span>
+        </td>
+        <td>{{ country.capital_pais || "No definido" }}</td>
+        <td>
+          <span
+            class="text-xs px-2 py-1 rounded-full"
+            [ngClass]="{
+              'bg-green-100 text-green-800': country.is_active,
+              'bg-red-100 text-red-800': !country.is_active
+            }"
+          >
+            {{ country.is_active ? "Activo" : "Inactivo" }}
+          </span>
+        </td>
+        @if (canUpdate || canDelete) {
+        <td>
+          <div class="flex gap-1">
+            @if (canUpdate) {
+            <p-button
+              icon="pi pi-pencil"
+              severity="info"
+              size="small"
+              (onClick)="openEditModal(country)"
+              pTooltip="Editar"
+              tooltipPosition="top"
+            >
+              <lucide-icon [img]="pencilIcon" size="16"></lucide-icon>
+            </p-button>
+            } @if (canDelete) {
+            <p-button
+              icon="pi pi-trash"
+              severity="danger"
+              size="small"
+              (onClick)="confirmDelete(country)"
+              pTooltip="Eliminar"
+              tooltipPosition="top"
+            >
+              <lucide-icon [img]="trashIcon" size="16"></lucide-icon>
+            </p-button>
+            }
+          </div>
+        </td>
+        }
+      </tr>
+    </ng-template>
+
+    <!-- Mensaje cuando no hay datos -->
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="6" class="text-center py-8">
+          <div class="flex flex-col items-center gap-3">
+            <i class="pi pi-globe text-4xl text-gray-400"></i>
+            <span class="text-gray-500">No se encontraron países</span>
+            @if (canCreate) {
+            <p-button
+              label="Crear primer país"
+              icon="pi pi-plus"
+              (onClick)="openCreateModal()"
+            >
+            </p-button>
+            }
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+
+  <!-- Modal para crear/editar país -->
+  <p-dialog
+    [(visible)]="displayModal"
+    [modal]="true"
+    [closable]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [style]="{ width: '500px' }"
+    [header]="modalMode === 'create' ? 'Crear Nuevo País' : 'Editar País'"
+  >
+    <form [formGroup]="countryForm" (ngSubmit)="saveCountry()">
+      <!-- Código del país -->
+      <div class="field mb-4">
+        <label
+          for="cod_pais"
+          class="block text-sm font-medium text-gray-700 mb-2"
+        >
+          Código del País *
+        </label>
+        <input
+          id="cod_pais"
+          type="number"
+          pInputText
+          formControlName="cod_pais"
+          [disabled]="modalMode === 'edit'"
+          placeholder="Ej: 1, 2, 3..."
+          class="w-full"
+          [class.ng-invalid]="hasFieldError('cod_pais')"
+        />
+        @if (hasFieldError('cod_pais')) {
+        <small class="text-red-500">
+          {{ getFieldError("cod_pais") }}
+        </small>
+        }
+      </div>
+
+      <!-- Nombre del país -->
+      <div class="field mb-4">
+        <label
+          for="nom_pais"
+          class="block text-sm font-medium text-gray-700 mb-2"
+        >
+          Nombre del País *
+        </label>
+        <input
+          id="nom_pais"
+          type="text"
+          pInputText
+          formControlName="nom_pais"
+          placeholder="Ej: Venezuela, Colombia..."
+          class="w-full"
+          [class.ng-invalid]="hasFieldError('nom_pais')"
+        />
+        @if (hasFieldError('nom_pais')) {
+        <small class="text-red-500">
+          {{ getFieldError("nom_pais") }}
+        </small>
+        }
+      </div>
+
+      <!-- Siglas del país -->
+      <div class="field mb-4">
+        <label
+          for="siglas_pais"
+          class="block text-sm font-medium text-gray-700 mb-2"
+        >
+          Siglas del País
+        </label>
+        <input
+          id="siglas_pais"
+          type="text"
+          pInputText
+          formControlName="siglas_pais"
+          placeholder="Ej: VE, CO..."
+          class="w-full"
+          [class.ng-invalid]="hasFieldError('siglas_pais')"
+        />
+        @if (hasFieldError('siglas_pais')) {
+        <small class="text-red-500">
+          {{ getFieldError("siglas_pais") }}
+        </small>
+        }
+      </div>
+
+      <!-- Capital del país -->
+      <div class="field mb-6">
+        <label
+          for="capital_pais"
+          class="block text-sm font-medium text-gray-700 mb-2"
+        >
+          Capital del País
+        </label>
+        <input
+          id="capital_pais"
+          type="text"
+          pInputText
+          formControlName="capital_pais"
+          placeholder="Ej: Caracas, Bogotá, Lima..."
+          class="w-full"
+          [class.ng-invalid]="hasFieldError('capital_pais')"
+        />
+        @if (hasFieldError('capital_pais')) {
+        <small class="text-red-500">
+          {{ getFieldError("capital_pais") }}
+        </small>
+        }
+      </div>
+    </form>
+
+    <!-- Botones del modal -->
+    <ng-template pTemplate="footer">
+      <div class="flex justify-end gap-2">
+        <p-button
+          label="Cancelar"
+          icon="pi pi-times"
+          severity="secondary"
+          (onClick)="closeModal()"
+        >
+        </p-button>
+        <p-button
+          [label]="modalMode === 'create' ? 'Crear' : 'Actualizar'"
+          [icon]="modalMode === 'create' ? 'pi pi-plus' : 'pi pi-check'"
+          [loading]="loading"
+          (onClick)="saveCountry()"
+        >
+        </p-button>
+      </div>
+    </ng-template>
+  </p-dialog>
+</div>

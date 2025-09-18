@@ -1,0 +1,27 @@
+.cities-tab-container {
+  @apply p-4;
+}
+
+/* Estilos para la tabla */
+:host ::ng-deep .p-datatable {
+  @apply shadow-sm border border-gray-200 rounded-lg;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-thead > tr > th {
+  @apply bg-gray-50 text-gray-700 font-semibold text-sm;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody > tr {
+  @apply hover:bg-gray-50 transition-colors;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody > tr.p-highlight {
+  @apply bg-orange-50 border-orange-200;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .cities-tab-container {
+    @apply p-2;
+  }
+}

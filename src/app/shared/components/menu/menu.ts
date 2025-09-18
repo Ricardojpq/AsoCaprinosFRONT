@@ -100,19 +100,19 @@ export class Menu {
             label: 'Division Politica',
             icon: this.mapPinIcon,
             routerLink: ['PoliticalDivision'],
-            items: [
-              { label: 'Paises', routerLink: ['PoliticalDivision/Countries'] },
-              { label: 'Estados', routerLink: ['PoliticalDivision/States'] },
-              {
-                label: 'Municipios',
-                routerLink: ['PoliticalDivision/Municipalities'],
-              },
-              {
-                label: 'Parroquias',
-                routerLink: ['PoliticalDivision/Parishes'],
-              },
-              { label: 'Ciudades', routerLink: ['PoliticalDivision/Cities'] },
-            ],
+            // items: [
+            //   { label: 'Paises', routerLink: ['PoliticalDivision/Countries'] },
+            //   { label: 'Estados', routerLink: ['PoliticalDivision/States'] },
+            //   {
+            //     label: 'Municipios',
+            //     routerLink: ['PoliticalDivision/Municipalities'],
+            //   },
+            //   {
+            //     label: 'Parroquias',
+            //     routerLink: ['PoliticalDivision/Parishes'],
+            //   },
+            //   { label: 'Ciudades', routerLink: ['PoliticalDivision/Cities'] },
+            // ],
           },
         ],
       },

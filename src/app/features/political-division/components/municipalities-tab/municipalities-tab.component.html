@@ -1,0 +1,336 @@
+<div class="municipalities-tab-container">
+  <!-- Toolbar -->
+  <div class="flex justify-between items-center mb-4">
+    <!-- Búsqueda -->
+    <div class="flex items-center gap-2">
+      <span class="p-input-icon-left">
+        <i class="pi pi-search"></i>
+        <input
+          type="text"
+          pInputText
+          [(ngModel)]="searchTerm"
+          (keyup.enter)="onSearch()"
+          placeholder="Buscar municipios..."
+          class="w-80"
+        />
+      </span>
+      <p-button
+        (onClick)="onSearch()"
+        pTooltip="Buscar"
+        tooltipPosition="bottom"
+      >
+        <lucide-icon [img]="searchIcon" size="16"></lucide-icon>
+      </p-button>
+      <p-button
+        severity="secondary"
+        (onClick)="clearSearch()"
+        pTooltip="Limpiar búsqueda"
+        tooltipPosition="bottom"
+      >
+        <lucide-icon [img]="brushCleaningIcon" size="16"></lucide-icon>
+      </p-button>
+    </div>
+
+    <!-- Acciones -->
+    <div class="flex gap-2">
+      @if (canCreate) {
+      <p-button
+        label="Nuevo Municipio"
+        (onClick)="openCreateModal()"
+        pTooltip="Crear nuevo municipio"
+        tooltipPosition="bottom"
+      >
+        <lucide-icon [img]="plusIcon" size="16"></lucide-icon>
+      </p-button>
+      }
+      <p-button
+        severity="secondary"
+        (onClick)="loadMunicipalities()"
+        pTooltip="Actualizar"
+        tooltipPosition="bottom"
+      >
+        <lucide-icon [img]="rotateCcwIcon" size="16"></lucide-icon>
+      </p-button>
+    </div>
+  </div>
+
+  <!-- Tabla de municipios -->
+  <p-table
+    [value]="municipalities"
+    [lazy]="true"
+    [paginator]="true"
+    [rows]="rows"
+    [totalRecords]="totalRecords"
+    [loading]="loading"
+    [first]="first"
+    [rowsPerPageOptions]="rowsPerPageOptions"
+    [showCurrentPageReport]="true"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} municipios"
+    [sortField]="sortField"
+    [sortOrder]="sortOrder"
+    (onLazyLoad)="loadMunicipalities($event)"
+    class="p-datatable-striped p-datatable-gridlines"
+  >
+    <!-- Header -->
+    <ng-template pTemplate="header">
+      <tr>
+        <th pSortableColumn="cod_municipio">
+          Código <p-sortIcon field="cod_municipio"></p-sortIcon>
+        </th>
+        <th pSortableColumn="nom_municipio">
+          Nombre <p-sortIcon field="nom_municipio"></p-sortIcon>
+        </th>
+        <th pSortableColumn="cod_estado">
+          Estado <p-sortIcon field="cod_estado"></p-sortIcon>
+        </th>
+        <th>Capital</th>
+        <th>Estado</th>
+        @if (canUpdate || canDelete) {
+        <th>Acciones</th>
+        }
+      </tr>
+    </ng-template>
+
+    <!-- Body -->
+    <ng-template pTemplate="body" let-municipality>
+      <tr [pSelectableRow]="municipality">
+        <td>{{ municipality.cod_municipio }}</td>
+        <td>
+          <span class="font-semibold">{{ municipality.nom_municipio }}</span>
+        </td>
+        <td>{{ municipality.estado?.nom_estado || "No definido" }}</td>
+        <td>{{ municipality.capital_municipio || "No definido" }}</td>
+        <td>
+          <span
+            class="text-xs px-2 py-1 rounded-full"
+            [ngClass]="{
+              'bg-green-100 text-green-800': municipality.is_active,
+              'bg-red-100 text-red-800': !municipality.is_active
+            }"
+          >
+            {{ municipality.is_active ? "Activo" : "Inactivo" }}
+          </span>
+        </td>
+        @if (canUpdate || canDelete) {
+        <td>
+          <div class="flex gap-1">
+            @if (canUpdate) {
+            <p-button
+              icon="pi pi-pencil"
+              severity="info"
+              size="small"
+              (onClick)="openEditModal(municipality)"
+              pTooltip="Editar"
+              tooltipPosition="top"
+            >
+              <lucide-icon [img]="pencilIcon" size="16"></lucide-icon>
+            </p-button>
+            } @if (canDelete) {
+            <p-button
+              icon="pi pi-trash"
+              severity="danger"
+              size="small"
+              (onClick)="confirmDelete(municipality)"
+              pTooltip="Eliminar"
+              tooltipPosition="top"
+            >
+              <lucide-icon [img]="trashIcon" size="16"></lucide-icon>
+            </p-button>
+            }
+          </div>
+        </td>
+        }
+      </tr>
+    </ng-template>
+
+    <!-- Empty message -->
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="6" class="text-center py-8">
+          <div class="flex flex-col items-center gap-3">
+            <i class="pi pi-building text-4xl text-gray-400"></i>
+            <span class="text-gray-500">No se encontraron municipios</span>
+            @if (canCreate) {
+            <p-button
+              label="Crear primer municipio"
+              icon="pi pi-plus"
+              (onClick)="openCreateModal()"
+            >
+            </p-button>
+            }
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+
+  <!-- Modal para crear/editar municipio -->
+  <p-dialog
+    [(visible)]="displayModal"
+    [modal]="true"
+    [closable]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [style]="{ width: '500px' }"
+    [header]="modalMode === 'create' ? 'Crear Municipio' : 'Editar Municipio'"
+  >
+    <form [formGroup]="municipalityForm" (ngSubmit)="saveMunicipality()">
+      <!-- Fila 1: Código y Nombre -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <!-- Código del municipio -->
+        <div class="field">
+          <label
+            for="cod_municipio"
+            class="block text-sm font-medium text-gray-700 mb-2"
+          >
+            Código del Municipio *
+          </label>
+          <input
+            id="cod_municipio"
+            type="number"
+            pInputText
+            formControlName="cod_municipio"
+            [disabled]="modalMode === 'edit'"
+            placeholder="Ej: 1, 2, 3..."
+            class="w-full"
+            [class.ng-invalid]="hasFieldError('cod_municipio')"
+          />
+          @if (hasFieldError('cod_municipio')) {
+          <small class="text-red-500">
+            {{ getFieldError("cod_municipio") }}
+          </small>
+          }
+        </div>
+
+        <!-- Nombre del municipio -->
+        <div class="field">
+          <label
+            for="nom_municipio"
+            class="block text-sm font-medium text-gray-700 mb-2"
+          >
+            Nombre del Municipio *
+          </label>
+          <input
+            id="nom_municipio"
+            type="text"
+            pInputText
+            formControlName="nom_municipio"
+            placeholder="Ej: Libertador, Chacao, Baruta..."
+            class="w-full"
+            [class.ng-invalid]="hasFieldError('nom_municipio')"
+          />
+          @if (hasFieldError('nom_municipio')) {
+          <small class="text-red-500">
+            {{ getFieldError("nom_municipio") }}
+          </small>
+          }
+        </div>
+      </div>
+
+      <!-- Fila 2: País y Estado -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <!-- País -->
+        <div class="field">
+          <label
+            for="cod_pais"
+            class="block text-sm font-medium text-gray-700 mb-2"
+          >
+            País *
+          </label>
+          <p-select
+            id="cod_pais"
+            [options]="countryOptions"
+            formControlName="cod_pais"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Seleccionar país"
+            class="w-full"
+            (onChange)="onCountryChange($event.value)"
+            [class.ng-invalid]="hasFieldError('cod_pais')"
+          >
+          </p-select>
+          @if (hasFieldError('cod_pais')) {
+          <small class="text-red-500">
+            {{ getFieldError("cod_pais") }}
+          </small>
+          }
+        </div>
+
+        <!-- Estado -->
+        <div class="field">
+          <label
+            for="cod_estado"
+            class="block text-sm font-medium text-gray-700 mb-2"
+          >
+            Estado *
+          </label>
+          <p-select
+            id="cod_estado"
+            [options]="stateOptions"
+            formControlName="cod_estado"
+            optionLabel="label"
+            optionValue="value"
+            [placeholder]="
+              stateOptions.length > 0
+                ? 'Seleccionar estado'
+                : 'Primero seleccione un país'
+            "
+            class="w-full"
+            [disabled]="stateOptions.length === 0"
+            [class.ng-invalid]="hasFieldError('cod_estado')"
+          >
+          </p-select>
+          @if (hasFieldError('cod_estado')) {
+          <small class="text-red-500">
+            {{ getFieldError("cod_estado") }}
+          </small>
+          }
+        </div>
+      </div>
+
+      <!-- Fila 3: Capital (ancho completo) -->
+      <div class="field mb-6">
+        <label
+          for="capital_municipio"
+          class="block text-sm font-medium text-gray-700 mb-2"
+        >
+          Capital del Municipio
+        </label>
+        <input
+          id="capital_municipio"
+          type="text"
+          pInputText
+          formControlName="capital_municipio"
+          placeholder="Ej: Caracas, Los Teques..."
+          class="w-full"
+          [class.ng-invalid]="hasFieldError('capital_municipio')"
+        />
+        @if (hasFieldError('capital_municipio')) {
+        <small class="text-red-500">
+          {{ getFieldError("capital_municipio") }}
+        </small>
+        }
+      </div>
+    </form>
+
+    <!-- Botones del modal -->
+    <ng-template pTemplate="footer">
+      <div class="flex justify-end gap-2">
+        <p-button
+          label="Cancelar"
+          icon="pi pi-times"
+          severity="secondary"
+          (onClick)="closeModal()"
+        >
+        </p-button>
+        <p-button
+          [label]="modalMode === 'create' ? 'Crear' : 'Actualizar'"
+          icon="pi pi-check"
+          (onClick)="saveMunicipality()"
+          [loading]="loading"
+        >
+        </p-button>
+      </div>
+    </ng-template>
+  </p-dialog>
+</div>

@@ -1,0 +1,341 @@
+<div class="parishes-tab-container">
+  <!-- Toolbar -->
+  <div class="flex justify-between items-center mb-4">
+    <!-- Búsqueda -->
+    <div class="flex items-center gap-2">
+      <span class="p-input-icon-left">
+        <i class="pi pi-search"></i>
+        <input
+          type="text"
+          pInputText
+          [(ngModel)]="searchTerm"
+          (keyup.enter)="onSearch()"
+          placeholder="Buscar parroquias..."
+          class="w-80"
+        />
+      </span>
+      <p-button
+        (onClick)="onSearch()"
+        pTooltip="Buscar"
+        tooltipPosition="bottom"
+      >
+        <lucide-icon [img]="searchIcon" size="16"></lucide-icon>
+      </p-button>
+      <p-button
+        severity="secondary"
+        (onClick)="clearSearch()"
+        pTooltip="Limpiar búsqueda"
+        tooltipPosition="bottom"
+      >
+        <lucide-icon [img]="trashIcon" size="16"></lucide-icon>
+      </p-button>
+    </div>
+
+    <!-- Acciones -->
+    <div class="flex gap-2">
+      @if (canCreate) {
+      <p-button
+        label="Nueva Parroquia"
+        (onClick)="openCreateModal()"
+        pTooltip="Crear nueva parroquia"
+        tooltipPosition="bottom"
+      >
+        <lucide-icon [img]="plusIcon" size="16"></lucide-icon>
+      </p-button>
+      }
+      <p-button
+        severity="secondary"
+        (onClick)="loadParishes()"
+        pTooltip="Actualizar"
+        tooltipPosition="bottom"
+      >
+        <lucide-icon [img]="brushCleaningIcon" size="16"></lucide-icon>
+      </p-button>
+    </div>
+  </div>
+
+  <!-- Tabla de parroquias -->
+  <p-table
+    [value]="parishes"
+    [lazy]="true"
+    [paginator]="true"
+    [rows]="rows"
+    [totalRecords]="totalRecords"
+    [loading]="loading"
+    [first]="first"
+    [rowsPerPageOptions]="rowsPerPageOptions"
+    [showCurrentPageReport]="true"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} parroquias"
+    [sortField]="sortField"
+    [sortOrder]="sortOrder"
+    (onLazyLoad)="loadParishes($event)"
+    class="p-datatable-striped p-datatable-gridlines"
+  >
+    <!-- Header -->
+    <ng-template pTemplate="header">
+      <tr>
+        <th pSortableColumn="cod_parroquia">
+          Código <p-sortIcon field="cod_parroquia"></p-sortIcon>
+        </th>
+        <th pSortableColumn="nom_parroquia">
+          Nombre <p-sortIcon field="nom_parroquia"></p-sortIcon>
+        </th>
+        <th pSortableColumn="cod_municipio">
+          Municipio <p-sortIcon field="cod_municipio"></p-sortIcon>
+        </th>
+        <th>Estado</th>
+        @if (canUpdate || canDelete) {
+        <th>Acciones</th>
+        }
+      </tr>
+    </ng-template>
+
+    <!-- Body -->
+    <ng-template pTemplate="body" let-parish>
+      <tr [pSelectableRow]="parish">
+        <td>{{ parish.cod_parroquia }}</td>
+        <td>
+          <span class="font-semibold">{{ parish.nom_parroquia }}</span>
+        </td>
+        <td>{{ parish.municipio?.nom_municipio || "No definido" }}</td>
+        <td>
+          <span
+            class="text-xs px-2 py-1 rounded-full"
+            [ngClass]="{
+              'bg-green-100 text-green-800': parish.is_active,
+              'bg-red-100 text-red-800': !parish.is_active
+            }"
+          >
+            {{ parish.is_active ? "Activo" : "Inactivo" }}
+          </span>
+        </td>
+        @if (canUpdate || canDelete) {
+        <td>
+          <div class="flex gap-1">
+            @if (canUpdate) {
+            <p-button
+              severity="info"
+              size="small"
+              (onClick)="openEditModal(parish)"
+              pTooltip="Editar"
+              tooltipPosition="top"
+            >
+              <lucide-icon [img]="pencilIcon" size="16"></lucide-icon>
+            </p-button>
+            } @if (canDelete) {
+            <p-button
+              icon="pi pi-trash"
+              severity="danger"
+              size="small"
+              (onClick)="confirmDelete(parish)"
+              pTooltip="Eliminar"
+              tooltipPosition="top"
+            >
+              <lucide-icon [img]="trashIcon" size="16"></lucide-icon>
+            </p-button>
+            }
+          </div>
+        </td>
+        }
+      </tr>
+    </ng-template>
+
+    <!-- Empty message -->
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="5" class="text-center py-8">
+          <div class="flex flex-col items-center gap-3">
+            <i class="pi pi-home text-4xl text-gray-400"></i>
+            <span class="text-gray-500">No se encontraron parroquias</span>
+            @if (canCreate) {
+            <p-button
+              label="Crear primera parroquia"
+              icon="pi pi-plus"
+              (onClick)="openCreateModal()"
+            >
+            </p-button>
+            }
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+
+  <!-- Modal para crear/editar parroquia -->
+  <p-dialog
+    [(visible)]="displayModal"
+    [modal]="true"
+    [closable]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [style]="{ width: '500px' }"
+    [header]="modalMode === 'create' ? 'Crear Parroquia' : 'Editar Parroquia'"
+  >
+    <form [formGroup]="parishForm" (ngSubmit)="saveParish()">
+      <!-- Fila 1: Código y Nombre -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <!-- Código de la parroquia -->
+        <div class="field">
+          <label
+            for="cod_parroquia"
+            class="block text-sm font-medium text-gray-700 mb-2"
+          >
+            Código de la Parroquia *
+          </label>
+          <input
+            id="cod_parroquia"
+            type="number"
+            pInputText
+            formControlName="cod_parroquia"
+            [disabled]="modalMode === 'edit'"
+            placeholder="Ej: 1, 2, 3..."
+            class="w-full"
+            [class.ng-invalid]="hasFieldError('cod_parroquia')"
+          />
+          @if (hasFieldError('cod_parroquia')) {
+          <small class="text-red-500">
+            {{ getFieldError("cod_parroquia") }}
+          </small>
+          }
+        </div>
+
+        <!-- Nombre de la parroquia -->
+        <div class="field">
+          <label
+            for="nom_parroquia"
+            class="block text-sm font-medium text-gray-700 mb-2"
+          >
+            Nombre de la Parroquia *
+          </label>
+          <input
+            id="nom_parroquia"
+            type="text"
+            pInputText
+            formControlName="nom_parroquia"
+            placeholder="Ej: San José, La Candelaria..."
+            class="w-full"
+            [class.ng-invalid]="hasFieldError('nom_parroquia')"
+          />
+          @if (hasFieldError('nom_parroquia')) {
+          <small class="text-red-500">
+            {{ getFieldError("nom_parroquia") }}
+          </small>
+          }
+        </div>
+      </div>
+
+      <!-- Fila 2: País y Estado -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <!-- País -->
+        <div class="field">
+          <label
+            for="cod_pais"
+            class="block text-sm font-medium text-gray-700 mb-2"
+          >
+            País *
+          </label>
+          <p-select
+            id="cod_pais"
+            [options]="countryOptions"
+            formControlName="cod_pais"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Seleccionar país"
+            class="w-full"
+            (onChange)="onCountryChange($event.value)"
+            [class.ng-invalid]="hasFieldError('cod_pais')"
+          >
+          </p-select>
+          @if (hasFieldError('cod_pais')) {
+          <small class="text-red-500">
+            {{ getFieldError("cod_pais") }}
+          </small>
+          }
+        </div>
+
+        <!-- Estado -->
+        <div class="field">
+          <label
+            for="cod_estado"
+            class="block text-sm font-medium text-gray-700 mb-2"
+          >
+            Estado *
+          </label>
+          <p-select
+            id="cod_estado"
+            [options]="stateOptions"
+            formControlName="cod_estado"
+            optionLabel="label"
+            optionValue="value"
+            [placeholder]="
+              stateOptions.length > 0
+                ? 'Seleccionar estado'
+                : 'Primero seleccione un país'
+            "
+            class="w-full"
+            [disabled]="stateOptions.length === 0"
+            (onChange)="onStateChange($event.value)"
+            [class.ng-invalid]="hasFieldError('cod_estado')"
+          >
+          </p-select>
+          @if (hasFieldError('cod_estado')) {
+          <small class="text-red-500">
+            {{ getFieldError("cod_estado") }}
+          </small>
+          }
+        </div>
+      </div>
+
+      <!-- Fila 3: Municipio (ancho completo) -->
+      <div class="field mb-6">
+        <label
+          for="cod_municipio"
+          class="block text-sm font-medium text-gray-700 mb-2"
+        >
+          Municipio *
+        </label>
+        <p-select
+          id="cod_municipio"
+          [options]="municipalityOptions"
+          formControlName="cod_municipio"
+          optionLabel="label"
+          optionValue="value"
+          [placeholder]="
+            municipalityOptions.length > 0
+              ? 'Seleccionar municipio'
+              : 'Primero seleccione un estado'
+          "
+          class="w-full"
+          [disabled]="municipalityOptions.length === 0"
+          [class.ng-invalid]="hasFieldError('cod_municipio')"
+        >
+        </p-select>
+        @if (hasFieldError('cod_municipio')) {
+        <small class="text-red-500">
+          {{ getFieldError("cod_municipio") }}
+        </small>
+        }
+      </div>
+    </form>
+
+    <!-- Botones del modal -->
+    <ng-template pTemplate="footer">
+      <div class="flex justify-end gap-2">
+        <p-button
+          label="Cancelar"
+          icon="pi pi-times"
+          severity="secondary"
+          (onClick)="closeModal()"
+        >
+        </p-button>
+        <p-button
+          [label]="modalMode === 'create' ? 'Crear' : 'Actualizar'"
+          icon="pi pi-check"
+          (onClick)="saveParish()"
+          [loading]="loading"
+        >
+        </p-button>
+      </div>
+    </ng-template>
+  </p-dialog>
+</div>
