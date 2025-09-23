@@ -1,1 +1,564 @@
-<p>farms works!</p>
+<div class="card">
+  <p-toast />
+  <p-toolbar class="mb-6">
+    <ng-template #start>
+      <div class="flex gap-1">
+        <p-button
+          styleClass="btn btn-primary btn-sm"
+          label="Nueva Finca"
+          (onClick)="openNew()"
+        >
+          <lucide-icon [img]="plusIcon" size="16"></lucide-icon>
+        </p-button>
+      </div>
+    </ng-template>
+    <ng-template #end> </ng-template>
+  </p-toolbar>
+
+  <p-table
+    #dt
+    [value]="farms"
+    [rows]="perPage"
+    [columns]="cols"
+    [paginator]="true"
+    [globalFilterFields]="['cod_finca', 'nom_finca', 'propietario.nom_persona', 'propietario.ape_persona']"
+    [tableStyle]="{ 'min-width': '75rem' }"
+    [rowHover]="true"
+    dataKey="cod_finca"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} fincas"
+    [showCurrentPageReport]="true"
+    [totalRecords]="totalRecords"
+    [lazy]="true"
+    [loading]="loading"
+    (onLazyLoad)="onTableLazyLoad($event)"
+    [sortField]="sortField"
+    [sortOrder]="sortOrder === 'asc' ? 1 : -1"
+    [filterDelay]="300"
+  >
+    <ng-template #caption>
+      <div class="flex items-center justify-between">
+        <h5 class="m-0">Gestión de Fincas</h5>
+        <div class="flex items-center gap-2">
+          <p-iconfield>
+            <p-inputicon>
+              <lucide-angular [img]="searchIcon" size="16"></lucide-angular>
+            </p-inputicon>
+            <input
+              pInputText
+              type="text"
+              placeholder="Buscar finca..."
+              (input)="onGlobalFilter($event)"
+              class="focus:border-golden-500"
+              [value]="globalFilterValue"
+            />
+            @if (globalFilterValue) {
+              <p-inputicon>
+                <lucide-angular [img]="xIcon" size="16" (click)="clearSearch()" class="cursor-pointer"></lucide-angular>
+            </p-inputicon>
+            }
+          </p-iconfield>
+        </div>
+      </div>
+    </ng-template>
+    <ng-template #header>
+      <tr>
+        <th pSortableColumn="ide_finca" style="min-width: 8rem">
+          <div class="flex items-center gap-2">
+            Siglas
+            <p-sortIcon field="ide_finca" />
+          </div>
+        </th>
+        <th pSortableColumn="nomb_finca" style="min-width: 15rem">
+          <div class="flex items-center gap-2">
+            Nombre
+            <p-sortIcon field="nomb_finca" />
+          </div>
+        </th>
+        <th style="min-width: 10rem">
+          Estado
+        </th>
+        <th style="min-width: 10rem">
+          Municipio
+        </th>
+        <th style="min-width: 10rem">
+          Ciudad
+        </th>
+        <th style="min-width: 12rem">
+          Socio
+        </th>
+        <th style="width: 8rem">Acciones</th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-finca>
+      <tr>
+        <td>{{ finca.ide_finca }}</td>
+        <td>{{ finca.nomb_finca }}</td>
+        <td>{{ finca.estado?.nom_estado || 'N/A' }}</td>
+        <td>{{ finca.municipio?.nom_municipio || 'N/A' }}</td>
+        <td>{{ finca.ciudad?.nom_ciudad || 'N/A' }}</td>
+        <td>
+          @if (finca.propietario) {
+            {{ finca.propietario.nom_persona }} {{ finca.propietario.ape_persona }}
+          } @else {
+            <span class="text-gray-400">Sin propietario</span>
+          }
+        </td>
+        <td>
+          <div class="flex gap-1">
+            <p-button
+              class="p-button-rounded p-button-text p-button-sm"
+              (onClick)="editFinca(finca)"
+              pTooltip="Editar"
+            >
+              <lucide-icon [img]="pencilIcon" size="16"></lucide-icon>
+            </p-button>
+            <p-button
+              class="p-button-rounded p-button-text p-button-sm p-button-danger"
+              (onClick)="deleteFinca(finca)"
+              pTooltip="Eliminar"
+            >
+              <lucide-icon [img]="trashIcon" size="16"></lucide-icon>
+            </p-button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- Modal para Crear/Editar Finca -->
+<p-dialog
+  [(visible)]="fincaDialog"
+  [style]="{ width: '800px' }"
+  header="{{ isEditing ? 'Editar Finca' : 'Nueva Finca' }}"
+  [modal]="true"
+  class="p-fluid"
+  [closable]="true"
+  [draggable]="false"
+  [resizable]="false"
+>
+  <ng-template #content>
+    <form [formGroup]="fincaForm" (ngSubmit)="saveFinca()">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        
+        <!-- Código de Finca -->
+        <div class="col-span-1">
+          <label for="ide_finca" class="block font-bold mb-2">
+            Siglas de Finca
+          </label>
+          <input
+            type="text"
+            pInputText
+            id="ide_finca"
+            formControlName="ide_finca"
+            class="w-full"
+            placeholder="Ej: ABC"
+            maxlength="3"
+            [class.ng-invalid]="isFieldInvalid('ide_finca')"
+            [class.ng-dirty]="fincaForm.get('ide_finca')?.dirty"
+          />
+          @if (isFieldInvalid('ide_finca')) {
+            <small class="text-red-600">{{ getFieldError('ide_finca') }}</small>
+          }
+        </div>
+
+        <!-- Nombre de Finca -->
+        <div class="col-span-1">
+          <label for="nomb_finca" class="block font-bold mb-2">
+            Nombre de Finca <span class="text-red-600">*</span>
+          </label>
+          <input
+            type="text"
+            pInputText
+            id="nomb_finca"
+            formControlName="nomb_finca"
+            class="w-full"
+            placeholder="Nombre de la finca"
+            [class.ng-invalid]="isFieldInvalid('nomb_finca')"
+            [class.ng-dirty]="fincaForm.get('nomb_finca')?.dirty"
+          />
+          @if (isFieldInvalid('nomb_finca')) {
+            <small class="text-red-600">{{ getFieldError('nomb_finca') }}</small>
+          }
+        </div>
+
+        <!-- País -->
+        <div class="col-span-1">
+          <label for="cod_pais" class="block font-bold mb-2">
+            País <span class="text-red-600">*</span>
+          </label>
+          <p-select
+            [options]="paises"
+            formControlName="cod_pais"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Seleccione un país"
+            class="w-full"
+            (onChange)="onPaisChange($event)"
+            [class.ng-invalid]="isFieldInvalid('cod_pais')"
+            [class.ng-dirty]="fincaForm.get('cod_pais')?.dirty"
+          ></p-select>
+          @if (isFieldInvalid('cod_pais')) {
+            <small class="text-red-600">{{ getFieldError('cod_pais') }}</small>
+          }
+        </div>
+
+        <!-- Estado -->
+        <div class="col-span-1">
+          <label for="cod_estado" class="block font-bold mb-2">
+            Estado <span class="text-red-600">*</span>
+          </label>
+          <p-select
+            [options]="estados"
+            formControlName="cod_estado"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Seleccione un estado"
+            class="w-full"
+            (onChange)="onEstadoChange($event)"
+            [disabled]="!fincaForm.get('cod_pais')?.value"
+            [class.ng-invalid]="isFieldInvalid('cod_estado')"
+            [class.ng-dirty]="fincaForm.get('cod_estado')?.dirty"
+          ></p-select>
+          @if (isFieldInvalid('cod_estado')) {
+            <small class="text-red-600">{{ getFieldError('cod_estado') }}</small>
+          }
+        </div>
+
+        <!-- Municipio -->
+        <div class="col-span-1">
+          <label for="cod_municipio" class="block font-bold mb-2">
+            Municipio <span class="text-red-600">*</span>
+          </label>
+          <p-select
+            [options]="municipios"
+            formControlName="cod_municipio"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Seleccione un municipio"
+            class="w-full"
+            (onChange)="onMunicipioChange($event)"
+            [disabled]="!fincaForm.get('cod_estado')?.value"
+            [class.ng-invalid]="isFieldInvalid('cod_municipio')"
+            [class.ng-dirty]="fincaForm.get('cod_municipio')?.dirty"
+          ></p-select>
+          @if (isFieldInvalid('cod_municipio')) {
+            <small class="text-red-600">{{ getFieldError('cod_municipio') }}</small>
+          }
+        </div>
+
+        <!-- Ciudad -->
+        <div class="col-span-1">
+          <label for="cod_ciudad" class="block font-bold mb-2">
+            Ciudad <span class="text-red-600">*</span>
+          </label>
+          <p-select
+            [options]="ciudades"
+            formControlName="cod_ciudad"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Seleccione una ciudad"
+            class="w-full"
+            [disabled]="!fincaForm.get('cod_municipio')?.value"
+            [class.ng-invalid]="isFieldInvalid('cod_ciudad')"
+            [class.ng-dirty]="fincaForm.get('cod_ciudad')?.dirty"
+          ></p-select>
+          @if (isFieldInvalid('cod_ciudad')) {
+            <small class="text-red-600">{{ getFieldError('cod_ciudad') }}</small>
+          }
+        </div>
+
+        <!-- Dirección -->
+        <div class="col-span-2">
+          <label for="direccion" class="block font-bold mb-2">
+            Dirección <span class="text-red-600">*</span>
+          </label>
+          <textarea
+            pInputTextarea
+            id="direccion"
+            formControlName="direccion"
+            rows="3"
+            class="w-full"
+            placeholder="Dirección completa de la finca"
+            maxlength="100"
+            [class.ng-invalid]="isFieldInvalid('direccion')"
+            [class.ng-dirty]="fincaForm.get('direccion')?.dirty"
+          ></textarea>
+          @if (isFieldInvalid('direccion')) {
+            <small class="text-red-600">{{ getFieldError('direccion') }}</small>
+          }
+        </div>
+
+        <!-- Teléfono -->
+        <div class="col-span-1">
+          <label for="tlf" class="block font-bold mb-2">
+            Teléfono
+          </label>
+          <input
+            type="text"
+            pInputText
+            id="tlf"
+            formControlName="tlf"
+            class="w-full"
+            placeholder="Ej: 04141234567"
+            maxlength="12"
+            [class.ng-invalid]="isFieldInvalid('tlf')"
+            [class.ng-dirty]="fincaForm.get('tlf')?.dirty"
+          />
+          @if (isFieldInvalid('tlf')) {
+            <small class="text-red-600">{{ getFieldError('tlf') }}</small>
+          }
+        </div>
+
+        <!-- RIF -->
+        <div class="col-span-1">
+          <label for="rif" class="block font-bold mb-2">
+            RIF
+          </label>
+          <input
+            type="text"
+            pInputText
+            id="rif"
+            formControlName="rif"
+            class="w-full"
+            placeholder="Ej: J-12345678-9"
+            maxlength="15"
+            [class.ng-invalid]="isFieldInvalid('rif')"
+            [class.ng-dirty]="fincaForm.get('rif')?.dirty"
+          />
+          @if (isFieldInvalid('rif')) {
+            <small class="text-red-600">{{ getFieldError('rif') }}</small>
+          }
+        </div>
+
+        <!-- Fecha de Inicio -->
+        <div class="col-span-1">
+          <label for="fec_inicio" class="block font-bold mb-2">
+            Fecha de Inicio <span class="text-red-600">*</span>
+          </label>
+          <p-datePicker
+            formControlName="fec_inicio"
+            dateFormat="dd/mm/yy"
+            placeholder="dd/mm/aaaa"
+            class="w-full"
+            [showIcon]="true"
+            [class.ng-invalid]="isFieldInvalid('fec_inicio')"
+            [class.ng-dirty]="fincaForm.get('fec_inicio')?.dirty"
+          ></p-datePicker>
+          @if (isFieldInvalid('fec_inicio')) {
+            <small class="text-red-600">{{ getFieldError('fec_inicio') }}</small>
+          }
+        </div>
+
+        <!-- Fecha de Actualización -->
+        <div class="col-span-1">
+          <label for="fec_actualizacion" class="block font-bold mb-2">
+            Fecha de Actualización <span class="text-red-600">*</span>
+          </label>
+          <p-datePicker
+            formControlName="fec_actualizacion"
+            dateFormat="dd/mm/yy"
+            placeholder="dd/mm/aaaa"
+            class="w-full"
+            [showIcon]="true"
+            [class.ng-invalid]="isFieldInvalid('fec_actualizacion')"
+            [class.ng-dirty]="fincaForm.get('fec_actualizacion')?.dirty"
+          ></p-datePicker>
+          @if (isFieldInvalid('fec_actualizacion')) {
+            <small class="text-red-600">{{ getFieldError('fec_actualizacion') }}</small>
+          }
+        </div>
+
+        <!-- Tipo de Ganadería -->
+        <div class="col-span-1">
+          <label for="tipo_ganaderia" class="block font-bold mb-2">
+            Tipo de Ganadería
+          </label>
+          <p-select
+            [options]="tipoGanaderiaOptions"
+            formControlName="tipo_ganaderia"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Seleccione tipo"
+            class="w-full"
+            [class.ng-invalid]="isFieldInvalid('tipo_ganaderia')"
+            [class.ng-dirty]="fincaForm.get('tipo_ganaderia')?.dirty"
+          ></p-select>
+          @if (isFieldInvalid('tipo_ganaderia')) {
+            <small class="text-red-600">{{ getFieldError('tipo_ganaderia') }}</small>
+          }
+        </div>
+
+        <!-- Tipo de Sistema -->
+        <div class="col-span-1">
+          <label for="tipo_sistema" class="block font-bold mb-2">
+            Tipo de Sistema
+          </label>
+          <p-select
+            [options]="tipoSistemaOptions"
+            formControlName="tipo_sistema"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Seleccione sistema"
+            class="w-full"
+            [class.ng-invalid]="isFieldInvalid('tipo_sistema')"
+            [class.ng-dirty]="fincaForm.get('tipo_sistema')?.dirty"
+          ></p-select>
+          @if (isFieldInvalid('tipo_sistema')) {
+            <small class="text-red-600">{{ getFieldError('tipo_sistema') }}</small>
+          }
+        </div>
+
+        <!-- Estatus -->
+        <div class="col-span-1">
+          <label for="estatus_finca" class="block font-bold mb-2">
+            Estatus <span class="text-red-600">*</span>
+          </label>
+          <p-select
+            [options]="estatusOptions"
+            formControlName="estatus_finca"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Seleccione estatus"
+            class="w-full"
+            [class.ng-invalid]="isFieldInvalid('estatus_finca')"
+            [class.ng-dirty]="fincaForm.get('estatus_finca')?.dirty"
+          ></p-select>
+          @if (isFieldInvalid('estatus_finca')) {
+            <small class="text-red-600">{{ getFieldError('estatus_finca') }}</small>
+          }
+        </div>
+
+        <!-- Cod Propietario -->
+        <div class="col-span-1">
+          <label for="ced_propietario" class="block font-bold mb-2">
+            Cod Propietario
+          </label>
+          <p-inputgroup>
+            <p-button 
+              (onClick)="openPropietarioSociosDialog()"
+              pTooltip="Buscar propietario"
+              size="small"
+              styleClass="rounded-e-none"
+            >
+              <lucide-angular [img]="searchIcon" size="16"></lucide-angular>
+            </p-button>
+            <input
+              type="text"
+              pInputText
+              id="ced_propietario"
+              formControlName="ced_propietario"
+              placeholder="Seleccione propietario..."
+              readonly
+            />
+          </p-inputgroup>
+        </div>
+        
+        <!-- Nombre Propietario -->
+        <div class="col-span-1">
+          <label for="nombre_propietario" class="block font-bold mb-2">
+            Propietario
+          </label>
+          <input
+            type="text"
+            pInputText
+            id="nombre_propietario"
+            formControlName="nombre_propietario"
+            readonly
+            class="w-full bg-gray-300"
+            placeholder="Nombre del propietario seleccionado"
+          />
+        </div>
+
+        <!-- Imagen -->
+        <div class="col-span-2">
+          <label for="imagen" class="block font-bold mb-2">
+            Imagen <span class="text-red-600">*</span>
+          </label>
+          <input
+            type="text"
+            pInputText
+            id="imagen"
+            formControlName="imagen"
+            class="w-full"
+            placeholder="URL de la imagen"
+            maxlength="255"
+            [class.ng-invalid]="isFieldInvalid('imagen')"
+            [class.ng-dirty]="fincaForm.get('imagen')?.dirty"
+          />
+          @if (isFieldInvalid('imagen')) {
+            <small class="text-red-600">{{ getFieldError('imagen') }}</small>
+          }
+        </div>
+
+      </div>
+
+      <!-- Botones del formulario -->
+      <div class="flex justify-end gap-2 mt-6">
+        <p-button
+          label="Cancelar"
+          severity="secondary"
+          (onClick)="hideDialog()"
+          [disabled]="submitting"
+        >
+        </p-button>
+        
+        <p-button
+          type="submit"
+          [label]="isEditing ? 'Actualizar' : 'Crear'"
+          [loading]="submitting"
+          [disabled]="fincaForm.invalid || submitting"
+        >
+        </p-button>
+      </div>
+    </form>
+  </ng-template>
+</p-dialog>
+
+<!-- Members Selection Dialog -->
+<app-members-table
+  [(visible)]="showMembersDialog"
+  title="Seleccionar Propietario"
+  (socioSelected)="onSocioSelected($event)"
+></app-members-table>
+
+<!-- Modal de Confirmación de Eliminación -->
+<p-dialog
+  [(visible)]="deleteFincaDialog"
+  header="Confirmar Eliminación"
+  [modal]="true"
+  [style]="{ width: '450px' }"
+  [closable]="true"
+  [draggable]="false"
+  [resizable]="false"
+>
+  <ng-template #content>
+    <div class="flex items-center gap-3">
+      <lucide-icon [img]="xIcon" size="24" class="text-red-500"></lucide-icon>
+      <span>
+        ¿Está seguro que desea eliminar la finca 
+        <b>{{ finca.nomb_finca }}</b>?
+      </span>
+    </div>
+  </ng-template>
+
+  <ng-template #footer>
+    <div class="flex justify-end gap-2">
+      <p-button
+        label="Cancelar"
+        class="p-button-text"
+        (onClick)="deleteFincaDialog = false"
+      >
+        <lucide-icon [img]="xIcon" size="16"></lucide-icon>
+      </p-button>
+      <p-button
+        label="Eliminar"
+        class="p-button-danger"
+        (onClick)="confirmDelete()"
+        [loading]="submitting"
+      >
+        <lucide-icon [img]="trashIcon" size="16"></lucide-icon>
+      </p-button>
+    </div>
+  </ng-template>
+</p-dialog>

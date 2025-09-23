@@ -22,7 +22,6 @@ import {
   EstadoCreateDto,
   EstadoUpdateDto,
   EstadoQueryParams,
-  PoliticalDivisionListResponse,
   PoliticalDivisionSelectOption,
 } from '../../models/political-division.dto';
 
@@ -35,6 +34,7 @@ import { DialogModule } from 'primeng/dialog';
 import { TooltipModule } from 'primeng/tooltip';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { BrushCleaning, LucideAngularModule, Pencil, Plus, RotateCcw, Search, Trash } from 'lucide-angular';
+import { LaravelApiResponse, LaravelPaginationResponse } from '@core/models/DTOs';
 
 @Component({
   selector: 'app-states-tab',
@@ -279,8 +279,8 @@ export class StatesTabComponent implements OnInit, OnChanges {
     this.politicalDivisionService
       .getPaises({ page: 1, per_page: 100 })
       .subscribe({
-        next: (response: PoliticalDivisionListResponse<PaisDto>) => {
-          this.countryOptions = response.message.data.map((country) => ({
+        next: (response: LaravelApiResponse<PaisDto>) => {
+          this.countryOptions = response.data.data.map((country) => ({
             label: country.nom_pais,
             value: country.cod_pais,
           }));
@@ -314,9 +314,9 @@ export class StatesTabComponent implements OnInit, OnChanges {
     };
 
     this.politicalDivisionService.getEstados(params).subscribe({
-      next: (response) => {
-        this.states = response.message.data;
-        this.totalRecords = response.message.total;
+      next: ({data}) => {
+        this.states = data.data;
+        this.totalRecords = data.total;
         this.loading = false;
       },
       error: (error) => {

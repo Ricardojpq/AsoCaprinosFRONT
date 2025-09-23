@@ -18,8 +18,7 @@ import {
   TipoPeloUpdateDto,
   LaravelPaginationResponse,
   LaravelApiResponse,
-  LaravelSingleItemResponse,
-  CatalogListResponse
+  LaravelSingleItemResponse
 } from '../../../../core/models/DTOs';
 
 // Query parameters interface
@@ -35,27 +34,6 @@ export interface CatalogQueryParams {
   [key: string]: any;
 }
 
-// Re-export DTOs for backward compatibility
-export type {
-  ColorDto,
-  RazaDto,
-  CondicionCorporalDto,
-  TipoPeloDto,
-  ColorCreateDto,
-  RazaCreateDto,
-  CondicionCorporalCreateDto,
-  TipoPeloCreateDto,
-  ColorUpdateDto,
-  RazaUpdateDto,
-  CondicionCorporalUpdateDto,
-  TipoPeloUpdateDto,
-  CatalogListResponse
-};
-
-// Legacy aliases for backward compatibility
-export type ApiResponse<T> = LaravelApiResponse<T>;
-export type SingleItemResponse<T> = LaravelSingleItemResponse<T>;
-export type PaginationLink = import('../../../../core/models/DTOs').PaginationLink;
 
 @Injectable({
   providedIn: 'root'
@@ -66,7 +44,7 @@ export class CatalogsService {
   constructor(private http: HttpClient) {}
 
   // ============= COLOR METHODS =============
-  getColors$(params?: CatalogQueryParams): Observable<CatalogListResponse<ColorDto>> {
+  getColors$(params?: CatalogQueryParams): Observable<LaravelPaginationResponse<ColorDto>> {
     let httpParams = new HttpParams();
     if (params) {
       Object.keys(params).forEach(key => {
@@ -75,41 +53,33 @@ export class CatalogsService {
         }
       });
     }
-    return this.http.get<ApiResponse<LaravelPaginationResponse<ColorDto>>>(`${this.apiUrl}/color`, { params: httpParams })
+    return this.http.get<LaravelApiResponse<ColorDto>>(`${this.apiUrl}/color`, { params: httpParams })
       .pipe(
-        map(response => ({
-          data: response.message.data,
-          total: response.message.total,
-          per_page: response.message.per_page,
-          current_page: response.message.current_page,
-          last_page: response.message.last_page,
-          from: response.message.from,
-          to: response.message.to
-        }))
+        map(response => response.data)
       );
   }
 
   getColor$(id: number): Observable<ColorDto> {
-    return this.http.get<SingleItemResponse<ColorDto>>(`${this.apiUrl}/color/${id}`)
+    return this.http.get<LaravelSingleItemResponse<ColorDto>>(`${this.apiUrl}/color/${id}`)
       .pipe(map(response => response.data));
   }
 
   createColor$(data: ColorCreateDto): Observable<ColorDto> {
-    return this.http.post<SingleItemResponse<ColorDto>>(`${this.apiUrl}/color`, data)
+    return this.http.post<LaravelSingleItemResponse<ColorDto>>(`${this.apiUrl}/color`, data)
       .pipe(map(response => response.data));
   }
 
   updateColor$(id: number, data: ColorUpdateDto): Observable<ColorDto> {
-    return this.http.put<SingleItemResponse<ColorDto>>(`${this.apiUrl}/color/${id}`, data)
+    return this.http.put<LaravelSingleItemResponse<ColorDto>>(`${this.apiUrl}/color/${id}`, data)
       .pipe(map(response => response.data));
   }
 
   deleteColor$(id: number): Observable<any> {
-    return this.http.delete<ApiResponse<any>>(`${this.apiUrl}/color/${id}`);
+    return this.http.delete<LaravelApiResponse<any>>(`${this.apiUrl}/color/${id}`);
   }
 
   // ============= RAZA METHODS =============
-  getRazas$(params?: CatalogQueryParams): Observable<CatalogListResponse<RazaDto>> {
+  getRazas$(params?: CatalogQueryParams): Observable<LaravelPaginationResponse<RazaDto>> {
     let httpParams = new HttpParams();
     if (params) {
       Object.keys(params).forEach(key => {
@@ -118,41 +88,33 @@ export class CatalogsService {
         }
       });
     }
-    return this.http.get<ApiResponse<LaravelPaginationResponse<RazaDto>>>(`${this.apiUrl}/raza`, { params: httpParams })
+    return this.http.get<LaravelApiResponse<RazaDto>>(`${this.apiUrl}/raza`, { params: httpParams })
       .pipe(
-        map(response => ({
-          data: response.message.data,
-          total: response.message.total,
-          per_page: response.message.per_page,
-          current_page: response.message.current_page,
-          last_page: response.message.last_page,
-          from: response.message.from,
-          to: response.message.to
-        }))
+        map(response => response.data)
       );
   }
 
   getRaza$(id: number): Observable<RazaDto> {
-    return this.http.get<SingleItemResponse<RazaDto>>(`${this.apiUrl}/raza/${id}`)
+    return this.http.get<LaravelSingleItemResponse<RazaDto>>(`${this.apiUrl}/raza/${id}`)
       .pipe(map(response => response.data));
   }
 
   createRaza$(data: RazaCreateDto): Observable<RazaDto> {
-    return this.http.post<SingleItemResponse<RazaDto>>(`${this.apiUrl}/raza`, data)
+    return this.http.post<LaravelSingleItemResponse<RazaDto>>(`${this.apiUrl}/raza`, data)
       .pipe(map(response => response.data));
   }
 
   updateRaza$(id: number, data: RazaUpdateDto): Observable<RazaDto> {
-    return this.http.put<SingleItemResponse<RazaDto>>(`${this.apiUrl}/raza/${id}`, data)
+    return this.http.put<LaravelSingleItemResponse<RazaDto>>(`${this.apiUrl}/raza/${id}`, data)
       .pipe(map(response => response.data));
   }
 
   deleteRaza$(id: number): Observable<any> {
-    return this.http.delete<ApiResponse<any>>(`${this.apiUrl}/raza/${id}`);
+    return this.http.delete<LaravelApiResponse<any>>(`${this.apiUrl}/raza/${id}`);
   }
 
   // ============= CONDICION CORPORAL METHODS =============
-  getCondicionesCorporales$(params?: CatalogQueryParams): Observable<CatalogListResponse<CondicionCorporalDto>> {
+  getCondicionesCorporales$(params?: CatalogQueryParams): Observable<LaravelPaginationResponse<CondicionCorporalDto>> {
     let httpParams = new HttpParams();
     if (params) {
       Object.keys(params).forEach(key => {
@@ -161,41 +123,33 @@ export class CatalogsService {
         }
       });
     }
-    return this.http.get<ApiResponse<LaravelPaginationResponse<CondicionCorporalDto>>>(`${this.apiUrl}/condicion-corporal`, { params: httpParams })
+    return this.http.get<LaravelApiResponse<CondicionCorporalDto>>(`${this.apiUrl}/condicion-corporal`, { params: httpParams })
       .pipe(
-        map(response => ({
-          data: response.message.data,
-          total: response.message.total,
-          per_page: response.message.per_page,
-          current_page: response.message.current_page,
-          last_page: response.message.last_page,
-          from: response.message.from,
-          to: response.message.to
-        }))
+        map(response => response.data)
       );
   }
 
   getCondicionCorporal$(id: number): Observable<CondicionCorporalDto> {
-    return this.http.get<SingleItemResponse<CondicionCorporalDto>>(`${this.apiUrl}/condicion-corporal/${id}`)
+    return this.http.get<LaravelSingleItemResponse<CondicionCorporalDto>>(`${this.apiUrl}/condicion-corporal/${id}`)
       .pipe(map(response => response.data));
   }
 
   createCondicionCorporal$(data: CondicionCorporalCreateDto): Observable<CondicionCorporalDto> {
-    return this.http.post<SingleItemResponse<CondicionCorporalDto>>(`${this.apiUrl}/condicion-corporal`, data)
+    return this.http.post<LaravelSingleItemResponse<CondicionCorporalDto>>(`${this.apiUrl}/condicion-corporal`, data)
       .pipe(map(response => response.data));
   }
 
   updateCondicionCorporal$(id: number, data: CondicionCorporalUpdateDto): Observable<CondicionCorporalDto> {
-    return this.http.put<SingleItemResponse<CondicionCorporalDto>>(`${this.apiUrl}/condicion-corporal/${id}`, data)
+    return this.http.put<LaravelSingleItemResponse<CondicionCorporalDto>>(`${this.apiUrl}/condicion-corporal/${id}`, data)
       .pipe(map(response => response.data));
   }
 
   deleteCondicionCorporal$(id: number): Observable<any> {
-    return this.http.delete<ApiResponse<any>>(`${this.apiUrl}/condicion-corporal/${id}`);
+    return this.http.delete<LaravelApiResponse<any>>(`${this.apiUrl}/condicion-corporal/${id}`);
   }
 
   // ============= TIPO PELO METHODS =============
-  getTiposPelo$(params?: CatalogQueryParams): Observable<CatalogListResponse<TipoPeloDto>> {
+  getTiposPelo$(params?: CatalogQueryParams): Observable<LaravelPaginationResponse<TipoPeloDto>> {
     let httpParams = new HttpParams();
     if (params) {
       Object.keys(params).forEach(key => {
@@ -204,37 +158,29 @@ export class CatalogsService {
         }
       });
     }
-    return this.http.get<ApiResponse<LaravelPaginationResponse<TipoPeloDto>>>(`${this.apiUrl}/tipo-pelo`, { params: httpParams })
+    return this.http.get<LaravelApiResponse<TipoPeloDto>>(`${this.apiUrl}/tipo-pelo`, { params: httpParams })
       .pipe(
-        map(response => ({
-          data: response.message.data,
-          total: response.message.total,
-          per_page: response.message.per_page,
-          current_page: response.message.current_page,
-          last_page: response.message.last_page,
-          from: response.message.from,
-          to: response.message.to
-        }))
+        map(response => response.data)
       );
   }
 
   getTipoPelo$(id: number): Observable<TipoPeloDto> {
-    return this.http.get<SingleItemResponse<TipoPeloDto>>(`${this.apiUrl}/tipo-pelo/${id}`)
+    return this.http.get<LaravelSingleItemResponse<TipoPeloDto>>(`${this.apiUrl}/tipo-pelo/${id}`)
       .pipe(map(response => response.data));
   }
 
   createTipoPelo$(data: TipoPeloCreateDto): Observable<TipoPeloDto> {
-    return this.http.post<SingleItemResponse<TipoPeloDto>>(`${this.apiUrl}/tipo-pelo`, data)
+    return this.http.post<LaravelSingleItemResponse<TipoPeloDto>>(`${this.apiUrl}/tipo-pelo`, data)
       .pipe(map(response => response.data));
   }
 
   updateTipoPelo$(id: number, data: TipoPeloUpdateDto): Observable<TipoPeloDto> {
-    return this.http.put<SingleItemResponse<TipoPeloDto>>(`${this.apiUrl}/tipo-pelo/${id}`, data)
+    return this.http.put<LaravelSingleItemResponse<TipoPeloDto>>(`${this.apiUrl}/tipo-pelo/${id}`, data)
       .pipe(map(response => response.data));
   }
 
   deleteTipoPelo$(id: number): Observable<any> {
-    return this.http.delete<ApiResponse<any>>(`${this.apiUrl}/tipo-pelo/${id}`);
+    return this.http.delete<LaravelApiResponse<any>>(`${this.apiUrl}/tipo-pelo/${id}`);
   }
 
   // ============= UTILITY METHODS =============

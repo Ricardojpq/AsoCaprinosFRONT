@@ -1,13 +1,168 @@
-<div class="certificate-page-2 flex flex-col p-5 border-yellow-400 border-[30px]" [style]="'
-  width: 1123px;
-  height: 794px;
-  background-image: url(assets/images/certificates/certificadoBase-2.jpg);
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  position: relative;
-  font-family: Arial, sans-serif;
-  color: black;
-'">
- 
+<div class="flex flex-col p-8 pt-[40px]! container-certificate h-screen border">
+  <div class="flex justify-evenly z-999">
+    <!-- COL IZQUIERDA -->
+    <div class="flex justify-between h-[150px] gap-[20px]">
+      <div class="p-1 pe-2">
+        <p class="m-0! font-bold ps-[4px] pt-[1px]">Descripción Capa:</p>
+        <p class="m-0! font-bold ps-[4px] pt-[1px]">Información Orejas:</p>
+        <p class="m-0! font-bold ps-[4px] pt-[1px]">Información Cuernos:</p>
+        <p class="m-0! font-bold ps-[4px] pt-[1px]">Tipo Registro:</p>
+      </div>
+      <div class="p-1 pe-2 flex-grow-1">
+        <p class="m-0! font-bold ps-[4px] pt-[1px]">
+          {{ `${certificateData?.animal?.color?.nom_color || ''} ${certificateData?.animal?.tipo_pelo?.nom_tipo_pelo || ''}`.trim() || "N/P" }}
+        </p>
+        <p class="m-0! font-bold ps-[4px] pt-[1px]">
+          {{ certificateData?.animal?.info_orejas || "N/P" }}
+        </p>
+        <p class="m-0! font-bold ps-[4px] pt-[1px]">
+          {{ certificateData?.animal?.info_cuernos || "N/P" }}
+        </p>
+        <p class="m-0! font-bold ps-[4px] pt-[1px]">
+          {{ certificateData?.animal?.tipo_registro || "N/P" }}
+        </p>
+      </div>
+    </div>
+    <!-- COL DERECHA -->
+    <div class="flex justify-between h-[150px] gap-[20px]">
+      <div class="p-1 pe-2">
+        <p class="m-0! font-bold ps-[4px] pt-[1px]">Puntuación:</p>
+        <p class="m-0! font-bold ps-[4px] pt-[1px]">Aretes:</p>
+        <p class="m-0! font-bold ps-[4px] pt-[1px]">Id Electronica:</p>
+        <p class="m-0! font-bold ps-[4px] pt-[1px]">Clasificador:</p>
+      </div>
+      <div class="p-1 pe-2 flex-grow-1">
+        <p class="m-0! font-bold ps-[4px] pt-[1px]">
+          <!-- TODO: PUNTUACION -->
+          {{  "N/P" }}
+        </p>
+        <p class="m-0! font-bold ps-[4px] pt-[1px]">
+          {{ certificateData?.animal?.aretes || "N/P" }}
+        </p>
+        <p class="m-0! font-bold ps-[4px] pt-[1px]">
+          {{ certificateData?.animal?.id_electronico || "N/P" }}
+        </p>
+        <p class="m-0! font-bold ps-[4px] pt-[1px]">
+          {{ certificateData?.clasificador?.cod_clasificador || "N/P" }}
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Begin: Transferencia de propiedad -->
+  <div class="mt-8 z-999">
+    <!-- Título principal -->
+    <h1 class="text-center font-bold text-3xl! mb-4">TRANSFERENCIA DE PROPIEDAD</h1>
+    
+    <!-- Secciones informativas superiores -->
+    <div class="grid grid-cols-3 gap-2 mb-4 ">
+      <!-- Sección 1 -->
+      <div class="border border-yellow-500 border-[3px] p-2 text-xs">
+        <p class="text-justify leading-tight font-bold">
+          Cualquier error que en este modelo se haya sido hecho por la oficina 
+          de Registros de la Asociación Auditará el presente Certificado
+        </p>
+      </div>
+      
+      <!-- Sección 2 -->
+      <div class="border border-yellow-500 border-[3px] p-2 text-xs">
+        <p class="text-justify leading-tight font-bold">
+          El último nombre que aparece en este Certificado es el dueño actual del 
+          ejemplar, según consta en el archivo de los Registros de la Asociación.
+        </p>
+      </div>
+      
+      <!-- Sección 3 -->
+      <div class="border border-yellow-500 border-[3px] p-2 text-xs">
+        <p class="text-justify leading-tight font-bold">
+          Para transferir la propiedad de este ejemplar llene la Solicitud de departamento de 
+          Registros en el modelo correspondiente y envíe junto con el presente Certificado 
+          a la Asociación, la transferencia de Propiedad se hará debidamente y se devolverá 
+          el presente Certificado al interesado.
+        </p>
+      </div>
+    </div>
+
+    <!-- Tabla de transferencia -->
+    <div class="border border-black mb-4">
+      <!-- Encabezados -->
+      <div class="grid grid-cols-3 bg-yellow-300">
+        <div class="border-r border-black p-2 text-center font-extrabold text-sm">
+          FECHA DE VENTA
+        </div>
+        <div class="border-r border-black p-2 text-center font-extrabold text-sm">
+          NOMBRE Y DIRECCION DEL PROPIETARIO
+        </div>
+        <div class="p-2 text-center font-extrabold text-sm">
+          FIRMA ENCARGADO DE REGISTROS ASOCABRA
+        </div>
+      </div>
+      
+      <div class="grid grid-cols-3">
+        <div class="border-r border-black border-t p-2 h-12"></div>
+        <div class="border-r border-black border-t p-2 h-12"></div>
+        <div class="border-t border-black p-2 h-12"></div>
+      </div>
+      <div class="grid grid-cols-3">
+        <div class="border-r border-black border-t p-2 h-12"></div>
+        <div class="border-r border-black border-t p-2 h-12"></div>
+        <div class="border-t border-black p-2 h-12"></div>
+      </div>
+      <div class="grid grid-cols-3">
+        <div class="border-r border-black border-t p-2 h-12"></div>
+        <div class="border-r border-black border-t p-2 h-12"></div>
+        <div class="border-t border-black p-2 h-12"></div>
+      </div>
+    </div>
+
+    <!-- Advertencia -->
+    <div class="border-4 border-black rounded-lg p-3 mb-4">
+      <p class="text-sm text-center font-bold">
+        Cuando se compruebe que ha habido fraude en cualquiera de los actos a que se contrae esta resolución, se procederá a cancelar la inscripción 
+        del correspondiente ejemplar y la de sus descendientes.
+      </p>
+    </div>
+
+    <!-- Información de registro genealógico -->
+    <div class="grid grid-cols-2 gap-8 mb-4">
+      <!-- Lado izquierdo -->
+      <div>
+        <p class="text-sm text-center font-bold mb-2">
+          HA SIDO INSCRITO EN EL LIBRO DE REGISTRO GENEALÓGICO<br>
+          DE ASOCABRA DE ACUERDO AL ACTA DE CLASIFICACIÓN.
+        </p>
+        
+        <!-- Tabla de acta -->
+        <div class="border border-black w-full mx-auto">
+          <div class="grid grid-cols-2 bg-yellow-300">
+            <div class="border-r border-black p-2 text-center font-extrabold text-sm">ACTA</div>
+            <div class="p-2 text-center font-extrabold text-sm">FECHA</div>
+          </div>
+          <div class="grid grid-cols-2">
+            <div class="border-r border-black border-t p-2 h-12 flex items-center justify-center text-sm font-bold">0000</div>
+            <div class="border-t border-black p-2 h-12 flex items-center justify-center text-sm font-bold">#N/D</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Lado derecho - Información de contacto -->
+      <div class="text-xs">
+        <p class="font-bold mb-1">
+          OFICINA CENTRAL: CALLE BOLÍVAR, ESQUINA CALLE MONAGAS, EDIFICIO<br>
+          CENTRO CARORA, PISO 3, OFICINA 16.CARORA, ESTADO LARA. REPÚBLICA<br>
+          BOLIVARIANA DE VENEZUELA.
+        </p>
+        <p class="mb-1">
+          <span class="font-bold">TELÉFONO OFICINA: </span> 
+          <span class="font-extrabold">(0416) 153.49.57</span>
+        </p>
+        <p>
+          <span class="font-bold">CORREOS ELECTRÓNICOS:</span> <br>
+          <span class="ml-45 font-extrabold">asocabra.venezuela@gmail.com</span><br>
+          <span class="ml-45 font-extrabold">registro.asocabra.venezuela@gmail.com</span>
+        </p>
+      </div>
+    </div>
+  </div>
+  <!-- End: Transferencia de propiedad -->
 </div>

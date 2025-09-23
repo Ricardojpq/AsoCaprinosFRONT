@@ -4,11 +4,10 @@ import { Observable, of, throwError } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { ApiAnimals } from '@core/infrastructure/Apis/api-animals';
 import { environment } from '@environments/environment';
-import { ApiResponseSuccess, ApiResponseError } from '@core/models/DTOs/api-response';
+import { LaravelApiResponse, LaravelSingleItemResponse, LaravelPaginationResponse } from '../../../core/models/DTOs';
 import { AnimalCreateDto } from '@features/animals/models/DTOs/animal-create';
 import { AnimalUpdateDto } from '@features/animals/models/DTOs/animal-update';
 import { AnimalDto } from '@features/animals/models/DTOs/animal';
-import { AnimalListResponse } from '@features/animals/models/DTOs/animal-list-response';
 import { SexoAnimalEnum } from '@core/enums/sexo-animal-enum';
 import { OrigenAnimalEnum } from '@core/enums/origen-animal-enum';
 import { EstatusAnimalEnum } from '@core/enums/estatus-animal-enum';
@@ -30,12 +29,6 @@ export interface AnimalQueryParams {
   [key: string]: any;
 }
 
-// Tipo para la respuesta real del backend
-interface AnimalListApiResponse {
-  status: string;
-  data: string; // El mensaje
-  message: AnimalListResponse; // Los datos reales
-}
 
 @Injectable({ providedIn: 'root' })
 export class AnimalsService {
@@ -67,7 +60,12 @@ export class AnimalsService {
         errorDetails = { detail: error.error.detail };
       }
     } else if (error.status === 409) {
-      errorMessage = 'El animal ya existe';
+      // Manejar tanto conflictos de duplicados como de certificados asociados
+      if (error.error && error.error.message && error.error.message.includes('certificados asociados')) {
+        errorMessage = error.error.message;
+      } else {
+        errorMessage = 'El animal ya existe';
+      }
       if (error.error && error.error.detail) {
         errorDetails = { detail: error.error.detail };
       }
@@ -92,7 +90,7 @@ export class AnimalsService {
   addAnimal$(data: Partial<AnimalCreateDto>): Observable<AnimalDto> {
     try {
       const uri = ApiAnimals.AddAnimal(this.animalsURL);
-      return this.httpClient.post<ApiResponseSuccess<AnimalDto>>(uri, data).pipe(
+      return this.httpClient.post<LaravelSingleItemResponse<AnimalDto>>(uri, data).pipe(
         map(res => {
           if (res.status === 'success' && res.data) {
             return res.data;
@@ -108,7 +106,7 @@ export class AnimalsService {
     }
   }
 
-  getAnimals$(query: AnimalQueryParams = {}): Observable<AnimalListResponse> {
+  getAnimals$(query: AnimalQueryParams = {}): Observable<LaravelPaginationResponse<AnimalDto>> {
     try {
       let params = new HttpParams();
       Object.entries(query).forEach(([key, value]) => {
@@ -117,11 +115,10 @@ export class AnimalsService {
         }
       });
       const uri = ApiAnimals.GetAnimals(this.animalsURL);
-      return this.httpClient.get<AnimalListApiResponse>(uri, { params }).pipe(
+      return this.httpClient.get<LaravelApiResponse<AnimalDto>>(uri, { params }).pipe(
         map(res => {
-          if (res.status === 'success' && res.message) {
-            // El backend devuelve los datos en 'message' y el mensaje en 'data'
-            return res.message as AnimalListResponse;
+          if (res.status === 'success' && res.data) {
+            return res.data;
           } else {
             throw new Error('Respuesta inválida del servidor');
           }
@@ -130,14 +127,28 @@ export class AnimalsService {
       );
     } catch (e) {
       console.error('Error fetching animals', e);
-      return of({ current_page: 1, data: [], per_page: 10, total: 0 });
+      return of({
+        current_page: 1,
+        data: [],
+        per_page: 10,
+        total: 0,
+        first_page_url: '',
+        from: 0,
+        last_page: 1,
+        last_page_url: '',
+        links: [],
+        next_page_url: null,
+        path: '',
+        prev_page_url: null,
+        to: 0
+      });
     }
   }
 
   getAnimalById$(cod_finca: string, cod_animal: string): Observable<AnimalDto> {
     try {
       const uri = ApiAnimals.GetAnimalById(this.animalsURL, cod_finca, cod_animal);
-      return this.httpClient.get<ApiResponseSuccess<AnimalDto>>(uri).pipe(
+      return this.httpClient.get<LaravelSingleItemResponse<AnimalDto>>(uri).pipe(
         map(res => {
           if (res.status === 'success' && res.data) {
             return res.data;
@@ -156,7 +167,7 @@ export class AnimalsService {
   updateAnimal$(cod_finca: string, cod_animal: string, data: AnimalUpdateDto): Observable<AnimalDto> {
     try {
       const uri = ApiAnimals.UpdateAnimal(this.animalsURL, cod_finca, cod_animal);
-      return this.httpClient.put<ApiResponseSuccess<AnimalDto>>(uri, data).pipe(
+      return this.httpClient.put<LaravelSingleItemResponse<AnimalDto>>(uri, data).pipe(
         map(res => {
           if (res.status === 'success' && res.data) {
             return res.data;
@@ -175,7 +186,7 @@ export class AnimalsService {
   deleteAnimal$(cod_finca: string, cod_animal: string): Observable<any> {
     try {
       const uri = ApiAnimals.DeleteAnimal(this.animalsURL, cod_finca, cod_animal);
-      return this.httpClient.delete<ApiResponseSuccess>(uri).pipe(
+      return this.httpClient.delete<LaravelApiResponse<any>>(uri).pipe(
         map(res => {
           if (res.status === 'success') {
             return res;
@@ -188,6 +199,25 @@ export class AnimalsService {
     } catch (e) {
       console.error('Error deleting animal', e);
       return throwError(() => new Error('Error al eliminar animal'));
+    }
+  }
+
+  canDeleteAnimal$(cod_finca: string, cod_animal: string): Observable<{can_delete: boolean, reason: string | null}> {
+    try {
+      const uri = `${this.animalsURL}/api/v1/animals/${cod_finca}/${cod_animal}/can-delete`;
+      return this.httpClient.get<LaravelSingleItemResponse<{can_delete: boolean, reason: string | null}>>(uri).pipe(
+        map(res => {
+          if (res.status === 'success' && res.data) {
+            return res.data;
+          } else {
+            throw new Error('Respuesta inválida del servidor');
+          }
+        }),
+        catchError(this.handleError)
+      );
+    } catch (e) {
+      console.error('Error checking if animal can be deleted', e);
+      return throwError(() => new Error('Error al verificar si el animal puede ser eliminado'));
     }
   }
 

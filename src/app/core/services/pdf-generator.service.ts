@@ -449,5 +449,37 @@ export class PdfGeneratorService {
       element.style.flexDirection = 'column';
       element.style.display = 'flex';
     }
+    
+    // Aplicar backgrounds de Tailwind para headers de tabla
+    if (element.classList.contains('bg-yellow-300')) {
+      element.style.backgroundColor = 'rgb(253, 224, 71)'; // yellow-300
+    }
+    
+    // Aplicar colores de borde específicos para certificate-page2
+    if (element.classList.contains('border-yellow-500')) {
+      element.style.borderColor = 'rgb(234, 179, 8)'; // yellow-500
+    }
+    
+    // Aplicar bordes gruesos
+    if (element.classList.contains('border-[3px]')) {
+      element.style.borderWidth = '3px';
+    }
+    
+    // Aplicar grid layouts
+    if (element.classList.contains('grid-cols-2')) {
+      element.style.display = 'grid';
+      element.style.gridTemplateColumns = 'repeat(2, minmax(0, 1fr))';
+    }
+    
+    if (element.classList.contains('grid-cols-3')) {
+      element.style.display = 'grid';
+      element.style.gridTemplateColumns = 'repeat(3, minmax(0, 1fr))';
+    }
+    
+    // Aplicar z-index para permitir marca de agua por detrás
+    if (element.classList.contains('z-999')) {
+      element.style.zIndex = '999';
+      element.style.position = 'relative';
+    }
   }
 }

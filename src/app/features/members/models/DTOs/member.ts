@@ -12,6 +12,15 @@ export interface MemberDto {
   updated_at?: string;
   deleted_at?: string;
   
+  // Campos de persona (para formulario)
+  nom_persona?: string;
+  ape_persona?: string;
+  tel_persona?: string;
+  email_persona?: string;
+  dir_persona?: string;
+  sexo_persona?: string;
+  fec_nacim?: string;
+  
   // Relationships
   persona?: {
     ced_persona: string;

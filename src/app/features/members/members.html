@@ -63,8 +63,13 @@
               [value]="globalFilterValue"
             />
             @if (globalFilterValue) {
-              <p-inputicon>
-                <lucide-angular [img]="xIcon" size="16" (click)="clearSearch()" class="cursor-pointer"></lucide-angular>
+            <p-inputicon>
+              <lucide-angular
+                [img]="xIcon"
+                size="16"
+                (click)="clearSearch()"
+                class="cursor-pointer"
+              ></lucide-angular>
             </p-inputicon>
             }
           </p-iconfield>
@@ -122,11 +127,11 @@
           <p-tableCheckbox [value]="member" />
         </td>
         <td>{{ member.ced_socio }}</td>
-        <td>{{ member.persona?.nom_persona || 'N/A' }}</td>
-        <td>{{ member.persona?.ape_persona || 'N/A' }}</td>
-        <td>{{ member.persona?.tel_persona || 'N/A' }}</td>
-        <td>{{ member.persona?.dir_persona || 'N/A' }}</td>
-        <td>{{ member.persona?.email_persona || 'N/A' }}</td>
+        <td>{{ member.persona?.nom_persona || "N/A" }}</td>
+        <td>{{ member.persona?.ape_persona || "N/A" }}</td>
+        <td>{{ member.persona?.tel_persona || "N/A" }}</td>
+        <td>{{ member.persona?.dir_persona || "N/A" }}</td>
+        <td>{{ member.persona?.email_persona || "N/A" }}</td>
         <td>
           <p-tag
             [value]="member.estatus_socio === 'A' ? 'Activo' : 'Inactivo'"
@@ -160,156 +165,286 @@
 
   <p-dialog
     [(visible)]="memberDialog"
-    [style]="{ width: '600px' }"
-    header="Detalles del Socio"
+    [style]="{ width: '700px' }"
+    [header]="isEditMode ? 'Editar Socio' : 'Nuevo Socio'"
     [modal]="true"
+    [maximizable]="false"
   >
     <ng-template #content>
-      <div class="space-y-6">
-        <!-- Sección: Datos Obligatorios -->
-        <div class="border-b pb-4">
-          <h6 class="text-lg font-semibold text-gray-800 mb-4">Datos Obligatorios</h6>
-          <div class="grid grid-cols-2 gap-4">
-            <!-- Cédula del Socio -->
-            <div class="col-span-1">
-              <label for="ced_socio" class="block font-bold mb-2 text-red-600"
-                >Cédula del Socio *</label
-              >
-              <input
-                type="text"
-                pInputText
-                id="ced_socio"
-                [(ngModel)]="member.ced_socio"
-                [required]="true"
-                [disabled]="isEditMode"
-                class="w-full"
-                placeholder="Ej: 12345678"
-              />
-            </div>
+      <form [formGroup]="memberForm" (ngSubmit)="saveMember()">
+        <div class="grid grid-cols-2 gap-4 p-4">
+          
+          <!-- Información básica -->
+          <div class="col-span-2">
+            <h5 class="text-lg font-semibold mb-3 text-primary border-b pb-2">
+              <i class="pi pi-user mr-2"></i>Información del Socio
+            </h5>
+          </div>
 
-            <!-- Status -->
-            <div class="col-span-1">
-              <label for="estatus_socio" class="block font-bold mb-2 text-red-600">Status *</label>
-              <p-select
-                id="estatus_socio"
-                [options]="statusOptions"
-                [(ngModel)]="member.estatus_socio"
-                optionLabel="label"
-                optionValue="value"
-                placeholder="Seleccionar status"
-                class="w-full"
-              />
-            </div>
+          <!-- Cédula del Socio -->
+          <div class="field mb-4">
+            <label for="ced_socio" class="block text-sm font-medium mb-2">
+              <i class="pi pi-id-card"></i> Cédula del Socio *
+            </label>
+            <input
+              type="text"
+              pInputText
+              id="ced_socio"
+              formControlName="ced_socio"
+              placeholder="Ej: V-12345678"
+              class="w-full"
+              [class.ng-invalid]="f['ced_socio'].invalid && (f['ced_socio'].dirty || submitted)"
+              [class.ng-dirty]="f['ced_socio'].dirty"
+            />
+            @if (f['ced_socio'].invalid && (f['ced_socio'].dirty || submitted)) {
+              <small class="text-red-500">
+                La cédula del socio es requerida.
+              </small>
+            }
+          </div>
+
+          <!-- Código de Finca -->
+          <div class="field mb-4">
+            <label for="cod_finca" class="block text-sm font-medium mb-2">
+              <i class="pi pi-home"></i> Código de Finca *
+            </label>
+            <input
+              type="text"
+              pInputText
+              id="cod_finca"
+              formControlName="cod_finca"
+              placeholder="Ej: F001"
+              class="w-full"
+              [class.ng-invalid]="f['cod_finca'].invalid && (f['cod_finca'].dirty || submitted)"
+              [class.ng-dirty]="f['cod_finca'].dirty"
+            />
+            @if (f['cod_finca'].invalid && (f['cod_finca'].dirty || submitted)) {
+              <small class="text-red-500">
+                El código de finca es requerido.
+              </small>
+            }
+          </div>
+
+          <!-- Status -->
+          <div class="field mb-4">
+            <label for="estatus_socio" class="block text-sm font-medium mb-2">
+              <i class="pi pi-flag"></i> Status *
+            </label>
+            <p-select
+              id="estatus_socio"
+              formControlName="estatus_socio"
+              [options]="statusOptions"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Seleccionar estado"
+              class="w-full"
+            />
+          </div>
+
+          <!-- Fecha de Ingreso -->
+          <div class="field mb-4">
+            <label for="fec_ingreso" class="block text-sm font-medium mb-2">
+              <i class="pi pi-calendar"></i> Fecha de Ingreso
+            </label>
+            <p-datepicker
+              id="fec_ingreso"
+              formControlName="fec_ingreso"
+              dateFormat="dd/mm/yy"
+              placeholder="dd/mm/aaaa"
+              class="w-full"
+              [showIcon]="true"
+            />
+          </div>
+
+          <!-- Datos de la Persona -->
+          <div class="col-span-2 mt-4">
+            <h5 class="text-lg font-semibold mb-3 text-primary border-b pb-2">
+              <i class="pi pi-user-plus mr-2"></i>Datos Personales
+            </h5>
+          </div>
+
+          <!-- Nombre -->
+          <div class="field mb-4">
+            <label for="nom_persona" class="block text-sm font-medium mb-2">
+              <i class="pi pi-user"></i> Nombre *
+            </label>
+            <input
+              type="text"
+              pInputText
+              id="nom_persona"
+              formControlName="nom_persona"
+              placeholder="Nombre de la persona"
+              class="w-full"
+              [class.ng-invalid]="f['nom_persona'].invalid && (f['nom_persona'].dirty || submitted)"
+              [class.ng-dirty]="f['nom_persona'].dirty"
+            />
+            @if (f['nom_persona'].invalid && (f['nom_persona'].dirty || submitted)) {
+              <small class="text-red-500">
+                El nombre es requerido.
+              </small>
+            }
+          </div>
+
+          <!-- Apellido -->
+          <div class="field mb-4">
+            <label for="ape_persona" class="block text-sm font-medium mb-2">
+              <i class="pi pi-user"></i> Apellido *
+            </label>
+            <input
+              type="text"
+              pInputText
+              id="ape_persona"
+              formControlName="ape_persona"
+              placeholder="Apellido de la persona"
+              class="w-full"
+              [class.ng-invalid]="f['ape_persona'].invalid && (f['ape_persona'].dirty || submitted)"
+              [class.ng-dirty]="f['ape_persona'].dirty"
+            />
+            @if (f['ape_persona'].invalid && (f['ape_persona'].dirty || submitted)) {
+              <small class="text-red-500">
+                El apellido es requerido.
+              </small>
+            }
+          </div>
+
+          <!-- Teléfono -->
+          <div class="field mb-4">
+            <label for="tel_persona" class="block text-sm font-medium mb-2">
+              <i class="pi pi-phone"></i> Teléfono *
+            </label>
+            <input
+              type="text"
+              pInputText
+              id="tel_persona"
+              formControlName="tel_persona"
+              placeholder="Ej: +58 412 1234567"
+              class="w-full"
+              [class.ng-invalid]="f['tel_persona'].invalid && (f['tel_persona'].dirty || submitted)"
+              [class.ng-dirty]="f['tel_persona'].dirty"
+            />
+            @if (f['tel_persona'].invalid && (f['tel_persona'].dirty || submitted)) {
+              <small class="text-red-500">
+                El teléfono es requerido.
+              </small>
+            }
+          </div>
+
+          <!-- Email -->
+          <div class="field mb-4">
+            <label for="email_persona" class="block text-sm font-medium mb-2">
+              <i class="pi pi-envelope"></i> Email
+            </label>
+            <input
+              type="email"
+              pInputText
+              id="email_persona"
+              formControlName="email_persona"
+              placeholder="ejemplo@correo.com"
+              class="w-full"
+              [class.ng-invalid]="f['email_persona'].invalid && (f['email_persona'].dirty || submitted)"
+              [class.ng-dirty]="f['email_persona'].dirty"
+            />
+            @if (f['email_persona'].invalid && (f['email_persona'].dirty || submitted)) {
+              <small class="text-red-500">
+                El formato del email no es válido.
+              </small>
+            }
+          </div>
+
+          <!-- Sexo -->
+          <div class="field mb-4">
+            <label for="sexo_persona" class="block text-sm font-medium mb-2">
+              <i class="pi pi-users"></i> Sexo *
+            </label>
+            <p-select
+              id="sexo_persona"
+              [options]="sexoOptions"
+              formControlName="sexo_persona"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Seleccionar sexo"
+              class="w-full"
+              [class.ng-invalid]="f['sexo_persona'].invalid && (f['sexo_persona'].dirty || submitted)"
+              [class.ng-dirty]="f['sexo_persona'].dirty"
+            />
+            @if (f['sexo_persona'].invalid && (f['sexo_persona'].dirty || submitted)) {
+              <small class="text-red-500">
+                El sexo es requerido.
+              </small>
+            }
+          </div>
+
+          <!-- Fecha de Nacimiento -->
+          <div class="field mb-4">
+            <label for="fec_nacim" class="block text-sm font-medium mb-2">
+              <i class="pi pi-calendar"></i> Fecha de Nacimiento *
+            </label>
+            <p-datepicker
+              id="fec_nacim"
+              formControlName="fec_nacim"
+              dateFormat="dd/mm/yy"
+              placeholder="dd/mm/aaaa"
+              class="w-full"
+              [class.ng-invalid]="f['fec_nacim'].invalid && (f['fec_nacim'].dirty || submitted)"
+              [class.ng-dirty]="f['fec_nacim'].dirty"
+            />
+            @if (f['fec_nacim'].invalid && (f['fec_nacim'].dirty || submitted)) {
+              <small class="text-red-500">
+                La fecha de nacimiento es requerida.
+              </small>
+            }
+          </div>
+
+          <!-- Dirección -->
+          <div class="col-span-2 field mb-4">
+            <label for="dir_persona" class="block text-sm font-medium mb-2">
+              <i class="pi pi-map-marker"></i> Dirección
+            </label>
+            <textarea
+              pInputTextarea
+              id="dir_persona"
+              formControlName="dir_persona"
+              class="w-full"
+              rows="2"
+              placeholder="Dirección completa de la persona"
+            ></textarea>
+          </div>
+
+          <!-- Observaciones -->
+          <div class="col-span-2 field mb-4">
+            <label for="observaciones" class="block text-sm font-medium mb-2">
+              <i class="pi pi-file-edit"></i> Observaciones
+            </label>
+            <textarea
+              pInputTextarea
+              id="observaciones"
+              formControlName="observaciones"
+              class="w-full"
+              rows="2"
+              placeholder="Observaciones adicionales"
+            ></textarea>
           </div>
         </div>
-
-        <!-- Sección: Datos de la Persona (Opcionales) -->
-        <div>
-          <h6 class="text-lg font-semibold text-gray-800 mb-4">Datos de la Persona (Opcionales)</h6>
-          <div class="grid grid-cols-2 gap-4">
-            <!-- Nombre -->
-            <div class="col-span-1">
-              <label for="nom_persona" class="block font-bold mb-2">Nombre</label>
-              <input
-                type="text"
-                pInputText
-                id="nom_persona"
-                [(ngModel)]="personaNombre"
-                class="w-full"
-                placeholder="Nombre de la persona"
-              />
-            </div>
-
-            <!-- Apellido -->
-            <div class="col-span-1">
-              <label for="ape_persona" class="block font-bold mb-2">Apellido</label>
-              <input
-                type="text"
-                pInputText
-                id="ape_persona"
-                [(ngModel)]="personaApellido"
-                class="w-full"
-                placeholder="Apellido de la persona"
-              />
-            </div>
-
-            <!-- Teléfono -->
-            <div class="col-span-1">
-              <label for="tel_persona" class="block font-bold mb-2">Teléfono</label>
-              <input
-                type="tel"
-                pInputText
-                id="tel_persona"
-                [(ngModel)]="personaTelefono"
-                class="w-full"
-                placeholder="Ej: +58 412 1234567"
-              />
-            </div>
-
-            <!-- Email -->
-            <div class="col-span-1">
-              <label for="email_persona" class="block font-bold mb-2">Email</label>
-              <input
-                type="email"
-                pInputText
-                id="email_persona"
-                [(ngModel)]="personaEmail"
-                class="w-full"
-                placeholder="ejemplo@correo.com"
-              />
-            </div>
-
-            <!-- Dirección -->
-            <div class="col-span-2">
-              <label for="dir_persona" class="block font-bold mb-2">Dirección</label>
-              <textarea
-                pInputTextarea
-                id="dir_persona"
-                [(ngModel)]="personaDireccion"
-                class="w-full"
-                rows="2"
-                placeholder="Dirección completa de la persona"
-              ></textarea>
-            </div>
-
-            <!-- Fecha de Nacimiento -->
-            <div class="col-span-1">
-              <label for="fec_nacim" class="block font-bold mb-2">Fecha de Nacimiento</label>
-              <p-datepicker
-                id="fec_nacim"
-                [(ngModel)]="personaFechaNacimiento"
-                dateFormat="dd/mm/yy"
-                placeholder="dd/mm/aaaa"
-                class="w-full"
-                [showIcon]="true"
-              />
-            </div>
-
-            <!-- Sexo -->
-            <div class="col-span-1">
-              <label for="sexo_persona" class="block font-bold mb-2">Sexo</label>
-              <p-select
-                id="sexo_persona"
-                [options]="sexoOptions"
-                [(ngModel)]="personaSexo"
-                optionLabel="label"
-                optionValue="value"
-                placeholder="Seleccionar sexo"
-                class="w-full"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
+      </form>
     </ng-template>
     <ng-template #footer>
-      <p-button
-        label="Cancelar"
-        icon="pi pi-times"
-        text
-        (click)="hideDialog()"
-      />
-      <p-button label="Guardar" icon="pi pi-check" (click)="saveMember()" />
+      <div class="flex justify-end gap-2">
+        <p-button
+          label="Cancelar"
+          severity="secondary"
+          [text]="true"
+          (click)="hideDialog()">
+          <lucide-icon [img]="xIcon" size="16" class="mr-2"></lucide-icon>
+        </p-button>
+        <p-button 
+          [label]="isEditMode ? 'Actualizar' : 'Crear'"
+          severity="success"
+          type="submit"
+          (click)="saveMember()"
+          [disabled]="memberForm.invalid && submitted">
+          <i class="pi pi-check mr-2"></i>
+        </p-button>
+      </div>
     </ng-template>
   </p-dialog>
 

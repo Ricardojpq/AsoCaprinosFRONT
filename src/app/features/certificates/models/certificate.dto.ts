@@ -16,7 +16,7 @@ export interface Certificate {
   created_at?: string;
   updated_at?: string;
   deleted_at?: string;
-  
+
   // Basic relationships (loaded with Certificate model)
   animal?: {
     cod_finca?: number;
@@ -81,22 +81,22 @@ export interface CertificateDto {
   fecha_emision?: string;
   numero_certificado?: string;
   observaciones?: string;
-  
+
   // Información completa del animal
   animal?: AnimalInfoDto;
-  
+
   // Información de genealogía
   genealogy?: GenealogyDto;
-  
+
   // Información del criador
   criador?: FincaInfoDto;
-  
+
   // Información del propietario
   propietario?: FincaInfoDto;
-  
+
   // Información del clasificador
   clasificador?: ClasificadorInfoDto;
-  
+
   is_active?: boolean;
   created_at?: string;
   updated_at?: string;
@@ -123,6 +123,11 @@ export interface AnimalInfoDto {
   raza?: RazaDto;
   color?: ColorDto;
   tipo_pelo?: TipoPeloDto;
+  info_orejas?: string;
+  info_cuernos?: string;
+  tipo_registro?: string;
+  aretes?: string;
+  reg_intl?: string;
 }
 
 export interface GenealogyDto {

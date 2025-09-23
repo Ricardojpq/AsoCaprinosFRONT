@@ -10,7 +10,6 @@ import {
   MunicipioDto,
   EstadoDto,
   PaisDto,
-  PoliticalDivisionListResponse,
   PoliticalDivisionSelectOption
 } from '../../models/political-division.dto';
 
@@ -36,6 +35,7 @@ import { DialogModule } from 'primeng/dialog';
 import { TooltipModule } from 'primeng/tooltip';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { LucideAngularModule,Search,BrushCleaning,Plus,RotateCcw,Pencil,Trash  } from 'lucide-angular';
+import { LaravelApiResponse } from '@core/models/DTOs';
 
 
 @Component({
@@ -125,8 +125,8 @@ export class CitiesTabComponent implements OnInit, OnChanges {
    */
   loadCountryOptions(): void {
     this.politicalDivisionService.getPaises({ page: 1, per_page: 100 }).subscribe({
-      next: (response: PoliticalDivisionListResponse<PaisDto>) => {
-        this.countryOptions = response.message.data.map(country => ({
+      next: (response: LaravelApiResponse<PaisDto>) => {
+        this.countryOptions = response.data.data.map(country => ({
           label: country.nom_pais,
           value: country.cod_pais
         }));
@@ -143,8 +143,8 @@ export class CitiesTabComponent implements OnInit, OnChanges {
   loadAllStateOptions(): Promise<void> {
     return new Promise((resolve, reject) => {
       this.politicalDivisionService.getEstados({ page: 1, per_page: 100 }).subscribe({
-        next: (response: PoliticalDivisionListResponse<EstadoDto>) => {
-          this.allStateOptions = response.message.data.map(state => ({
+        next: (response: LaravelApiResponse<EstadoDto>) => {
+          this.allStateOptions = response.data.data.map(state => ({
             label: state.nom_estado,
             value: state.cod_estado,
             name: state.nom_estado, // Guardamos el nombre para enviar al backend
@@ -166,8 +166,8 @@ export class CitiesTabComponent implements OnInit, OnChanges {
   loadAllMunicipalityOptions(): Promise<void> {
     return new Promise((resolve, reject) => {
       this.politicalDivisionService.getMunicipios({ page: 1, per_page: 100 }).subscribe({
-        next: (response: PoliticalDivisionListResponse<MunicipioDto>) => {
-          this.allMunicipalityOptions = response.message.data.map(municipality => ({
+        next: (response: LaravelApiResponse<MunicipioDto>) => {
+          this.allMunicipalityOptions = response.data.data.map(municipality => ({
             label: municipality.nom_municipio,
             value: municipality.cod_municipio,
             name: municipality.nom_municipio, // Guardamos el nombre para enviar al backend
@@ -194,13 +194,13 @@ export class CitiesTabComponent implements OnInit, OnChanges {
         per_page: 100,
         cod_pais: selectedCountryCode // Filtrar por país en el backend
       }).subscribe({
-        next: (response: PoliticalDivisionListResponse<EstadoDto>) => {
-          this.stateOptions = response.message.data.map(state => ({
+        next: (response: LaravelApiResponse<EstadoDto>) => {
+          this.stateOptions = response.data.data.map(state => ({
             label: state.nom_estado,
             value: state.nom_estado // Para ciudades usamos nombres
           }));
           // Guardamos los estados para poder obtener el cod_estado después
-          this.allStateOptions = response.message.data.map(state => ({
+          this.allStateOptions = response.data.data.map(state => ({
             label: state.nom_estado,
             value: state.cod_estado,
             name: state.nom_estado,
@@ -238,8 +238,8 @@ export class CitiesTabComponent implements OnInit, OnChanges {
           per_page: 100,
           cod_estado: selectedState.value // Filtrar por estado en el backend
         }).subscribe({
-          next: (response: PoliticalDivisionListResponse<MunicipioDto>) => {
-            this.municipalityOptions = response.message.data.map(municipality => ({
+          next: (response: LaravelApiResponse<MunicipioDto>) => {
+            this.municipalityOptions = response.data.data.map(municipality => ({
               label: municipality.nom_municipio,
               value: municipality.nom_municipio // Para ciudades usamos nombres
             }));
@@ -278,9 +278,9 @@ export class CitiesTabComponent implements OnInit, OnChanges {
     };
 
     this.politicalDivisionService.getCiudades(params).subscribe({
-      next: (response: PoliticalDivisionListResponse<CiudadDto>) => {
-        this.cities = response.message.data;
-        this.totalRecords = response.message.total;
+      next: (response: LaravelApiResponse<CiudadDto>) => {
+        this.cities = response.data.data;
+        this.totalRecords = response.data.total;
         this.loading = false;
       },
       error: (error) => {

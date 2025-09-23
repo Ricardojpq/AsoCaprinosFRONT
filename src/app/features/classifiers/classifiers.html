@@ -1,0 +1,543 @@
+<div class="card">
+  <p-toast></p-toast>
+  <p-confirmDialog></p-confirmDialog>
+  
+  <!-- Toolbar -->
+  <p-toolbar class="mb-6">
+    <ng-template #start>
+      <div class="flex gap-1">
+        <p-button
+          styleClass="btn btn-primary btn-sm"
+          label="Nuevo Clasificador"
+          (onClick)="openNew()"
+        >
+          <lucide-icon [img]="plusIcon" size="16"></lucide-icon>
+        </p-button>
+        <p-button
+          styleClass="btn btn-danger btn-sm"
+          severity="danger"
+          label="Eliminar"
+          outlined
+          (onClick)="deleteSelectedClasificadores()"
+          [disabled]="!selectedClasificadores || !selectedClasificadores.length"
+        >
+          <lucide-icon [img]="trashIcon" size="16"></lucide-icon>
+        </p-button>
+      </div>
+    </ng-template>
+    <ng-template #end> </ng-template>
+  </p-toolbar>
+
+  <!-- Data Table -->
+  <p-table 
+    #dt
+    [value]="clasificadores" 
+    [columns]="cols"
+    [rows]="perPage"
+    [totalRecords]="totalRecords"
+    [loading]="loading"
+    [lazy]="true"
+    (onLazyLoad)="onTableLazyLoad($event)"
+    [paginator]="true" 
+    [rowsPerPageOptions]="[10, 25, 50, 100]"
+    [showCurrentPageReport]="true" 
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
+    [(selection)]="selectedClasificadores" 
+    selectionMode="multiple"
+    [rowHover]="true" 
+    dataKey="ced_clasificador"
+    styleClass="p-datatable-gridlines">
+    
+    <ng-template #caption>
+      <div class="flex items-center justify-between">
+        <h5 class="m-0">Gestión de Clasificadores</h5>
+        <div class="flex items-center gap-2">
+          <p-iconfield>
+            <p-inputicon>
+              <lucide-angular [img]="searchIcon" size="16"></lucide-angular>
+            </p-inputicon>
+            <input
+              pInputText
+              type="text"
+              placeholder="Buscar clasificador..."
+              (input)="onGlobalFilter($event)"
+              class="focus:border-golden-500"
+              [value]="globalFilterValue"
+            />
+            @if (globalFilterValue) {
+              <p-inputicon>
+                <lucide-angular [img]="xIcon" size="16" (click)="clearSearch()" class="cursor-pointer"></lucide-angular>
+            </p-inputicon>
+            }
+          </p-iconfield>
+        </div>
+      </div>
+    </ng-template>
+    
+    <ng-template #header>
+      <tr>
+        <th style="width: 3rem">
+          <p-tableHeaderCheckbox />
+        </th>
+        <th pSortableColumn="ced_clasificador" style="min-width: 12rem">
+          <div class="flex items-center gap-2">
+            Cédula
+            <p-sortIcon field="ced_clasificador" />
+          </div>
+        </th>
+        <th pSortableColumn="cod_clasificador" style="min-width: 10rem">
+          <div class="flex items-center gap-2">
+            Código
+            <p-sortIcon field="cod_clasificador" />
+          </div>
+        </th>
+        <th style="min-width: 12rem">Nombre</th>
+        <th style="min-width: 12rem">Apellido</th>
+        <th style="min-width: 15rem">Email</th>
+        <th pSortableColumn="fec_inicio_clasif" style="min-width: 10rem">
+          <div class="flex items-center gap-2">
+            Fecha Inicio
+            <p-sortIcon field="fec_inicio_clasif" />
+          </div>
+        </th>
+        <th pSortableColumn="nro_visitas" style="min-width: 8rem">
+          <div class="flex items-center gap-2">
+            Visitas
+            <p-sortIcon field="nro_visitas" />
+          </div>
+        </th>
+        <th pSortableColumn="stat_clasificador" style="min-width: 8rem">
+          <div class="flex items-center gap-2">
+            Estado
+            <p-sortIcon field="stat_clasificador" />
+          </div>
+        </th>
+        <th pSortableColumn="is_active" style="min-width: 8rem">
+          <div class="flex items-center gap-2">
+            Activo
+            <p-sortIcon field="is_active" />
+          </div>
+        </th>
+        <th style="min-width: 8rem">Acciones</th>
+      </tr>
+    </ng-template>
+    
+    <ng-template #body let-clasificador>
+      <tr>
+        <td style="width: 3rem">
+          <p-tableCheckbox [value]="clasificador" />
+        </td>
+        <td>{{ clasificador.ced_clasificador }}</td>
+        <td>{{ clasificador.cod_clasificador }}</td>
+        <td>{{ clasificador.persona?.nom_persona || 'N/A' }}</td>
+        <td>{{ clasificador.persona?.ape_persona || 'N/A' }}</td>
+        <td>{{ clasificador.persona?.email_persona || 'N/A' }}</td>
+        <td>{{ clasificador.fec_inicio_clasif | date:'dd/MM/yyyy' }}</td>
+        <td>{{ clasificador.nro_visitas }}</td>
+        <td>
+          <p-tag 
+            [value]="getStatusLabel(clasificador.stat_clasificador)" 
+            [severity]="getStatusSeverity(clasificador.stat_clasificador)">
+          </p-tag>
+        </td>
+        <td>
+          <p-tag 
+            [value]="clasificador.is_active ? 'Sí' : 'No'" 
+            [severity]="clasificador.is_active ? 'success' : 'danger'">
+          </p-tag>
+        </td>
+        <td>
+          <p-button
+            class="mr-2"
+            [rounded]="true"
+            [outlined]="true"
+            (click)="editClasificador(clasificador)"
+            styleClass="p-button-sm"
+          >
+            <lucide-icon [img]="pencilIcon" size="18"></lucide-icon>
+          </p-button>
+          <p-button
+            severity="danger"
+            [rounded]="true"
+            [outlined]="true"
+            (click)="deleteClasificador(clasificador)"
+            styleClass="p-button-sm"
+          >
+            <lucide-icon [img]="trashIcon" size="18"></lucide-icon>
+          </p-button>
+        </td>
+      </tr>
+    </ng-template>
+    
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="9">No se encontraron clasificadores.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- Dialog para crear/editar clasificador -->
+<p-dialog 
+  [(visible)]="clasificadorDialog" 
+  [style]="{ width: '700px' }" 
+  [header]="isEditMode ? 'Editar Clasificador' : 'Nuevo Clasificador'"
+  [modal]="true" 
+  [maximizable]="false">
+  
+  <ng-template #content>
+    <form [formGroup]="clasificadorForm" (ngSubmit)="saveClasificador()">
+    <div class="grid grid-cols-2 gap-4 p-4">
+      <!-- Información básica -->
+      <div class="col-span-2">
+        <h5 class="text-lg font-semibold mb-3 text-primary border-b pb-2">
+          <i class="pi pi-user mr-2"></i>Información Básica
+        </h5>
+      </div>
+
+      <div class="field mb-4">
+        <label for="ced_clasificador" class="block text-sm font-medium mb-2">
+          <i class="pi pi-id-card"></i> Cédula *
+        </label>
+        <input 
+          type="text" 
+          pInputText 
+          id="ced_clasificador" 
+          formControlName="ced_clasificador"
+          placeholder="Ingrese la cédula del clasificador"
+          class="w-full"
+          [class.ng-invalid]="isFieldInvalid('ced_clasificador')"
+          [class.ng-dirty]="isFieldInvalid('ced_clasificador')" />
+        @if (isFieldInvalid('ced_clasificador')) {
+          <small class="text-red-500">
+            {{ getFieldError('ced_clasificador') }}
+          </small>
+        }
+      </div>
+
+      <div class="field mb-4">
+        <label for="cod_clasificador" class="block text-sm font-medium mb-2">
+          <i class="pi pi-hashtag"></i> Código *
+        </label>
+        <input 
+          type="text" 
+          pInputText 
+          id="cod_clasificador" 
+          formControlName="cod_clasificador"
+          placeholder="Ingrese el código del clasificador"
+          class="w-full"
+          [class.ng-invalid]="isFieldInvalid('cod_clasificador')"
+          [class.ng-dirty]="isFieldInvalid('cod_clasificador')" />
+        @if (isFieldInvalid('cod_clasificador')) {
+          <small class="text-red-500">
+            {{ getFieldError('cod_clasificador') }}
+          </small>
+        }
+      </div>
+
+      <!-- Datos de la Persona -->
+      <div class="col-span-2">
+        <h5 class="text-lg font-semibold mb-3 text-primary border-b pb-2">
+          <i class="pi pi-user-plus mr-2"></i>Datos Personales
+        </h5>
+      </div>
+
+      <div class="field mb-4">
+        <label for="nom_persona" class="block text-sm font-medium mb-2">
+          <i class="pi pi-user"></i> Nombre *
+        </label>
+        <input 
+          type="text" 
+          pInputText 
+          id="nom_persona" 
+          formControlName="nom_persona"
+          placeholder="Ingrese el nombre"
+          class="w-full"
+          [class.ng-invalid]="isFieldInvalid('nom_persona')"
+          [class.ng-dirty]="isFieldInvalid('nom_persona')" />
+        @if (isFieldInvalid('nom_persona')) {
+          <small class="text-red-500">
+            {{ getFieldError('nom_persona') }}
+          </small>
+        }
+      </div>
+
+      <div class="field mb-4">
+        <label for="ape_persona" class="block text-sm font-medium mb-2">
+          <i class="pi pi-user"></i> Apellido *
+        </label>
+        <input 
+          type="text" 
+          pInputText 
+          id="ape_persona" 
+          formControlName="ape_persona"
+          placeholder="Ingrese el apellido"
+          class="w-full"
+          [class.ng-invalid]="isFieldInvalid('ape_persona')"
+          [class.ng-dirty]="isFieldInvalid('ape_persona')" />
+        @if (isFieldInvalid('ape_persona')) {
+          <small class="text-red-500">
+            {{ getFieldError('ape_persona') }}
+          </small>
+        }
+      </div>
+
+      <div class="field mb-4">
+        <label for="tel_persona" class="block text-sm font-medium mb-2">
+          <i class="pi pi-phone"></i> Teléfono *
+        </label>
+        <input 
+          type="text" 
+          pInputText 
+          id="tel_persona" 
+          formControlName="tel_persona"
+          placeholder="Ej: +58 412 1234567"
+          class="w-full"
+          [class.ng-invalid]="isFieldInvalid('tel_persona')"
+          [class.ng-dirty]="isFieldInvalid('tel_persona')" />
+        @if (isFieldInvalid('tel_persona')) {
+          <small class="text-red-500">
+            {{ getFieldError('tel_persona') }}
+          </small>
+        }
+      </div>
+
+      <div class="field mb-4">
+        <label for="sexo_persona" class="block text-sm font-medium mb-2">
+          <i class="pi pi-users"></i> Sexo *
+        </label>
+        <p-select
+          id="sexo_persona"
+          formControlName="sexo_persona"
+          [options]="sexoOptions"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Seleccionar sexo"
+          class="w-full"
+          [class.ng-invalid]="isFieldInvalid('sexo_persona')"
+          [class.ng-dirty]="isFieldInvalid('sexo_persona')" />
+        @if (isFieldInvalid('sexo_persona')) {
+          <small class="text-red-500">
+            {{ getFieldError('sexo_persona') }}
+          </small>
+        }
+      </div>
+
+      <div class="field mb-4">
+        <label for="fec_nacim" class="block text-sm font-medium mb-2">
+          <i class="pi pi-calendar"></i> Fecha de Nacimiento *
+        </label>
+        <p-datepicker
+          id="fec_nacim"
+          formControlName="fec_nacim"
+          dateFormat="dd/mm/yy"
+          placeholder="dd/mm/aaaa"
+          class="w-full"
+          [class.ng-invalid]="isFieldInvalid('fec_nacim')"
+          [class.ng-dirty]="isFieldInvalid('fec_nacim')" />
+        @if (isFieldInvalid('fec_nacim')) {
+          <small class="text-red-500">
+            {{ getFieldError('fec_nacim') }}
+          </small>
+        }
+      </div>
+
+      <div class="field mb-4">
+        <label for="email_persona" class="block text-sm font-medium mb-2">
+          <i class="pi pi-envelope"></i> Email
+        </label>
+        <input 
+          type="email" 
+          pInputText 
+          id="email_persona" 
+          formControlName="email_persona"
+          placeholder="ejemplo@correo.com"
+          class="w-full"
+          [class.ng-invalid]="isFieldInvalid('email_persona')"
+          [class.ng-dirty]="isFieldInvalid('email_persona')" />
+        @if (isFieldInvalid('email_persona')) {
+          <small class="text-red-500">
+            {{ getFieldError('email_persona') }}
+          </small>
+        }
+      </div>
+
+      <div class="field mb-4">
+        <label for="fec_inicio_clasif" class="block text-sm font-medium mb-2">
+          <i class="pi pi-calendar"></i> Fecha de Inicio *
+        </label>
+        <input 
+          type="date" 
+          pInputText 
+          id="fec_inicio_clasif" 
+          formControlName="fec_inicio_clasif"
+          class="w-full" />
+      </div>
+
+      <div class="field mb-4">
+        <label for="stat_clasificador" class="block text-sm font-medium mb-2">
+          <i class="pi pi-flag"></i> Estado *
+        </label>
+        <p-select 
+          id="stat_clasificador" 
+          formControlName="stat_clasificador"
+          [options]="statusOptions" 
+          optionLabel="label" 
+          optionValue="value"
+          placeholder="Seleccione un estado"
+          class="w-full">
+        </p-select>
+      </div>
+
+      <!-- Estadísticas -->
+      <div class="col-span-2 mt-4">
+        <h5 class="text-lg font-semibold mb-3 text-primary border-b pb-2">
+          <i class="pi pi-chart-bar mr-2"></i>Estadísticas
+        </h5>
+      </div>
+
+      <div class="field mb-4">
+        <label for="nro_visitas" class="block text-sm font-medium mb-2">
+          <i class="pi pi-eye"></i> Número de Visitas
+        </label>
+        <input 
+          type="number" 
+          pInputText 
+          id="nro_visitas" 
+          formControlName="nro_visitas"
+          placeholder="0"
+          min="0" 
+          class="w-full"
+          [class.ng-invalid]="isFieldInvalid('nro_visitas')"
+          [class.ng-dirty]="isFieldInvalid('nro_visitas')" />
+        @if (isFieldInvalid('nro_visitas')) {
+          <small class="text-red-500">
+            {{ getFieldError('nro_visitas') }}
+          </small>
+        }
+      </div>
+
+      <div class="field mb-4">
+        <label for="nro_reb_base" class="block text-sm font-medium mb-2">
+          <i class="pi pi-home"></i> Rebaño Base
+        </label>
+        <input 
+          type="number" 
+          pInputText 
+          id="nro_reb_base" 
+          formControlName="nro_reb_base"
+          placeholder="0"
+          min="0" 
+          class="w-full"
+          [class.ng-invalid]="isFieldInvalid('nro_reb_base')"
+          [class.ng-dirty]="isFieldInvalid('nro_reb_base')" />
+        @if (isFieldInvalid('nro_reb_base')) {
+          <small class="text-red-500">
+            {{ getFieldError('nro_reb_base') }}
+          </small>
+        }
+      </div>
+
+      <div class="field mb-4">
+        <label for="nro_certif_po" class="block text-sm font-medium mb-2">
+          <i class="pi pi-file-check"></i> Certificados PO
+        </label>
+        <input 
+          type="number" 
+          pInputText 
+          id="nro_certif_po" 
+          formControlName="nro_certif_po"
+          placeholder="0"
+          min="0" 
+          class="w-full"
+          [class.ng-invalid]="isFieldInvalid('nro_certif_po')"
+          [class.ng-dirty]="isFieldInvalid('nro_certif_po')" />
+        @if (isFieldInvalid('nro_certif_po')) {
+          <small class="text-red-500">
+            {{ getFieldError('nro_certif_po') }}
+          </small>
+        }
+      </div>
+
+      <div class="field mb-4">
+        <label for="nro_certif_pr" class="block text-sm font-medium mb-2">
+          <i class="pi pi-file-check"></i> Certificados PR
+        </label>
+        <input 
+          type="number" 
+          pInputText 
+          id="nro_certif_pr" 
+          formControlName="nro_certif_pr"
+          placeholder="0"
+          min="0" 
+          class="w-full"
+          [class.ng-invalid]="isFieldInvalid('nro_certif_pr')"
+          [class.ng-dirty]="isFieldInvalid('nro_certif_pr')" />
+        @if (isFieldInvalid('nro_certif_pr')) {
+          <small class="text-red-500">
+            {{ getFieldError('nro_certif_pr') }}
+          </small>
+        }
+      </div>
+
+      <div class="field mb-4">
+        <label for="nro_const_gp" class="block text-sm font-medium mb-2">
+          <i class="pi pi-file"></i> Constancias GP
+        </label>
+        <input 
+          type="number" 
+          pInputText 
+          id="nro_const_gp" 
+          formControlName="nro_const_gp"
+          placeholder="0"
+          min="0" 
+          class="w-full"
+          [class.ng-invalid]="isFieldInvalid('nro_const_gp')"
+          [class.ng-dirty]="isFieldInvalid('nro_const_gp')" />
+        @if (isFieldInvalid('nro_const_gp')) {
+          <small class="text-red-500">
+            {{ getFieldError('nro_const_gp') }}
+          </small>
+        }
+      </div>
+
+      <!-- Estado activo -->
+      <div class="col-span-2 mt-4">
+        <div class="field mb-4">
+          <div class="flex align-items-center">
+            <p-checkbox 
+              id="is_active" 
+              formControlName="is_active"
+              [binary]="true"
+              class="mr-2">
+            </p-checkbox>
+            <label for="is_active" class="text-sm font-medium">
+              <i class="pi pi-check-circle mr-1"></i>Clasificador activo
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+    </form>
+  </ng-template>
+
+  <ng-template #footer>
+    <div class="flex justify-end gap-2">
+      <p-button 
+        label="Cancelar" 
+        severity="secondary"
+        [text]="true"
+        (onClick)="hideDialog()">
+        <lucide-icon [img]="xIcon" size="16" class="mr-2"></lucide-icon>
+      </p-button>
+      <p-button 
+        [label]="isEditMode ? 'Actualizar' : 'Crear'"
+        severity="success"
+        type="submit"
+        (onClick)="saveClasificador()"
+        [disabled]="clasificadorForm.invalid && submitted">
+        <lucide-icon [img]="saveIcon" size="16" class="mr-2"></lucide-icon>
+      </p-button>
+    </div>
+  </ng-template>
+</p-dialog>

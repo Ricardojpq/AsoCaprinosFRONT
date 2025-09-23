@@ -17,7 +17,10 @@ import {
   Settings,
   ScrollText,
   MapPin,
-  IdCard 
+  IdCard,
+  Building2,
+  NotebookPen,
+  Tractor,
 } from 'lucide-angular';
 @Component({
   selector: 'app-menu',
@@ -38,7 +41,10 @@ export class Menu {
   readonly settingsIcon = Settings;
   readonly scrollTextIcon = ScrollText;
   readonly mapPinIcon = MapPin;
-  readonly idCardIcon = IdCard ;
+  readonly idCardIcon = IdCard;
+  readonly building2Icon = Building2;
+  readonly notebookPenIcon = NotebookPen;
+  readonly tractorIcon = Tractor;
 
   ngOnInit() {
     this.menuModel = [
@@ -48,6 +54,15 @@ export class Menu {
             label: 'Dashboard',
             icon: this.homeIcon,
             routerLink: ['Dashboard'],
+          },
+        ],
+      },
+      {
+        items: [
+          {
+            label: 'Clasificadores',
+            icon: this.notebookPenIcon,
+            routerLink: ['Classifiers'],
           },
         ],
       },
@@ -100,61 +115,61 @@ export class Menu {
             label: 'Division Politica',
             icon: this.mapPinIcon,
             routerLink: ['PoliticalDivision'],
-            // items: [
-            //   { label: 'Paises', routerLink: ['PoliticalDivision/Countries'] },
-            //   { label: 'Estados', routerLink: ['PoliticalDivision/States'] },
-            //   {
-            //     label: 'Municipios',
-            //     routerLink: ['PoliticalDivision/Municipalities'],
-            //   },
-            //   {
-            //     label: 'Parroquias',
-            //     routerLink: ['PoliticalDivision/Parishes'],
-            //   },
-            //   { label: 'Ciudades', routerLink: ['PoliticalDivision/Cities'] },
-            // ],
           },
-        ],
-      },
-      {
-        items: [
-          { label: 'Personas', icon: this.idCardIcon, routerLink: ['People'] },
         ],
       },
       {
         items: [
           { label: 'Socios', icon: this.usersIcon, routerLink: ['Members'] },
         ],
-      }
-    //   {
-    //     label: 'Configuración',
-    //     icon: this.settingsIcon,
-    //     items: [
-    //       {
-    //         label: 'General',
-    //         icon: this.slidersHorizontalIcon,
-    //         routerLink: ['settings/general'],
-    //       },
-    //       {
-    //         label: 'Usuarios',
-    //         icon: this.usersIcon,
-    //         routerLink: ['settings/users'],
-    //       },
-    //     ],
-    //   },
-    //   {
-    //     label: 'Submenu 2',
-    //     items: [
-    //       {
-    //         label: 'Submenu 2.1',
-    //         items: [{ label: 'Submenu 2.1.1' }, { label: 'Submenu 2.1.2' }],
-    //       },
-    //       {
-    //         label: 'Submenu 2.2',
-    //         items: [{ label: 'Submenu 2.2.1' }],
-    //       },
-    //     ],
-    //   },
+      },
+      {
+        items: [
+          {
+            label: 'Empresas',
+            icon: this.building2Icon,
+            routerLink: ['Companies'],
+          },
+        ],
+      },
+      {
+        items: [
+          {
+            label: 'Fincas',
+            icon: this.tractorIcon,
+            routerLink: ['Farms'],
+          },
+        ],
+      },
+      //   {
+      //     label: 'Configuración',
+      //     icon: this.settingsIcon,
+      //     items: [
+      //       {
+      //         label: 'General',
+      //         icon: this.slidersHorizontalIcon,
+      //         routerLink: ['settings/general'],
+      //       },
+      //       {
+      //         label: 'Usuarios',
+      //         icon: this.usersIcon,
+      //         routerLink: ['settings/users'],
+      //       },
+      //     ],
+      //   },
+      //   {
+      //     label: 'Submenu 2',
+      //     items: [
+      //       {
+      //         label: 'Submenu 2.1',
+      //         items: [{ label: 'Submenu 2.1.1' }, { label: 'Submenu 2.1.2' }],
+      //       },
+      //       {
+      //         label: 'Submenu 2.2',
+      //         items: [{ label: 'Submenu 2.2.1' }],
+      //       },
+      //     ],
+      //   },
     ];
 
     // this.menuModel = [

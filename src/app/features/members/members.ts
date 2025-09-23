@@ -10,7 +10,7 @@ import { MembersService, MemberQueryParams } from './services/members-service';
 import { MemberDto, MemberCreateDto, MemberUpdateDto, PaginatedMembersDto } from './models/DTOs';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { Table, TableModule } from 'primeng/table';
-import { FormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { FileUploadModule } from 'primeng/fileupload';
 import { DialogModule } from 'primeng/dialog';
@@ -41,7 +41,7 @@ import { DatePickerModule } from 'primeng/datepicker';
   styleUrl: './members.css',
   providers: [MessageService, ConfirmationService, DatePipe],
   imports: [
-    FormsModule,
+    ReactiveFormsModule,
     ButtonModule,
     FileUploadModule,
     DialogModule,
@@ -75,9 +75,14 @@ export class Members implements OnInit, OnDestroy {
   readonly SEARCH_MIN_LENGTH = 2;
   private readonly SEARCH_DEBOUNCE_TIME = 500;
 
+  // Data
   members: MemberDto[] = [];
   selectedMembers: MemberDto[] = [];
-  member: Partial<MemberDto> = {};
+  
+  // Forms
+  memberForm!: FormGroup;
+  
+  // UI State
   memberDialog = false;
   isEditMode = false;
   cols: any[] = [];
@@ -108,76 +113,17 @@ export class Members implements OnInit, OnDestroy {
     { label: 'Femenino', value: 'F' },
   ];
 
-  // Getters y setters para acceso seguro a propiedades de persona
-  get personaNombre(): string {
-    return this.member.persona?.nom_persona || '';
-  }
-  set personaNombre(value: string) {
-    if (!this.member.persona) this.member.persona = {} as any;
-    this.member.persona!.nom_persona = value;
-  }
-
-  get personaApellido(): string {
-    return this.member.persona?.ape_persona || '';
-  }
-  set personaApellido(value: string) {
-    if (!this.member.persona) this.member.persona = {} as any;
-    this.member.persona!.ape_persona = value;
-  }
-
-  get personaTelefono(): string {
-    return this.member.persona?.tlf_persona || '';
-  }
-  set personaTelefono(value: string) {
-    if (!this.member.persona) this.member.persona = {} as any;
-    this.member.persona!.tlf_persona = value;
-  }
-
-  get personaCelular(): string {
-    return this.member.persona?.cel_persona || '';
-  }
-  set personaCelular(value: string) {
-    if (!this.member.persona) this.member.persona = {} as any;
-    this.member.persona!.cel_persona = value;
-  }
-
-  get personaEmail(): string {
-    return this.member.persona?.email_persona || '';
-  }
-  set personaEmail(value: string) {
-    if (!this.member.persona) this.member.persona = {} as any;
-    this.member.persona!.email_persona = value;
-  }
-
-  get personaDireccion(): string {
-    return this.member.persona?.dir_persona || '';
-  }
-  set personaDireccion(value: string) {
-    if (!this.member.persona) this.member.persona = {} as any;
-    this.member.persona!.dir_persona = value;
-  }
-
-  get personaFechaNacimiento(): string {
-    return this.member.persona?.fnac_persona || '';
-  }
-  set personaFechaNacimiento(value: string) {
-    if (!this.member.persona) this.member.persona = {} as any;
-    this.member.persona!.fnac_persona = value;
-  }
-
-  get personaSexo(): string | undefined {
-    return this.member.persona?.sexo_persona;
-  }
-  set personaSexo(value: string | undefined) {
-    if (!this.member.persona) this.member.persona = {} as any;
-    this.member.persona!.sexo_persona = value;
-  }
+  // Current member for editing
+  currentMember: MemberDto | null = null;
 
   constructor(
+    private fb: FormBuilder,
     private membersService: MembersService,
     private messageService: MessageService,
     private confirmationService: ConfirmationService
-  ) {}
+  ) {
+    this.initializeForm();
+  }
 
   ngOnInit() {
     this.cols = [
@@ -192,6 +138,34 @@ export class Members implements OnInit, OnDestroy {
 
     // Configurar el pipe de búsqueda
     this.setupSearchPipe();
+  }
+
+  private initializeForm() {
+    this.memberForm = this.fb.group({
+      // Campos requeridos según backend
+      ced_socio: ['', [Validators.required, Validators.maxLength(20)]],
+      cod_finca: ['', [Validators.required, Validators.maxLength(20)]],
+      
+      // Campos opcionales del socio
+      estatus_socio: ['A'],
+      fec_ingreso: [''],
+      observaciones: ['', [Validators.maxLength(500)]],
+      
+      // Campos obligatorios de persona
+      nom_persona: ['', [Validators.required, Validators.maxLength(50)]],
+      ape_persona: ['', [Validators.required, Validators.maxLength(50)]],
+      tel_persona: ['', [Validators.required, Validators.maxLength(20)]],
+      fec_nacim: ['', [Validators.required]],
+      sexo_persona: ['', [Validators.required]],
+
+      // Campos opcionales de persona
+      email_persona: ['', [Validators.email, Validators.maxLength(80)]],
+      dir_persona: ['', [Validators.maxLength(200)]],
+      cod_pais: [null],
+      cod_estado: [null],
+      cod_municipio: [null],
+      cod_ciudad: [null]
+    });
   }
 
   ngOnDestroy() {
@@ -296,41 +270,51 @@ export class Members implements OnInit, OnDestroy {
   }
 
   openNew() {
-    this.member = {
+    this.memberForm.reset({
       ced_socio: '',
+      cod_finca: '',
       estatus_socio: 'A',
-      persona: {
-        ced_persona: '',
-        nom_persona: '',
-        ape_persona: '',
-        dir_persona: '',
-        tlf_persona: '',
-        email_persona: '',
-        fnac_persona: '',
-        sexo_persona: undefined,
-        is_active: true,
-      }
-    };
+      fec_ingreso: '',
+      observaciones: '',
+      nom_persona: '',
+      ape_persona: '',
+      tel_persona: '',
+      email_persona: '',
+      dir_persona: '',
+      sexo_persona: '',
+      fec_nacim: '',
+      cod_pais: null,
+      cod_estado: null,
+      cod_municipio: null,
+      cod_ciudad: null
+    });
     this.isEditMode = false;
+    this.currentMember = null;
     this.memberDialog = true;
     this.submitted = false;
   }
 
   editMember(member: MemberDto) {
-    this.member = { 
-      ...member,
-      persona: member.persona ? { ...member.persona } : {
-        ced_persona: '',
-        nom_persona: '',
-        ape_persona: '',
-        dir_persona: '',
-        tlf_persona: '',
-        email_persona: '',
-        fnac_persona: '',
-        sexo_persona: undefined,
-        is_active: true,
-      }
-    };
+    console.log('Editing member:', member);
+    this.currentMember = member;
+    this.memberForm.patchValue({
+      ced_socio: member.ced_socio,
+      cod_finca: member.cod_finca || '',
+      estatus_socio: member.estatus_socio || 'A',
+      fec_ingreso: member.fec_ingreso || '',
+      observaciones: member.observaciones || '',
+      nom_persona: member.persona?.nom_persona || '',
+      ape_persona: member.persona?.ape_persona || '',
+      tel_persona: member.persona?.tlf_persona || '',
+      email_persona: member.persona?.email_persona || '',
+      dir_persona: member.persona?.dir_persona || '',
+      sexo_persona: member.persona?.sexo_persona || '',
+      fec_nacim: member.persona?.fnac_persona || '',
+      cod_pais: null,
+      cod_estado: null,
+      cod_municipio: null,
+      cod_ciudad: null
+    });
     this.isEditMode = true;
     this.memberDialog = true;
     this.submitted = false;
@@ -409,86 +393,89 @@ export class Members implements OnInit, OnDestroy {
 
   hideDialog() {
     this.memberDialog = false;
-    this.member = {};
+    this.memberForm.reset();
     this.isEditMode = false;
+    this.currentMember = null;
     this.submitted = false;
   }
 
-  validateMember(): boolean {
-    if (!this.member.ced_socio?.trim()) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'La cédula del socio es requerida'
-      });
-      return false;
-    }
-
-    if (!this.member.cod_finca || this.member.cod_finca <= 0) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'El código de finca es requerido'
-      });
-      return false;
-    }
-
-    if (!this.personaNombre.trim()) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'El nombre es requerido'
-      });
-      return false;
-    }
-
-    if (!this.personaApellido.trim()) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'El apellido es requerido'
-      });
-      return false;
-    }
-
-    // Validate email format if provided
-    if (this.personaEmail && !this.isValidEmail(this.personaEmail)) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'El formato del email no es válido'
-      });
-      return false;
-    }
-
-    return true;
+  // Helper para acceder a los controles del formulario
+  get f() {
+    return this.memberForm.controls;
   }
 
-  private isValidEmail(email: string): boolean {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+  private formatDateForBackend(date: any, required: boolean = false): string | undefined {
+    if (!date) {
+      return required ? new Date().toISOString().split('T')[0] : undefined;
+    }
+    
+    // Si es una fecha de PrimeNG DatePicker, convertir a formato YYYY-MM-DD
+    if (date instanceof Date) {
+      return date.toISOString().split('T')[0];
+    }
+    
+    // Si ya es string, verificar si está en formato ISO y convertir
+    if (typeof date === 'string') {
+      if (date.includes('T')) {
+        return new Date(date).toISOString().split('T')[0];
+      }
+      return date;
+    }
+    
+    return required ? new Date().toISOString().split('T')[0] : undefined;
   }
 
   saveMember() {
-    if (!this.validateMember()) {
+    this.submitted = true;
+
+    if (this.memberForm.invalid) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Completa todos los campos obligatorios',
+        life: 3000,
+      });
       return;
     }
 
-    this.submitted = true;
-
     this.loading = true;
+    const formData = this.memberForm.value;
 
     if (this.isEditMode) {
-      // Update - enviar campos que se pueden actualizar incluyendo datos de persona
+      // Update - enviar campos que se pueden actualizar
       const updateData: MemberUpdateDto = {
-        estatus_socio: this.member.estatus_socio
+        estatus_socio: formData.estatus_socio,
+        fec_ingreso: this.formatDateForBackend(formData.fec_ingreso),
+        observaciones: formData.observaciones,
+        // Campos de persona opcionales
+        nom_persona: formData.nom_persona,
+        ape_persona: formData.ape_persona,
+        tel_persona: formData.tel_persona,
+        email_persona: formData.email_persona,
+        dir_persona: formData.dir_persona,
+        sexo_persona: formData.sexo_persona,
+        fec_nacim: this.formatDateForBackend(formData.fec_nacim)
       };
+
+      if (!this.currentMember) {
+        this.loading = false;
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo identificar el socio a actualizar',
+          life: 3000,
+        });
+        return;
+      }
+
+      console.log(updateData);
+      
 
       this.membersService
         .updateMember$(
-          this.member.ced_socio!,
+          this.currentMember.ced_socio,
           updateData,
-          this.member.cod_finca!
+          this.currentMember.cod_finca!
         )
         .subscribe({
           next: () => {
@@ -507,8 +494,8 @@ export class Members implements OnInit, OnDestroy {
             this.loading = false;
 
             let errorDetail = 'Error al actualizar el socio';
-            if (error.details && error.details.detail) {
-              errorDetail = error.details.detail;
+            if (error.error && error.error.message) {
+              errorDetail = error.error.message;
             } else if (error.message) {
               errorDetail = error.message;
             }
@@ -524,9 +511,23 @@ export class Members implements OnInit, OnDestroy {
     } else {
       // Create - enviar todos los campos requeridos
       const createData: MemberCreateDto = {
-        ced_socio: this.member.ced_socio!,
-        cod_finca: this.member.cod_finca || 1,
-        estatus_socio: this.member.estatus_socio || 'A'
+        ced_socio: formData.ced_socio,
+        cod_finca: formData.cod_finca,
+        estatus_socio: formData.estatus_socio || 'A',
+        fec_ingreso: this.formatDateForBackend(formData.fec_ingreso),
+        observaciones: formData.observaciones,
+        // Campos opcionales de persona para crear si no existe
+        nom_persona: formData.nom_persona,
+        ape_persona: formData.ape_persona,
+        tel_persona: formData.tel_persona,
+        email_persona: formData.email_persona,
+        dir_persona: formData.dir_persona,
+        sexo_persona: formData.sexo_persona,
+        fec_nacim: this.formatDateForBackend(formData.fec_nacim),
+        cod_pais: formData.cod_pais,
+        cod_estado: formData.cod_estado,
+        cod_municipio: formData.cod_municipio,
+        cod_ciudad: formData.cod_ciudad
       };
 
       this.membersService.addMember$(createData).subscribe({
@@ -546,8 +547,8 @@ export class Members implements OnInit, OnDestroy {
           this.loading = false;
 
           let errorDetail = 'Error al crear el socio';
-          if (error.details && error.details.detail) {
-            errorDetail = error.details.detail;
+          if (error.error && error.error.message) {
+            errorDetail = error.error.message;
           } else if (error.message) {
             errorDetail = error.message;
           }

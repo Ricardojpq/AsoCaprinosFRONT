@@ -23,7 +23,6 @@ import {
   MunicipioQueryParams,
   EstadoDto,
   PaisDto,
-  PoliticalDivisionListResponse,
   PoliticalDivisionSelectOption,
 } from '../../models/political-division.dto';
 
@@ -41,6 +40,7 @@ import { DialogModule } from 'primeng/dialog';
 import { TooltipModule } from 'primeng/tooltip';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { BrushCleaning, LucideAngularModule, Pencil, Plus, RotateCcw, Search, Trash } from 'lucide-angular';
+import { LaravelApiResponse } from '@core/models/DTOs';
 
 @Component({
   selector: 'app-municipalities-tab',
@@ -143,8 +143,8 @@ export class MunicipalitiesTabComponent implements OnInit, OnChanges {
     this.politicalDivisionService
       .getPaises({ page: 1, per_page: 100 })
       .subscribe({
-        next: (response: PoliticalDivisionListResponse<PaisDto>) => {
-          this.countryOptions = response.message.data.map((country) => ({
+        next: (response: LaravelApiResponse<PaisDto>) => {
+          this.countryOptions = response.data.data.map((country) => ({
             label: country.nom_pais,
             value: country.cod_pais,
           }));
@@ -168,8 +168,8 @@ export class MunicipalitiesTabComponent implements OnInit, OnChanges {
           cod_pais: selectedCountryCode, // Filtrar por país en el backend
         })
         .subscribe({
-          next: (response: PoliticalDivisionListResponse<EstadoDto>) => {
-            this.stateOptions = response.message.data.map((state) => ({
+          next: (response: LaravelApiResponse<EstadoDto>) => {
+            this.stateOptions = response.data.data.map((state) => ({
               label: state.nom_estado,
               value: state.cod_estado,
             }));
@@ -207,9 +207,9 @@ export class MunicipalitiesTabComponent implements OnInit, OnChanges {
     };
 
     this.politicalDivisionService.getMunicipios(params).subscribe({
-      next: (response: PoliticalDivisionListResponse<MunicipioDto>) => {
-        this.municipalities = response.message.data;
-        this.totalRecords = response.message.total;
+      next: (response: LaravelApiResponse<MunicipioDto>) => {
+        this.municipalities = response.data.data;
+        this.totalRecords = response.data.total;
         this.loading = false;
       },
       error: (error) => {

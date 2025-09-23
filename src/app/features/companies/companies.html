@@ -1,0 +1,439 @@
+<div class="card">
+  <p-toast></p-toast>
+  <p-confirmDialog></p-confirmDialog>
+  
+  <p-toolbar class="mb-6">
+    <ng-template #start>
+      <div class="flex gap-1">
+        <p-button
+          styleClass="btn btn-primary btn-sm"
+          label="Nueva Empresa"
+          (onClick)="openNew()">
+          <lucide-icon [img]="plusIcon" size="16"></lucide-icon>
+        </p-button>
+        <p-button
+          styleClass="btn btn-danger btn-sm"
+          severity="danger"
+          label="Eliminar"
+          outlined
+          (onClick)="deleteSelectedEmpresas()"
+          [disabled]="!selectedEmpresas || !selectedEmpresas.length">
+          <lucide-icon [img]="trashIcon" size="16"></lucide-icon>
+        </p-button>
+      </div>
+    </ng-template>
+    <ng-template #end> </ng-template>
+  </p-toolbar>
+
+  <p-table
+    #dt
+    [value]="empresas"
+    [rows]="perPage"
+    [columns]="cols"
+    [paginator]="true"
+    [globalFilterFields]="['cod_empresa', 'nom_empresa', 'rif_empresa']"
+    [tableStyle]="{ 'min-width': '75rem' }"
+    [(selection)]="selectedEmpresas"
+    [rowHover]="true"
+    dataKey="cod_empresa"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} empresas"
+    [showCurrentPageReport]="true"
+    [totalRecords]="totalRecords"
+    [lazy]="true"
+    [loading]="loading"
+    (onLazyLoad)="onTableLazyLoad($event)"
+    [sortField]="sortField"
+    [sortOrder]="sortOrder === 'asc' ? 1 : -1"
+    [filterDelay]="300">
+    
+    <ng-template #caption>
+      <div class="flex items-center justify-between">
+        <h5 class="m-0">Gestión de Empresas</h5>
+        <div class="flex items-center gap-2">
+          <p-iconfield>
+            <p-inputicon>
+              <lucide-angular [img]="searchIcon" size="16"></lucide-angular>
+            </p-inputicon>
+            <input
+              pInputText
+              type="text"
+              placeholder="Buscar empresa..."
+              (input)="onGlobalFilter($event)"
+              class="focus:border-golden-500"
+              [value]="globalFilterValue"
+            />
+            @if (globalFilterValue) {
+              <p-inputicon>
+                <lucide-angular [img]="xIcon" size="16" (click)="clearSearch()" class="cursor-pointer"></lucide-angular>
+            </p-inputicon>
+            }
+          </p-iconfield>
+        </div>
+      </div>
+    </ng-template>
+    
+    <ng-template #header>
+      <tr>
+        <th style="width: 3rem">
+          <p-tableHeaderCheckbox />
+        </th>
+        <th pSortableColumn="cod_empresa" style="min-width: 8rem">
+          <div class="flex items-center gap-2">
+            Código
+            <p-sortIcon field="cod_empresa" />
+          </div>
+        </th>
+        <th pSortableColumn="nom_empresa" style="min-width: 15rem">
+          <div class="flex items-center gap-2">
+            Nombre
+            <p-sortIcon field="nom_empresa" />
+          </div>
+        </th>
+        <th pSortableColumn="rif_empresa" style="min-width: 12rem">
+          <div class="flex items-center gap-2">
+            RIF
+            <p-sortIcon field="rif_empresa" />
+          </div>
+        </th>
+        <th style="min-width: 12rem">Teléfono</th>
+        <th pSortableColumn="email" style="min-width: 15rem">
+          <div class="flex items-center gap-2">
+            Email
+            <p-sortIcon field="email" />
+          </div>
+        </th>
+        <th style="min-width: 12rem">Estado</th>
+        <th style="min-width: 12rem">Municipio</th>
+        <th style="min-width: 15rem">Presidente</th>
+        <th pSortableColumn="is_active" style="min-width: 8rem">
+          <div class="flex items-center gap-2">
+            Activo
+            <p-sortIcon field="is_active" />
+          </div>
+        </th>
+        <th style="min-width: 10rem">Acciones</th>
+      </tr>
+    </ng-template>
+    
+    <ng-template #body let-empresa>
+      <tr>
+        <td style="width: 3rem">
+          <p-tableCheckbox [value]="empresa" />
+        </td>
+        <td>{{ empresa.cod_empresa }}</td>
+        <td>{{ empresa.nom_empresa }}</td>
+        <td>{{ empresa.rif_empresa }}</td>
+        <td>{{ empresa.tlf_empresa || 'N/A' }}</td>
+        <td>{{ empresa.email || 'N/A' }}</td>
+        <td>{{ empresa.estado?.nom_estado || 'N/A' }}</td>
+        <td>{{ empresa.municipio?.nom_municipio || 'N/A' }}</td>
+        <td>{{ getPresidenteNombre(empresa.presidente) || 'N/A' }}</td>
+        <td>
+          <p-tag 
+            [value]="empresa.is_active ? 'Sí' : 'No'" 
+            [severity]="empresa.is_active ? 'success' : 'danger'">
+          </p-tag>
+        </td>
+        <td>
+          <p-button
+            class="mr-2"
+            [rounded]="true"
+            [outlined]="true"
+            (click)="editEmpresa(empresa)"
+            styleClass="p-button-sm"
+          >
+            <lucide-icon [img]="pencilIcon" size="18"></lucide-icon>
+          </p-button>
+          <p-button
+            severity="danger"
+            [rounded]="true"
+            [outlined]="true"
+            (click)="deleteEmpresa(empresa)"
+            styleClass="p-button-sm"
+          >
+            <lucide-icon [img]="trashIcon" size="18"></lucide-icon>
+          </p-button>
+        </td>
+      </tr>
+    </ng-template>
+    
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="11">No se encontraron empresas.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- Dialog para crear/editar empresa -->
+<p-dialog 
+  [(visible)]="empresaDialog" 
+  [style]="{ width: '800px' }" 
+  [header]="isEditMode ? 'Editar Empresa' : 'Nueva Empresa'"
+  [modal]="true" 
+  [maximizable]="false">
+  
+  <ng-template #content>
+    <form [formGroup]="empresaForm" (ngSubmit)="saveEmpresa()">
+    <div class="grid grid-cols-2 gap-4 p-4">
+      <!-- Información básica -->
+      <div class="col-span-2">
+        <h5 class="text-lg font-semibold mb-3 text-primary border-b pb-2">
+          <i class="pi pi-building mr-2"></i>Información Básica
+        </h5>
+      </div>
+
+      <div class="field mb-4">
+        <label for="nom_empresa" class="block text-sm font-medium mb-2">
+          <i class="pi pi-building"></i> Nombre de la Empresa *
+        </label>
+        <input 
+          type="text" 
+          pInputText 
+          id="nom_empresa" 
+          formControlName="nom_empresa"
+          placeholder="Ingrese el nombre de la empresa"
+          class="w-full"
+          [class.ng-invalid]="isFieldInvalid('nom_empresa')"
+          [class.ng-dirty]="isFieldInvalid('nom_empresa')" />
+        @if (isFieldInvalid('nom_empresa')) {
+          <small class="text-red-500">
+            {{ getFieldError('nom_empresa') }}
+          </small>
+        }
+      </div>
+
+      <div class="field mb-4">
+        <label for="rif_empresa" class="block text-sm font-medium mb-2">
+          <i class="pi pi-id-card"></i> RIF *
+        </label>
+        <input 
+          type="text" 
+          pInputText 
+          id="rif_empresa" 
+          formControlName="rif_empresa"
+          placeholder="Ej: J-12345678-9"
+          class="w-full"
+          [class.ng-invalid]="isFieldInvalid('rif_empresa')"
+          [class.ng-dirty]="isFieldInvalid('rif_empresa')" />
+        @if (isFieldInvalid('rif_empresa')) {
+          <small class="text-red-500">
+            {{ getFieldError('rif_empresa') }}
+          </small>
+        }
+      </div>
+
+      <div class="field mb-4">
+        <label for="tlf_empresa" class="block text-sm font-medium mb-2">
+          <i class="pi pi-phone"></i> Teléfono
+        </label>
+        <input 
+          type="text" 
+          pInputText 
+          id="tlf_empresa" 
+          formControlName="tlf_empresa"
+          placeholder="Ej: 0212-1234567"
+          class="w-full"
+          [class.ng-invalid]="isFieldInvalid('tlf_empresa')"
+          [class.ng-dirty]="isFieldInvalid('tlf_empresa')" />
+        @if (isFieldInvalid('tlf_empresa')) {
+          <small class="text-red-500">
+            {{ getFieldError('tlf_empresa') }}
+          </small>
+        }
+      </div>
+
+      <div class="field mb-4">
+        <label for="fax_empresa" class="block text-sm font-medium mb-2">
+          <i class="pi pi-print"></i> Fax
+        </label>
+        <input 
+          type="text" 
+          pInputText 
+          id="fax_empresa" 
+          formControlName="fax_empresa"
+          placeholder="Ej: 0212-1234567"
+          class="w-full" />
+      </div>
+
+      <div class="col-span-2 field mb-4">
+        <label for="email" class="block text-sm font-medium mb-2">
+          <i class="pi pi-envelope"></i> Email
+        </label>
+        <input 
+          type="email" 
+          pInputText 
+          id="email" 
+          formControlName="email"
+          placeholder="empresa@ejemplo.com"
+          class="w-full"
+          [class.ng-invalid]="isFieldInvalid('email')"
+          [class.ng-dirty]="isFieldInvalid('email')" />
+        @if (isFieldInvalid('email')) {
+          <small class="text-red-500">
+            {{ getFieldError('email') }}
+          </small>
+        }
+      </div>
+
+      <div class="col-span-2 field mb-4">
+        <label for="dir_empresa" class="block text-sm font-medium mb-2">
+          <i class="pi pi-map-marker"></i> Dirección
+        </label>
+        <textarea 
+          pInputText 
+          id="dir_empresa" 
+          formControlName="dir_empresa"
+          placeholder="Ingrese la dirección completa de la empresa"
+          rows="3"
+          class="w-full"
+          [class.ng-invalid]="isFieldInvalid('dir_empresa')"
+          [class.ng-dirty]="isFieldInvalid('dir_empresa')">
+        </textarea>
+        @if (isFieldInvalid('dir_empresa')) {
+          <small class="text-red-500">
+            {{ getFieldError('dir_empresa') }}
+          </small>
+        }
+      </div>
+
+      <!-- Ubicación geográfica -->
+      <div class="col-span-2 mt-4">
+        <h5 class="text-lg font-semibold mb-3 text-primary border-b pb-2">
+          <i class="pi pi-map mr-2"></i>Ubicación Geográfica
+        </h5>
+      </div>
+
+      <div class="field mb-4">
+        <label for="cod_estado" class="block text-sm font-medium mb-2">
+          <i class="pi pi-flag"></i> Estado *
+        </label>
+        <p-select 
+          id="cod_estado" 
+          formControlName="cod_estado"
+          [options]="estados" 
+          optionLabel="nomb_estado" 
+          optionValue="cod_estado"
+          placeholder="Seleccione un estado"
+          [loading]="loadingEstados"
+          (onChange)="onEstadoChange($event.value)"
+          class="w-full"
+          [class.ng-invalid]="isFieldInvalid('cod_estado')"
+          [class.ng-dirty]="isFieldInvalid('cod_estado')">
+        </p-select>
+        @if (isFieldInvalid('cod_estado')) {
+          <small class="text-red-500">
+            {{ getFieldError('cod_estado') }}
+          </small>
+        }
+      </div>
+
+      <div class="field mb-4">
+        <label for="cod_municipio" class="block text-sm font-medium mb-2">
+          <i class="pi pi-map"></i> Municipio *
+        </label>
+        <p-select 
+          id="cod_municipio" 
+          formControlName="cod_municipio"
+          [options]="municipios" 
+          optionLabel="nomb_municipio" 
+          optionValue="cod_municipio"
+          placeholder="Seleccione un municipio"
+          [loading]="loadingMunicipios"
+          [disabled]="!f['cod_estado'].value || loadingMunicipios"
+          (onChange)="onMunicipioChange($event.value)"
+          class="w-full"
+          [class.ng-invalid]="isFieldInvalid('cod_municipio')"
+          [class.ng-dirty]="isFieldInvalid('cod_municipio')">
+        </p-select>
+        @if (isFieldInvalid('cod_municipio')) {
+          <small class="text-red-500">
+            {{ getFieldError('cod_municipio') }}
+          </small>
+        }
+      </div>
+
+      <div class="field mb-4">
+        <label for="cod_ciudad" class="block text-sm font-medium mb-2">
+          <i class="pi pi-building"></i> Ciudad *
+        </label>
+        <p-select 
+          id="cod_ciudad" 
+          formControlName="cod_ciudad"
+          [options]="ciudades" 
+          optionLabel="nomb_ciudad" 
+          optionValue="cod_ciudad"
+          placeholder="Seleccione una ciudad"
+          [loading]="loadingCiudades"
+          [disabled]="!f['cod_municipio'].value || loadingCiudades"
+          class="w-full"
+          [class.ng-invalid]="isFieldInvalid('cod_ciudad')"
+          [class.ng-dirty]="isFieldInvalid('cod_ciudad')">
+        </p-select>
+        @if (isFieldInvalid('cod_ciudad')) {
+          <small class="text-red-500">
+            {{ getFieldError('cod_ciudad') }}
+          </small>
+        }
+      </div>
+
+      <div class="field mb-4">
+        <label for="ced_presidente" class="block text-sm font-medium mb-2">
+          <i class="pi pi-user"></i> Cédula del Presidente
+        </label>
+        <input 
+          type="text" 
+          pInputText 
+          id="ced_presidente" 
+          formControlName="ced_presidente"
+          placeholder="Ej: V-12345678"
+          class="w-full"
+          [class.ng-invalid]="isFieldInvalid('ced_presidente')"
+          [class.ng-dirty]="isFieldInvalid('ced_presidente')" />
+        @if (isFieldInvalid('ced_presidente')) {
+          <small class="text-red-500">
+            {{ getFieldError('ced_presidente') }}
+          </small>
+        }
+      </div>
+
+      <!-- Estado activo -->
+      <div class="col-span-2 mt-4">
+        <div class="field mb-4">
+          <div class="flex align-items-center">
+            <p-checkbox 
+              id="is_active" 
+              formControlName="is_active"
+              [binary]="true"
+              class="mr-2">
+            </p-checkbox>
+            <label for="is_active" class="text-sm font-medium">
+              <i class="pi pi-check-circle mr-1"></i>Empresa activa
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+    </form>
+  </ng-template>
+
+  <ng-template #footer>
+    <div class="flex justify-end gap-2">
+      <p-button 
+        label="Cancelar" 
+        severity="secondary"
+        [text]="true"
+        (onClick)="hideDialog()">
+        <lucide-icon [img]="xIcon" size="16" class="mr-2"></lucide-icon>
+      </p-button>
+      <p-button 
+        [label]="isEditMode ? 'Actualizar' : 'Crear'"
+        severity="success"
+        type="submit"
+        (onClick)="saveEmpresa()"
+        [disabled]="empresaForm.invalid && submitted">
+        <lucide-icon [img]="saveIcon" size="16" class="mr-2"></lucide-icon>
+      </p-button>
+    </div>
+  </ng-template>
+</p-dialog>

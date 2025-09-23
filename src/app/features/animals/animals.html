@@ -10,16 +10,6 @@
         >
           <lucide-icon [img]="plusIcon" size="16"></lucide-icon>
         </p-button>
-        <p-button
-          styleClass="btn btn-danger btn-sm"
-          severity="danger"
-          label="Eliminar"
-          outlined
-          (onClick)="deleteSelectedAnimals()"
-          [disabled]="!selectedAnimals || !selectedAnimals.length"
-        >
-          <lucide-icon [img]="trashIcon" size="16"></lucide-icon>
-        </p-button>
       </div>
     </ng-template>
     <ng-template #end> </ng-template>
@@ -33,7 +23,6 @@
     [paginator]="true"
     [globalFilterFields]="['cod_animal', 'nomb_animal', 'sexo_animal']"
     [tableStyle]="{ 'min-width': '75rem' }"
-    [(selection)]="selectedAnimals"
     [rowHover]="true"
     dataKey="cod_animal"
     currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} animales"
@@ -73,9 +62,6 @@
     </ng-template>
     <ng-template #header>
       <tr>
-        <th style="width: 3rem">
-          <p-tableHeaderCheckbox />
-        </th>
         <th pSortableColumn="cod_finca" style="min-width: 8rem">
           <div class="flex items-center gap-2">
             Id Finca
@@ -120,9 +106,6 @@
     </ng-template>
     <ng-template #body let-animal>
       <tr>
-        <td style="width: 3rem">
-          <p-tableCheckbox [value]="animal" />
-        </td>
         <td>{{ animal.cod_finca }}</td>
         <td>{{ animal.nomb_animal }}</td>
         <td>{{ animal.fec_nacim | date : "dd/MM/yyyy" }}</td>
@@ -177,471 +160,848 @@
     </ng-template>
   </p-table>
 
-  <p-dialog
-    [(visible)]="animalDialog"
-    [style]="{ width: '900px', height: '80vh' }"
-    header="Registro de Animal"
-    [modal]="true"
-    [maximizable]="true"
-  >
-    <ng-template #content>
-      <div class="grid grid-cols-3 gap-4 p-4">
-        <!-- Row 1: Id. Finca (TATUAJE), Nombre, Fec Nac, Sexo -->
-        <div class="col-span-1">
-          <label for="cod_finca" class="block text-sm font-medium mb-1">
-            <i class="pi pi-hashtag"></i> Id. Finca (TATUAJE)
-          </label>
-          <input
-            type="text"
-            pInputText
-            id="cod_finca"
-            [(ngModel)]="animal.cod_animal"
-            placeholder="Ingrese el tatuaje del animal"
-            class="w-full"
-          />
-        </div>
+  <!-- Animal Modal -->
+    <p-dialog
+      [(visible)]="animalDialog"
+      [style]="{ width: '95vw', maxWidth: '1200px', height: '90vh' }"
+      [header]="isEditMode ? 'Editar Animal' : 'Registro de Animal'"
+      [modal]="true"
+      [maximizable]="true"
+      [closable]="true"
+      (onHide)="hideDialog()"
+    >
+      <form [formGroup]="animalForm" (ngSubmit)="saveAnimal()" class="space-y-6">
+        <!-- Información Básica -->
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <h3 class="text-lg font-semibold mb-4 text-gray-800">Información Básica</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- ID Finca (Tatuaje) -->
+            <div>
+              <label for="cod_animal" class="block text-sm font-medium mb-2 text-gray-700">
+                <i class="pi pi-hashtag text-blue-600"></i> ID Finca (TATUAJE) <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                pInputText
+                id="cod_animal"
+                formControlName="cod_animal"
+                placeholder="Ej: 001"
+                class="w-full"
+                [class.p-invalid]="isFieldInvalid('cod_animal')"
+              />
+              @if (isFieldInvalid('cod_animal')) {
+                <small class="text-red-500 mt-1 block">{{ getFieldError('cod_animal') }}</small>
+              }
+            </div>
 
-        <div class="col-span-1">
-          <label for="nomb_animal" class="block text-sm font-medium mb-1">
-            <i class="pi pi-user"></i> Nombre
-          </label>
-          <input
-            type="text"
-            pInputText
-            id="nomb_animal"
-            [(ngModel)]="animal.nomb_animal"
-            placeholder="Ingrese el nombre del animal"
-            class="w-full"
-          />
-        </div>
+            <!-- Nombre -->
+            <div>
+              <label for="nomb_animal" class="block text-sm font-medium mb-2 text-gray-700">
+                <i class="pi pi-user text-blue-600"></i> Nombre <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                pInputText
+                id="nomb_animal"
+                formControlName="nomb_animal"
+                placeholder="Nombre del animal"
+                class="w-full"
+                [class.p-invalid]="isFieldInvalid('nomb_animal')"
+              />
+              @if (isFieldInvalid('nomb_animal')) {
+                <small class="text-red-500 mt-1 block">{{ getFieldError('nomb_animal') }}</small>
+              }
+            </div>
 
-        <div class="col-span-1">
-          <label for="fec_nacim" class="block text-sm font-medium mb-1">
-            <i class="pi pi-calendar"></i> Fec Nac
-          </label>
-          <input
-            type="date"
-            pInputText
-            id="fec_nacim"
-            [(ngModel)]="animal.fec_nacim"
-            value="13-09-2025"
-            class="w-full"
-          />
-        </div>
+            <!-- Fecha de Nacimiento -->
+            <div>
+              <label for="fec_nacim" class="block text-sm font-medium mb-2 text-gray-700">
+                <i class="pi pi-calendar text-blue-600"></i> Fecha de Nacimiento <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                pInputText
+                id="fec_nacim"
+                formControlName="fec_nacim"
+                class="w-full"
+                [class.p-invalid]="isFieldInvalid('fec_nacim')"
+              />
+              @if (isFieldInvalid('fec_nacim')) {
+                <small class="text-red-500 mt-1 block">{{ getFieldError('fec_nacim') }}</small>
+              }
+            </div>
 
-        <!-- Row 1 continued: Sexo -->
-        <div class="col-span-1">
-          <label for="sexo_animal" class="block text-sm font-medium mb-1">
-            <i class="pi pi-venus-mars"></i> Sexo *
-          </label>
-          <p-select
-            id="sexo_animal"
-            [options]="sexoOptions"
-            [(ngModel)]="animal.sexo_animal"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="--Seleccione el Sexo--"
-            class="w-full"
-          />
-        </div>
+            <!-- Sexo -->
+            <div>
+              <label for="sexo_animal" class="block text-sm font-medium mb-2 text-gray-700">
+                <i class="pi pi-venus-mars text-blue-600"></i> Sexo <span class="text-red-500">*</span>
+              </label>
+              <p-select
+                id="sexo_animal"
+                formControlName="sexo_animal"
+                [options]="sexoOptions"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Seleccione el sexo"
+                class="w-full"
+                [class.p-invalid]="isFieldInvalid('sexo_animal')"
+              />
+              @if (isFieldInvalid('sexo_animal')) {
+                <small class="text-red-500 mt-1 block">{{ getFieldError('sexo_animal') }}</small>
+              }
+            </div> 
 
-        <!-- Row 2: Raza, Color, Origen -->
-        <div class="col-span-1">
-          <label for="cod_raza" class="block text-sm font-medium mb-1">
-            <i class="pi pi-tag"></i> Raza
-          </label>
-          <p-select
-            id="cod_raza"
-            [options]="razaOptions"
-            [(ngModel)]="animal.cod_raza"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="--Seleccione una Raza--"
-            class="w-full"
-          />
-        </div>
-
-        <div class="col-span-1">
-          <label for="cod_color" class="block text-sm font-medium mb-1">
-            <i class="pi pi-palette"></i> Color
-          </label>
-          <p-select
-            id="cod_color"
-            [options]="colorOptions"
-            [(ngModel)]="animal.cod_color"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="--Seleccione un Color--"
-            class="w-full"
-          />
-        </div>
-
-        <div class="col-span-1">
-          <label for="cod_tipo_pelo" class="block text-sm font-medium mb-1">
-            <i class="pi pi-scissors"></i> Tipo de Pelo
-          </label>
-          <p-select
-            id="cod_tipo_pelo"
-            [options]="tipoPeloOptions"
-            [(ngModel)]="animal.cod_tipo_pelo"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="--Seleccione Tipo de Pelo--"
-            class="w-full"
-          />
-        </div>
-
-        <div class="col-span-1">
-          <label for="origen" class="block text-sm font-medium mb-1">
-            <i class="pi pi-map-marker"></i> Origen *
-          </label>
-          <p-select
-            id="origen"
-            [options]="origenOptions"
-            [(ngModel)]="animal.origen"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="--Seleccione el Origen--"
-            class="w-full"
-          />
-        </div>
-
-        <!-- Row 3: TATUAJE fields, Estatus -->
-        <div class="col-span-1">
-          <label for="tatuaje_oreja_izq" class="block text-sm font-medium mb-1">
-            <i class="pi pi-hashtag"></i> TATUAJE (Oreja Izq)
-          </label>
-          <input
-            type="text"
-            pInputText
-            id="tatuaje_oreja_izq"
-            [(ngModel)]="animal.tatuaje_oreja_izq"
-            placeholder="Ingrese el tatuaje Oreja Izq"
-            class="w-full"
-          />
-        </div>
-
-        <div class="col-span-1">
-          <label for="tatuaje_oreja_der" class="block text-sm font-medium mb-1">
-            <i class="pi pi-hashtag"></i> TATUAJE (Oreja Der)
-          </label>
-          <input
-            type="text"
-            pInputText
-            id="tatuaje_oreja_der"
-            [(ngModel)]="animal.tatuaje_oreja_der"
-            placeholder="Ingrese el tatuaje del animal"
-            class="w-full"
-          />
-        </div>
-
-        <div class="col-span-1">
-          <label for="tatuaje_cola" class="block text-sm font-medium mb-1">
-            <i class="pi pi-hashtag"></i> TATUAJE (Cola)
-          </label>
-          <input
-            type="text"
-            pInputText
-            id="tatuaje_cola"
-            [(ngModel)]="animal.tatuaje_cola"
-            placeholder="Ingrese el tatuaje del animal"
-            class="w-full"
-          />
-        </div>
-
-        <!-- Row 3 continued: Estatus -->
-        <div class="col-span-1">
-          <label for="estatus" class="block text-sm font-medium mb-1">
-            <i class="pi pi-circle"></i> Estatus *
-          </label>
-          <p-select
-            id="estatus"
-            [options]="statusOptions"
-            [(ngModel)]="animal.estatus"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="ACTIVO"
-            class="w-full"
-          />
-        </div>
-
-        <!-- Row 4: Tipo Concepción, Tipo Parto, Material Genético, Protocolo Importación -->
-        <div class="col-span-1">
-          <label for="tipo_concepcion" class="block text-sm font-medium mb-1">
-            <i class="pi pi-heart"></i> Tipo Concepción *
-          </label>
-          <p-select
-            id="tipo_concepcion"
-            [options]="tipoConcepcionOptions"
-            [(ngModel)]="animal.tipo_concepcion"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="--Seleccione Tipo Concepción--"
-            class="w-full"
-          />
-        </div>
-
-        <div class="col-span-1">
-          <label for="tipo_parto" class="block text-sm font-medium mb-1">
-            <i class="pi pi-users"></i> Tipo Parto *
-          </label>
-          <p-select
-            id="tipo_parto"
-            [options]="tipoPartoOptions"
-            [(ngModel)]="animal.tipo_parto"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="--Seleccione Tipo Parto--"
-            class="w-full"
-          />
-        </div>
-
-        <div class="col-span-1">
-          <label for="material_genetico" class="block text-sm font-medium mb-1">
-            <i class="pi pi-dna"></i> Material Genético *
-          </label>
-          <p-select
-            id="material_genetico"
-            [options]="materialGeneticoOptions"
-            [(ngModel)]="animal.material_genetico"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="--Seleccione Material Genético--"
-            class="w-full"
-          />
-        </div>
-
-        <!-- Row 4 continued: Protocolo Importación -->
-        <div class="col-span-1">
-          <label for="protocolo_importacion" class="block text-sm font-medium mb-1">
-            <i class="pi pi-shield"></i> Protocolo Importación
-          </label>
-          <p-select
-            id="protocolo_importacion"
-            [options]="protocoloImportacionOptions"
-            [(ngModel)]="animal.protocolo_importacion"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="--Seleccione Protocolo--"
-            class="w-full"
-          />
-        </div>
-
-        <!-- Row 5: Peso al Nacer, Fec Destete, Peso al Destete, Código ASO -->
-        <div class="col-span-1">
-          <label for="peso_al_nacer" class="block text-sm font-medium mb-1">
-            <i class="pi pi-chart-line"></i> Peso al Nacer
-          </label>
-          <input
-            type="number"
-            pInputText
-            id="peso_al_nacer"
-            [(ngModel)]="animal.peso_al_nacer"
-            placeholder="0,00"
-            step="0.01"
-            class="w-full"
-          />
-        </div>
-
-        <div class="col-span-1">
-          <label for="fec_destete" class="block text-sm font-medium mb-1">
-            <i class="pi pi-calendar"></i> Fec Destete
-          </label>
-          <input
-            type="date"
-            pInputText
-            id="fec_destete"
-            [(ngModel)]="animal.fec_destete"
-            class="w-full"
-          />
-        </div>
-
-        <div class="col-span-1">
-          <label for="peso_al_destete" class="block text-sm font-medium mb-1">
-            <i class="pi pi-chart-line"></i> Peso al Destete)
-          </label>
-          <input
-            type="number"
-            pInputText
-            id="peso_al_destete"
-            [(ngModel)]="animal.peso_al_destete"
-            placeholder="0,00"
-            step="0.01"
-            class="w-full"
-          />
-        </div>
-
-        <!-- Row 5 continued: Código ASO -->
-        <div class="col-span-1">
-          <label for="codigo_aso" class="block text-sm font-medium mb-1">
-            <i class="pi pi-id-card"></i> Código ASO)
-          </label>
-          <input
-            type="text"
-            pInputText
-            id="codigo_aso"
-            [(ngModel)]="animal.codigo_aso"
-            placeholder="Ingrese el Cod ASO"
-            class="w-full"
-          />
-        </div>
-
-        <!-- Row 6: Siglas Criador, Nombre Criador, Comp. Racial -->
-        <div class="col-span-1">
-          <label for="siglas_criador" class="block text-sm font-medium mb-1">
-            <i class="pi pi-building"></i> Siglas Criador
-          </label>
-          <input
-            type="text"
-            pInputText
-            id="siglas_criador"
-            class="w-full"
-          />
-        </div>
-
-        <div class="col-span-1">
-          <label for="nombre_criador" class="block text-sm font-medium mb-1">
-            <i class="pi pi-user"></i> Nombre Criador
-          </label>
-          <input
-            type="text"
-            pInputText
-            id="nombre_criador"
-            class="w-full"
-            disabled
-          />
-        </div>
-
-        <div class="col-span-1">
-          <label for="comp_racial" class="block text-sm font-medium mb-1">
-            <i class="pi pi-percentage"></i> Comp. Racial *
-          </label>
-          <p-select
-            id="comp_racial"
-            [options]="compRacialOptions"
-            [(ngModel)]="animal.comp_racial"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="--Seleccione la Composición--"
-            class="w-full"
-          />
-        </div>
-
-        <!-- Row 7: Siglas Propietario, Nombre Propietario, % Racial -->
-        <div class="col-span-1">
-          <label for="siglas_propietario" class="block text-sm font-medium mb-1">
-            <i class="pi pi-building"></i> Siglas Propietario
-          </label>
-          <input
-            type="text"
-            pInputText
-            id="siglas_propietario"
-            class="w-full"
-          />
-        </div>
-
-        <div class="col-span-1">
-          <label for="nombre_propietario" class="block text-sm font-medium mb-1">
-            <i class="pi pi-user"></i> Nombre Propietario
-          </label>
-          <input
-            type="text"
-            pInputText
-            id="nombre_propietario"
-            class="w-full"
-            disabled
-          />
-        </div>
-
-        <div class="col-span-1">
-          <label for="porc_racial" class="block text-sm font-medium mb-1">
-            <i class="pi pi-percentage"></i> % Racial
-          </label>
-          <input
-            type="number"
-            pInputText
-            id="porc_racial"
-            [(ngModel)]="animal.porc_racial"
-            placeholder="0,00"
-            step="0.01"
-            class="w-full"
-          />
-        </div>
-
-        <!-- Row 8: Image Upload -->
-        <div class="col-span-3">
-          <label class="block text-sm font-medium mb-1">
-            <i class="pi pi-image"></i> Seleccione una imagen
-          </label>
-          <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-            <div class="flex flex-col items-center">
-              <i class="pi pi-image text-4xl text-gray-400 mb-4"></i>
-              <p class="text-gray-500 mb-4">Sin archivos seleccionados</p>
-              <p-button
-                label="Seleccionar archivo"
-                severity="secondary"
-                outlined
+            <!-- Estatus -->
+            <div>
+              <label for="estatus" class="block text-sm font-medium mb-2 text-gray-700">
+                <i class="pi pi-check-circle text-blue-600"></i> Estatus
+              </label>
+              <p-select
+                id="estatus"
+                formControlName="estatus"
+                [options]="statusOptions"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Seleccione el estatus"
+                class="w-full"
               />
             </div>
           </div>
         </div>
 
-        <!-- Row 9: Fec Ingreso, Precio (con IGV), Stock Mínimo -->
-        <div class="col-span-1">
-          <label for="fec_ingreso" class="block text-sm font-medium mb-1">
-            <i class="pi pi-calendar"></i> Fec Ingreso
-          </label>
-          <input
-            type="date"
-            pInputText
-            id="fec_ingreso"
-            [(ngModel)]="animal.fec_ingreso"
-            value="2025-09-13"
-            class="w-full"
-          />
+        <!-- Características Físicas -->
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <h3 class="text-lg font-semibold mb-4 text-gray-800">Características Físicas</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Raza -->
+            <div>
+              <label for="cod_raza" class="block text-sm font-medium mb-2 text-gray-700">
+                <i class="pi pi-tag text-green-600"></i> Raza
+              </label>
+              <p-select
+                id="cod_raza"
+                formControlName="cod_raza"
+                [options]="razaOptions"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Seleccione una raza"
+                class="w-full"
+              />
+            </div>
+
+            <!-- Color -->
+            <div>
+              <label for="cod_color" class="block text-sm font-medium mb-2 text-gray-700">
+                <i class="pi pi-palette text-green-600"></i> Color
+              </label>
+              <p-select
+                id="cod_color"
+                formControlName="cod_color"
+                [options]="colorOptions"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Seleccione un color"
+                class="w-full"
+              />
+            </div>
+
+            <!-- Tipo de Pelo -->
+            <div>
+              <label for="cod_tipo_pelo" class="block text-sm font-medium mb-2 text-gray-700">
+                <i class="pi pi-scissors text-green-600"></i> Tipo de Pelo
+              </label>
+              <p-select
+                id="cod_tipo_pelo"
+                formControlName="cod_tipo_pelo"
+                [options]="tipoPeloOptions"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Seleccione tipo de pelo"
+                class="w-full"
+              />
+            </div>
+          </div>
         </div>
 
-        <div class="col-span-1">
-          <label for="precio_con_igv" class="block text-sm font-medium mb-1">
-            <i class="pi pi-dollar"></i> Precio (con IGV)
-          </label>
-          <input
-            type="number"
-            pInputText
-            id="precio_con_igv"
-            [(ngModel)]="animal.precio_con_igv"
-            placeholder="0,00"
-            step="0.01"
-            class="w-full"
-          />
+        <!-- Origen y Reproducción -->
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <h3 class="text-lg font-semibold mb-4 text-gray-800">Origen y Reproducción</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Origen -->
+            <div>
+              <label for="origen" class="block text-sm font-medium mb-2 text-gray-700">
+                <i class="pi pi-map-marker text-purple-600"></i> Origen <span class="text-red-500">*</span>
+              </label>
+              <p-select
+                id="origen"
+                formControlName="origen"
+                [options]="origenOptions"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Seleccione el origen"
+                class="w-full"
+                [class.p-invalid]="isFieldInvalid('origen')"
+              />
+              @if (isFieldInvalid('origen')) {
+                <small class="text-red-500 mt-1 block">{{ getFieldError('origen') }}</small>
+              }
+            </div>
+
+            <!-- Tipo de Concepción -->
+            <div>
+              <label for="tipo_concepcion" class="block text-sm font-medium mb-2 text-gray-700">
+                <i class="pi pi-heart text-purple-600"></i> Tipo de Concepción
+              </label>
+              <p-select
+                id="tipo_concepcion"
+                formControlName="tipo_concepcion"
+                [options]="tipoConcepcionOptions"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Seleccione tipo de concepción"
+                class="w-full"
+              />
+            </div>
+
+            <!-- Tipo de Parto -->
+            <div>
+              <label for="tipo_parto" class="block text-sm font-medium mb-2 text-gray-700">
+                <i class="pi pi-users text-purple-600"></i> Tipo de Parto
+              </label>
+              <p-select
+                id="tipo_parto"
+                formControlName="tipo_parto"
+                [options]="tipoPartoOptions"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Seleccione tipo de parto"
+                class="w-full"
+              />
+            </div>
+
+            <!-- Material Genético -->
+            <div>
+              <label for="material_genetico" class="block text-sm font-medium mb-2 text-gray-700">
+                <i class="pi pi-cog text-purple-600"></i> Material Genético
+              </label>
+              <p-select
+                id="material_genetico"
+                formControlName="material_genetico"
+                [options]="materialGeneticoOptions"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Seleccione material genético"
+                class="w-full"
+              />
+            </div>
+
+            <!-- Protocolo de Importación -->
+            <div>
+              <label for="protocolo_importacion" class="block text-sm font-medium mb-2 text-gray-700">
+                <i class="pi pi-file-import text-purple-600"></i> Protocolo de Importación
+              </label>
+              <p-select
+                id="protocolo_importacion"
+                formControlName="protocolo_importacion"
+                [options]="protocoloImportacionOptions"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Seleccione protocolo"
+                class="w-full"
+              />
+            </div>
+          </div>
         </div>
 
-        <div class="col-span-1">
-          <label for="stock_minimo" class="block text-sm font-medium mb-1">
-            <i class="pi pi-box"></i> Stock Mínimo
-          </label>
-          <input
-            type="number"
-            pInputText
-            id="stock_minimo"
-            [(ngModel)]="animal.stock_minimo"
-            placeholder="0,00"
-            step="0.01"
-            class="w-full"
+        <!-- Tatuajes -->
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <h3 class="text-lg font-semibold mb-4 text-gray-800">Tatuajes</h3>
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <!-- Tatuaje Oreja Izquierda -->
+            <div>
+              <label for="tatuaje_oreja_izq" class="block text-sm font-medium mb-2 text-gray-700">
+                <i class="pi pi-hashtag text-orange-600"></i> Oreja Izquierda
+              </label>
+              <input
+                type="text"
+                pInputText
+                id="tatuaje_oreja_izq"
+                formControlName="tatuaje_oreja_izq"
+                placeholder="Tatuaje oreja izq."
+                class="w-full"
+              />
+            </div>
+
+            <!-- Tatuaje Oreja Derecha -->
+            <div>
+              <label for="tatuaje_oreja_der" class="block text-sm font-medium mb-2 text-gray-700">
+                <i class="pi pi-hashtag text-orange-600"></i> Oreja Derecha
+              </label>
+              <input
+                type="text"
+                pInputText
+                id="tatuaje_oreja_der"
+                formControlName="tatuaje_oreja_der"
+                placeholder="Tatuaje oreja der."
+                class="w-full"
+              />
+            </div>
+
+            <!-- Tatuaje Cola -->
+            <div>
+              <label for="tatuaje_cola" class="block text-sm font-medium mb-2 text-gray-700">
+                <i class="pi pi-hashtag text-orange-600"></i> Cola
+              </label>
+              <input
+                type="text"
+                pInputText
+                id="tatuaje_cola"
+                formControlName="tatuaje_cola"
+                placeholder="Tatuaje cola"
+                class="w-full"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Pesos y Fechas -->
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <h3 class="text-lg font-semibold mb-4 text-gray-800">Pesos y Fechas</h3>
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <!-- Peso Actual -->
+            <div>
+              <label for="peso_actual" class="block text-sm font-medium mb-2 text-gray-700">
+                <i class="pi pi-chart-line text-indigo-600"></i> Peso Actual (kg)
+              </label>
+              <input
+                type="number"
+                pInputText
+                id="peso_actual"
+                formControlName="peso_actual"
+                placeholder="0.00"
+                min="0"
+                step="0.01"
+                class="w-full"
+              />
+            </div>
+
+            <!-- Peso al Nacer -->
+            <div>
+              <label for="peso_al_nacer" class="block text-sm font-medium mb-2 text-gray-700">
+                <i class="pi pi-chart-line text-indigo-600"></i> Peso al Nacer (kg)
+              </label>
+              <input
+                type="number"
+                pInputText
+                id="peso_al_nacer"
+                formControlName="peso_al_nacer"
+                placeholder="0.00"
+                min="0"
+                step="0.01"
+                class="w-full"
+              />
+            </div>
+
+            <!-- Peso al Destete -->
+            <div>
+              <label for="peso_al_destete" class="block text-sm font-medium mb-2 text-gray-700">
+                <i class="pi pi-chart-line text-indigo-600"></i> Peso al Destete (kg)
+              </label>
+              <input
+                type="number"
+                pInputText
+                id="peso_al_destete"
+                formControlName="peso_al_destete"
+                placeholder="0.00"
+                min="0"
+                step="0.01"
+                class="w-full"
+              />
+            </div>
+
+            <!-- Fecha de Destete -->
+            <div>
+              <label for="fec_destete" class="block text-sm font-medium mb-2 text-gray-700">
+                <i class="pi pi-calendar text-indigo-600"></i> Fecha de Destete
+              </label>
+              <input
+                type="date"
+                pInputText
+                id="fec_destete"
+                formControlName="fec_destete"
+                class="w-full"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Criador y Propietario -->
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <h3 class="text-lg font-semibold mb-4 text-gray-800">Criador y Propietario</h3>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Criador -->
+            <div>
+              <h4 class="text-md font-medium mb-3 text-gray-700 border-b pb-2 text-center">
+                Criador <span class="text-red-600">*</span>
+              </h4>
+              <div class="space-y-3">
+                <!-- Siglas Criador -->
+                <div>
+                  <label for="siglas_criador" class="block text-sm font-medium mb-2 text-gray-700">
+                    Siglas Criador
+                  </label>
+                  <p-inputgroup>
+                    <p-button 
+                      (onClick)="openCriadorFarmsDialog()"
+                      pTooltip="Buscar criador"
+                      size="small"
+                      styleClass="rounded-e-none"
+                    >
+                      <lucide-angular [img]="searchIcon" size="16"></lucide-angular>
+                    </p-button>
+                    <input
+                      type="text"
+                      pInputText
+                      id="siglas_criador"
+                      formControlName="siglas_criador"
+                      placeholder="Seleccione criador..."
+                      readonly
+                      [class.border-red-500]="isFieldInvalid('cod_finca')"
+                    />
+                  </p-inputgroup>
+                  @if (isFieldInvalid('cod_finca')) {
+                    <small class="text-red-600">
+                      Debe seleccionar una finca criadora
+                    </small>
+                  }
+                </div>
+                
+                <!-- Nombre Criador -->
+                <div>
+                  <label for="nombre_criador" class="block text-sm font-medium mb-2 text-gray-700">
+                    Nombre Finca Criadora
+                  </label>
+                  <input
+                    type="text"
+                    pInputText
+                    id="nombre_criador"
+                    formControlName="nombre_criador"
+                    readonly
+                    class="w-full bg-gray-100"
+                    placeholder="Nombre de la finca criadora seleccionada"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Propietario -->
+            <div>
+              <h4 class="text-md font-medium mb-3 text-gray-700 border-b pb-2 text-center">
+                Propietario <span class="text-red-600">*</span>
+              </h4>
+              <div class="space-y-3">
+                <!-- Siglas Propietario -->
+                <div>
+                  <label for="siglas_propietario" class="block text-sm font-medium mb-2 text-gray-700">
+                    Siglas Propietario
+                  </label>
+                  <p-inputgroup>
+                    <p-button 
+                      (onClick)="openPropietarioFarmsDialog()"
+                      pTooltip="Buscar propietario"
+                      size="small"
+                      styleClass="rounded-e-none"
+                    >
+                      <lucide-angular [img]="searchIcon" size="16"></lucide-angular>
+                    </p-button>
+                    <input
+                      type="text"
+                      pInputText
+                      id="siglas_propietario"
+                      formControlName="siglas_propietario"
+                      placeholder="Seleccione propietario..."
+                      readonly
+                      [class.border-red-500]="isFieldInvalid('cod_finca_actual')"
+                    />
+                  </p-inputgroup>
+                  @if (isFieldInvalid('cod_finca_actual')) {
+                    <small class="text-red-600">
+                      Debe seleccionar una finca propietaria
+                    </small>
+                  }
+                </div>
+                
+                <!-- Nombre Propietario -->
+                <div>
+                  <label for="nombre_propietario" class="block text-sm font-medium mb-2 text-gray-700">
+                    Nombre Finca Propietaria
+                  </label>
+                  <input
+                    type="text"
+                    pInputText
+                    id="nombre_propietario"
+                    formControlName="nombre_propietario"
+                    readonly
+                    class="w-full bg-gray-100"
+                    placeholder="Nombre de la finca propietaria seleccionada"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Nota informativa -->
+          <div class="mt-4 p-3 bg-blue-50 rounded border-l-4 border-blue-400">
+            <p class="text-sm text-blue-700">
+              <strong>Nota:</strong> El criador determina la finca donde nació el animal, 
+              mientras que el propietario determina la finca actual donde se encuentra el animal.
+            </p>
+          </div>
+        </div>
+
+        <!-- Genealogía -->
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <h3 class="text-lg font-semibold mb-4 text-gray-800">Genealogía</h3>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Padre -->
+            <div>
+              <h4 class="text-md font-medium mb-3 text-gray-700 border-b pb-2 text-center">
+                Padre
+              </h4>
+              <div class="space-y-3">
+                <!-- Código Padre -->
+                <div>
+                  <label for="cod_padre" class="block text-sm font-medium mb-2 text-gray-700">
+                    Código Padre
+                  </label>
+                  <p-inputgroup>
+                    <p-button 
+                      (onClick)="openPadreSelectionDialog()"
+                      pTooltip="Buscar padre"
+                      size="small"
+                      styleClass="rounded-e-none"
+                      severity="info"
+                    >
+                      <lucide-angular [img]="searchIcon" size="16"></lucide-angular>
+                    </p-button>
+                    <input
+                      type="text"
+                      pInputText
+                      id="cod_padre"
+                      formControlName="cod_padre"
+                      placeholder="Seleccione padre..."
+                      readonly
+                    />
+                    @if (selectedPadre) {
+                      <p-button 
+                        (onClick)="clearPadre()"
+                        pTooltip="Limpiar selección"
+                        size="small"
+                        styleClass="rounded-s-none"
+                        severity="secondary"
+                        icon="pi pi-times"
+                      />
+                    }
+                  </p-inputgroup>
+                </div>
+                
+                <!-- Nombre Padre -->
+                <div>
+                  <label for="nombre_padre" class="block text-sm font-medium mb-2 text-gray-700">
+                    Nombre del Padre
+                  </label>
+                  <input
+                    type="text"
+                    pInputText
+                    id="nombre_padre"
+                    formControlName="nombre_padre"
+                    readonly
+                    class="w-full bg-gray-100"
+                    placeholder="Nombre del padre seleccionado"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Madre -->
+            <div>
+              <h4 class="text-md font-medium mb-3 text-gray-700 border-b pb-2 text-center">
+                Madre
+              </h4>
+              <div class="space-y-3">
+                <!-- Código Madre -->
+                <div>
+                  <label for="cod_madre" class="block text-sm font-medium mb-2 text-gray-700">
+                    Código Madre
+                  </label>
+                  <p-inputgroup>
+                    <p-button 
+                      (onClick)="openMadreSelectionDialog()"
+                      pTooltip="Buscar madre"
+                      size="small"
+                      styleClass="rounded-e-none"
+                      severity="success"
+                    >
+                      <lucide-angular [img]="searchIcon" size="16"></lucide-angular>
+                    </p-button>
+                    <input
+                      type="text"
+                      pInputText
+                      id="cod_madre"
+                      formControlName="cod_madre"
+                      placeholder="Seleccione madre..."
+                      readonly
+                    />
+                    @if (selectedMadre) {
+                      <p-button 
+                        (onClick)="clearMadre()"
+                        pTooltip="Limpiar selección"
+                        size="small"
+                        styleClass="rounded-s-none"
+                        severity="secondary"
+                        icon="pi pi-times"
+                      />
+                    }
+                  </p-inputgroup>
+                </div>
+                
+                <!-- Nombre Madre -->
+                <div>
+                  <label for="nombre_madre" class="block text-sm font-medium mb-2 text-gray-700">
+                    Nombre de la Madre
+                  </label>
+                  <input
+                    type="text"
+                    pInputText
+                    id="nombre_madre"
+                    formControlName="nombre_madre"
+                    readonly
+                    class="w-full bg-gray-100"
+                    placeholder="Nombre de la madre seleccionada"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+
+        <!-- Información Adicional -->
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <h3 class="text-lg font-semibold mb-4 text-gray-800">Información Adicional</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Código ASO -->
+            <div>
+              <label for="codigo_aso" class="block text-sm font-medium mb-2 text-gray-700">
+                <i class="pi pi-id-card text-teal-600"></i> Código ASO
+              </label>
+              <input
+                type="text"
+                pInputText
+                id="codigo_aso"
+                formControlName="codigo_aso"
+                placeholder="Código de asociación"
+                class="w-full"
+              />
+            </div>
+
+            <!-- Composición Racial -->
+            <div>
+              <label for="comp_racial" class="block text-sm font-medium mb-2 text-gray-700">
+                <i class="pi pi-percentage text-teal-600"></i> Composición Racial
+              </label>
+              <p-select
+                id="comp_racial"
+                formControlName="comp_racial"
+                [options]="compRacialOptions"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Seleccione composición"
+                class="w-full"
+              />
+            </div>
+
+            <!-- Porcentaje Racial -->
+            <div>
+              <label for="porc_racial" class="block text-sm font-medium mb-2 text-gray-700">
+                <i class="pi pi-percentage text-teal-600"></i> % Racial
+              </label>
+              <input
+                type="number"
+                pInputText
+                id="porc_racial"
+                formControlName="porc_racial"
+                placeholder="0"
+                min="0"
+                max="100"
+                class="w-full"
+              />
+            </div>
+
+            <!-- Imagen -->
+            <div>
+              <label for="imagen" class="block text-sm font-medium mb-2 text-gray-700">
+                <i class="pi pi-image text-teal-600"></i> URL de Imagen
+              </label>
+              <input
+                type="text"
+                pInputText
+                id="imagen"
+                formControlName="imagen"
+                placeholder="URL de la imagen"
+                class="w-full"
+              />
+            </div>
+
+            <!-- Información de Orejas -->
+            <div>
+              <label for="info_orejas" class="block text-sm font-medium mb-2 text-gray-700">
+                <i class="pi pi-info-circle text-teal-600"></i> Información de Orejas
+              </label>
+              <p-select
+                id="info_orejas"
+                formControlName="info_orejas"
+                [options]="infoOrejasOptions"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Seleccione tipo de orejas"
+                class="w-full"
+              />
+            </div>
+
+            <!-- Información de Cuernos -->
+            <div>
+              <label for="info_cuernos" class="block text-sm font-medium mb-2 text-gray-700">
+                <i class="pi pi-info-circle text-teal-600"></i> Información de Cuernos
+              </label>
+              <p-select
+                id="info_cuernos"
+                formControlName="info_cuernos"
+                [options]="infoCuernosOptions"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Seleccione tipo de cuernos"
+                class="w-full"
+              />
+            </div>
+
+            <!-- Tipo de Registro -->
+            <div>
+              <label for="tipo_registro" class="block text-sm font-medium mb-2 text-gray-700">
+                <i class="pi pi-file-text text-teal-600"></i> Tipo de Registro
+              </label>
+              <p-select
+                id="tipo_registro"
+                formControlName="tipo_registro"
+                [options]="tipoRegistroOptions"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Seleccione tipo de registro"
+                class="w-full"
+              />
+            </div>
+
+            <!-- Aretes -->
+            <div>
+              <label for="aretes" class="block text-sm font-medium mb-2 text-gray-700">
+                <i class="pi pi-tag text-teal-600"></i> Aretes
+              </label>
+              <input
+                type="text"
+                pInputText
+                id="aretes"
+                formControlName="aretes"
+                placeholder="Información sobre aretes"
+                class="w-full"
+                maxlength="200"
+              />
+            </div>
+
+            <!-- Registro Internacional -->
+            <div>
+              <label for="reg_intl" class="block text-sm font-medium mb-2 text-gray-700">
+                <i class="pi pi-globe text-teal-600"></i> Registro Internacional
+              </label>
+              <input
+                type="text"
+                pInputText
+                id="reg_intl"
+                formControlName="reg_intl"
+                placeholder="Registro internacional"
+                class="w-full"
+                maxlength="200"
+              />
+            </div>
+          </div>
+
+          <!-- Observaciones -->
+          <div class="mt-4">
+            <label for="observac" class="block text-sm font-medium mb-2 text-gray-700">
+              <i class="pi pi-comment text-teal-600"></i> Observaciones
+            </label>
+            <textarea
+              pInputTextarea
+              id="observac"
+              formControlName="observac"
+              placeholder="Observaciones adicionales..."
+              rows="3"
+              class="w-full"
+            ></textarea>
+          </div>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="flex justify-end gap-3 pt-4 border-t">
+          <p-button
+            type="button"
+            label="Cancelar"
+            icon="pi pi-times"
+            severity="secondary"
+            (onClick)="hideDialog()"
+            [disabled]="loading"
+          />
+          <p-button
+            type="submit"
+            [label]="isEditMode ? 'Actualizar' : 'Guardar'"
+            icon="pi pi-check"
+            [loading]="loading"
+            [disabled]="animalForm.invalid && submitted"
           />
         </div>
-      </div>
-    </ng-template>
-    <ng-template #footer>
-      <p-button
-        label="Cancelar"
-        icon="pi pi-times"
-        text
-        (click)="hideDialog()"
-      />
-      <p-button label="Guardar" icon="pi pi-check" (click)="saveAnimal()" />
-    </ng-template>
-  </p-dialog>
+      </form>
+    </p-dialog>
+
+    <!-- Farms Selection Modals -->
+    <app-farms-table
+      [(visible)]="showCriadorFarmsDialog"
+      title="Seleccionar Criador"
+      (fincaSelected)="onCriadorFincaSelected($event)"
+    />
+
+    <app-farms-table
+      [(visible)]="showPropietarioFarmsDialog"
+      title="Seleccionar Propietario"
+      (fincaSelected)="onPropietarioFincaSelected($event)"
+    />
+
+    <!-- Animal Selection Modals for Genealogy -->
+    <app-animal-selection-table
+      [(visible)]="showPadreSelectionDialog"
+      title="Seleccionar Padre"
+      sexFilter="M"
+      [excludeAnimalId]="animalForm.get('cod_animal')?.value || ''"
+      (animalSelected)="onPadreSelected($event)"
+    />
+
+    <app-animal-selection-table
+      [(visible)]="showMadreSelectionDialog"
+      title="Seleccionar Madre"
+      sexFilter="H"
+      [excludeAnimalId]="animalForm.get('cod_animal')?.value || ''"
+      (animalSelected)="onMadreSelected($event)"
+    />
 
   <p-confirmDialog [style]="{ width: '450px' }" />
 </div>

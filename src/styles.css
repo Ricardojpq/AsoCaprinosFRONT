@@ -326,69 +326,6 @@ p:last-child {
   gap: 1rem;
 }
 
-/* MEDIA QUERY */
-@media (max-width: 991px) {
-  .layout-topbar {
-    padding: 0 2rem;
-  }
-
-  .layout-topbar .layout-topbar-logo-container {
-    width: auto;
-  }
-
-  .layout-topbar .layout-menu-button {
-    margin-left: 0;
-    margin-right: 0.5rem;
-  }
-
-  .layout-topbar .layout-topbar-menu-button {
-    display: inline-flex;
-  }
-
-  .layout-topbar .layout-topbar-menu {
-    position: absolute;
-    background-color: var(--surface-overlay);
-    transform-origin: top;
-    box-shadow:
-      0px 3px 5px rgba(0, 0, 0, 0.02),
-      0px 0px 2px rgba(0, 0, 0, 0.05),
-      0px 1px 4px rgba(0, 0, 0, 0.08);
-    border-radius: var(--content-border-radius);
-    padding: 1rem;
-    right: 2rem;
-    top: 4rem;
-    min-width: 15rem;
-    border: 1px solid var(--surface-border);
-  }
-
-  .layout-topbar .layout-topbar-menu .layout-topbar-menu-content {
-    gap: 0.5rem;
-  }
-
-  .layout-topbar .layout-topbar-menu .layout-topbar-action {
-    display: flex;
-    width: 100%;
-    height: auto;
-    justify-content: flex-start;
-    border-radius: var(--content-border-radius);
-    padding: 0.5rem 1rem;
-  }
-
-  .layout-topbar .layout-topbar-menu .layout-topbar-action i {
-    font-size: 1rem;
-    margin-right: 0.5rem;
-  }
-
-  .layout-topbar .layout-topbar-menu .layout-topbar-action span {
-    font-weight: 500;
-    display: block;
-  }
-
-  .layout-topbar .layout-topbar-menu-content {
-    flex-direction: column;
-  }
-}
-
 .layout-sidebar {
   position: fixed;
   width: 20rem;
@@ -563,6 +500,118 @@ p:last-child {
   top: 100px;
 }
 
+.hidden {
+  display: none;
+}
+
+.animate-fadein {
+  animation: animate-fadein 150ms linear;
+}
+
+.animate-fadeout { 
+  animation: animate-fadeout 150ms linear;
+}
+.animate-scalein {
+    animation: scalein .15s linear
+}
+
+
+/* certificates styles */
+.container-certificate {
+  position: relative;
+  z-index: 1;
+  width: 1123px !important;
+  height: 794px !important;
+  box-sizing: border-box;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+.container-certificate::after {
+  /* Crea el pseudo-elemento */
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /* Asegúrate de que la marca de agua esté debajo del contenido */
+  z-index: 0;
+
+  /* Las siguientes son las propiedades clave */
+  /* Define las imágenes del patrón 4, 3, 4, 3, separadas por coma */
+  background-image:
+    /* Fila 1: 4 logos */
+    url("/assets/logos/logo.png"), 
+    url("/assets/logos/logo.png"), 
+    url("/assets/logos/logo.png"), 
+    url("/assets/logos/logo.png"), 
+    
+    /* Fila 2: 3 logos */
+    url("/assets/logos/logo.png"), 
+    url("/assets/logos/logo.png"),
+    url("/assets/logos/logo.png"), 
+
+    /* Fila 3: 4 logos */
+    url("/assets/logos/logo.png"), 
+    url("/assets/logos/logo.png"), 
+    url("/assets/logos/logo.png"), 
+    url("/assets/logos/logo.png"),
+
+    /* Fila 4: 3 logos */
+    url("/assets/logos/logo.png"), 
+    url("/assets/logos/logo.png"),
+    url("/assets/logos/logo.png"),
+
+    /* Fila 5: 4 logos */
+    url("/assets/logos/logo.png"), 
+    url("/assets/logos/logo.png"), 
+    url("/assets/logos/logo.png"), 
+    url("/assets/logos/logo.png");
+
+  
+  /* Define el tamaño de cada imagen */
+  background-size: 150px; 
+
+  /* Define la posición de cada imagen para crear el patrón 4, 3, 4, 3 */
+  background-position:
+    /* Fila 1: 4 logos distribuidos uniformemente */
+    top 20px left 50px,
+    top 20px left 300px,
+    top 20px left 550px,
+    top 20px left 800px,
+
+    /* Fila 2: 3 logos centrados */
+    top 180px left 175px,
+    top 180px left 425px,
+    top 180px left 675px,
+
+    /* Fila 3: 4 logos distribuidos uniformemente */
+    top 340px left 50px,
+    top 340px left 300px,
+    top 340px left 550px,
+    top 340px left 800px,
+
+    /* Fila 4: 3 logos centrados */
+    top 500px left 175px,
+    top 500px left 425px,
+    top 500px left 675px,
+
+    /* Fila 5: 4 logos distribuidos uniformemente */
+    top 660px left 50px,
+    top 660px left 300px,
+    top 660px left 550px,
+    top 660px left 800px;
+    /* top 50px left calc(50% + 50px),
+    top 250px left calc(50% + 250px); */
+
+  /* Evita que las imágenes se repitan */
+  background-repeat: no-repeat;
+  
+  /* Opacidad para que parezca una marca de agua */
+  opacity: 0.2;
+}
+
 @media screen and (min-width: 1960px) {
 
   .layout-main,
@@ -659,6 +708,66 @@ p:last-child {
   .layout-wrapper.layout-mobile-active .layout-mask {
     display: block;
   }
+
+  .layout-topbar {
+    padding: 0 2rem;
+  }
+
+  .layout-topbar .layout-topbar-logo-container {
+    width: auto;
+  }
+
+  .layout-topbar .layout-menu-button {
+    margin-left: 0;
+    margin-right: 0.5rem;
+  }
+
+  .layout-topbar .layout-topbar-menu-button {
+    display: inline-flex;
+  }
+
+  .layout-topbar .layout-topbar-menu {
+    position: absolute;
+    background-color: var(--surface-overlay);
+    transform-origin: top;
+    box-shadow:
+      0px 3px 5px rgba(0, 0, 0, 0.02),
+      0px 0px 2px rgba(0, 0, 0, 0.05),
+      0px 1px 4px rgba(0, 0, 0, 0.08);
+    border-radius: var(--content-border-radius);
+    padding: 1rem;
+    right: 2rem;
+    top: 4rem;
+    min-width: 15rem;
+    border: 1px solid var(--surface-border);
+  }
+
+  .layout-topbar .layout-topbar-menu .layout-topbar-menu-content {
+    gap: 0.5rem;
+  }
+
+  .layout-topbar .layout-topbar-menu .layout-topbar-action {
+    display: flex;
+    width: 100%;
+    height: auto;
+    justify-content: flex-start;
+    border-radius: var(--content-border-radius);
+    padding: 0.5rem 1rem;
+  }
+
+  .layout-topbar .layout-topbar-menu .layout-topbar-action i {
+    font-size: 1rem;
+    margin-right: 0.5rem;
+  }
+
+  .layout-topbar .layout-topbar-menu .layout-topbar-action span {
+    font-weight: 500;
+    display: block;
+  }
+
+  .layout-topbar .layout-topbar-menu-content {
+    flex-direction: column;
+  }
 }
 
 
@@ -712,17 +821,3 @@ p:last-child {
     }
 }
 
-.hidden {
-  display: none;
-}
-
-.animate-fadein {
-  animation: animate-fadein 150ms linear;
-}
-
-.animate-fadeout { 
-  animation: animate-fadeout 150ms linear;
-}
-.animate-scalein {
-    animation: scalein .15s linear
-}

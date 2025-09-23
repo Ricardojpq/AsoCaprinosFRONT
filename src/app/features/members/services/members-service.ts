@@ -3,15 +3,14 @@ import { HttpClient, HttpParams, HttpErrorResponse } from '@angular/common/http'
 import { Observable, of, throwError } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { environment } from '@environments/environment';
-import { ApiResponseSuccess, ApiResponseError } from '@core/models/DTOs/api-response';
+import { LaravelApiResponse, LaravelSingleItemResponse, LaravelPaginationResponse } from '../../../core/models/DTOs';
 import {
   MemberDto,
   MemberCreateDto,
   MemberUpdateDto,
   MemberListParamsDto,
   MemberSearchParamsDto,
-  MemberStatsDto,
-  PaginatedMembersDto
+  MemberStatsDto
 } from '../models/DTOs';
 
 export interface MemberQueryParams {
@@ -36,11 +35,6 @@ export interface MemberSearchParams {
 }
 
 // Tipo para la respuesta real del backend
-interface MemberListApiResponse {
-  status: string;
-  message: string;
-  data: PaginatedMembersDto;
-}
 
 @Injectable({ providedIn: 'root' })
 export class MembersService {
@@ -98,7 +92,7 @@ export class MembersService {
    */
   addMember$(data: MemberCreateDto): Observable<MemberDto> {
     try {
-      return this.httpClient.post<ApiResponseSuccess<MemberDto>>(this.membersURL, data).pipe(
+      return this.httpClient.post<LaravelSingleItemResponse<MemberDto>>(this.membersURL, data).pipe(
         map(res => {
           if (res.status === 'success' && res.data) {
             return res.data;
@@ -127,16 +121,15 @@ export class MembersService {
     return httpParams.toString();
   }
 
-  getMembers$(params: MemberQueryParams): Observable<PaginatedMembersDto> {
+  getMembers$(params: MemberQueryParams): Observable<LaravelPaginationResponse<MemberDto>> {
     try {
       const queryParams = this.buildQueryParams(params);
       const uri = `${this.membersURL}?${queryParams}`;
       
-      return this.httpClient.get<any>(uri).pipe(
+      return this.httpClient.get<LaravelApiResponse<MemberDto>>(uri).pipe(
         map(res => {
-          if (res.status === 'success' && res.message) {
-            // The API returns data in 'message' field, not 'data'
-            return res.message;
+          if (res.status === 'success' && res.data) {
+            return res.data;
           } else {
             throw new Error('Respuesta inválida del servidor');
           }
@@ -145,7 +138,21 @@ export class MembersService {
       );
     } catch (e) {
       console.error('Error fetching members', e);
-      return of({ current_page: 1, data: [], per_page: 10, total: 0, last_page: 1 });
+      return of({
+        current_page: 1,
+        data: [],
+        per_page: 10,
+        total: 0,
+        first_page_url: '',
+        from: 0,
+        last_page: 1,
+        last_page_url: '',
+        links: [],
+        next_page_url: null,
+        path: '',
+        prev_page_url: null,
+        to: 0
+      });
     }
   }
 
@@ -155,7 +162,7 @@ export class MembersService {
   getMemberById$(cedSocio: string, codFinca: number): Observable<MemberDto> {
     try {
       const uri = `${this.membersURL}/${cedSocio}/${codFinca}`;
-      return this.httpClient.get<ApiResponseSuccess<MemberDto>>(uri).pipe(
+      return this.httpClient.get<LaravelSingleItemResponse<MemberDto>>(uri).pipe(
         map(res => {
           if (res.status === 'success' && res.data) {
             return res.data;
@@ -177,7 +184,7 @@ export class MembersService {
   updateMember$(cedSocio: string, data: MemberUpdateDto, codFinca: number = 1): Observable<MemberDto> {
     try {
       const uri = `${this.membersURL}/${cedSocio}/${codFinca}`;
-      return this.httpClient.put<ApiResponseSuccess<MemberDto>>(uri, data).pipe(
+      return this.httpClient.put<LaravelSingleItemResponse<MemberDto>>(uri, data).pipe(
         map(res => {
           if (res.status === 'success' && res.data) {
             return res.data;
@@ -198,8 +205,8 @@ export class MembersService {
    */
   deleteMember$(cedSocio: string, codFinca: number = 1): Observable<any> {
     try {
-      const uri = `${this.membersURL}/${cedSocio}/${codFinca}`;
-      return this.httpClient.delete<ApiResponseSuccess>(uri).pipe(
+      const uri = `${this.membersURL}/${cedSocio}`;
+      return this.httpClient.delete<LaravelApiResponse<any>>(uri).pipe(
         map(res => {
           if (res.status === 'success') {
             return res;
@@ -218,7 +225,7 @@ export class MembersService {
   /**
    * Buscar socios por criterios
    */
-  searchMembers$(params: MemberSearchParams): Observable<MemberDto[]> {
+  searchMembers$(params: MemberSearchParams): Observable<LaravelPaginationResponse<MemberDto>> {
     try {
       let httpParams = new HttpParams();
       Object.entries(params).forEach(([key, value]) => {
@@ -227,7 +234,7 @@ export class MembersService {
         }
       });
 
-      return this.httpClient.get<ApiResponseSuccess<MemberDto[]>>(`${this.membersURL}/search`, { params: httpParams }).pipe(
+      return this.httpClient.get<LaravelApiResponse<MemberDto>>(`${this.membersURL}/search`, { params: httpParams }).pipe(
         map(res => {
           if (res.status === 'success' && res.data) {
             return res.data;
@@ -239,7 +246,21 @@ export class MembersService {
       );
     } catch (e) {
       console.error('Error searching members', e);
-      return of([]);
+      return of({
+        current_page: 1,
+        data: [],
+        per_page: 10,
+        total: 0,
+        first_page_url: '',
+        from: 0,
+        last_page: 1,
+        last_page_url: '',
+        links: [],
+        next_page_url: null,
+        path: '',
+        prev_page_url: null,
+        to: 0
+      });
     }
   }
 
@@ -248,7 +269,7 @@ export class MembersService {
    */
   getMemberStats$(): Observable<MemberStatsDto> {
     try {
-      return this.httpClient.get<ApiResponseSuccess<MemberStatsDto>>(`${this.membersURL}/stats`).pipe(
+      return this.httpClient.get<LaravelSingleItemResponse<MemberStatsDto>>(`${this.membersURL}/stats`).pipe(
         map(res => {
           if (res.status === 'success' && res.data) {
             return res.data;

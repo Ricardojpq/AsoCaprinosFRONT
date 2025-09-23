@@ -7,7 +7,6 @@ import {
   PaisCreateDto, 
   PaisUpdateDto, 
   PaisQueryParams,
-  PoliticalDivisionListResponse,
   PoliticalDivisionSelectOption
 } from '../../models/political-division.dto';
 
@@ -324,8 +323,8 @@ export class CountriesTabComponent implements OnInit, OnChanges {
 
     this.politicalDivisionService.getPaises(params).subscribe({
       next: (response) => {
-        this.countries = response.message.data;
-        this.totalRecords = response.message.total;
+        this.countries = response.data.data;
+        this.totalRecords = response.data.total;
         this.loading = false;
       },
       error: (error) => {

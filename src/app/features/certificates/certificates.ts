@@ -168,11 +168,7 @@ export class Certificates implements OnInit {
       .getCertificates(this.currentPage, this.pageSize, searchFilters)
       .subscribe({
         next: (response: any) => {
-          // El backend devuelve 'status' en lugar de 'success'
-          if (
-            (response.success || response.status === 'success') &&
-            response.data
-          ) {
+          if (response.status === 'success' && response.data) {
             // Convertir los datos del backend al formato de tabla
             this.certificates = this.certificatesService.mapToTableData(
               response.data.data
@@ -248,13 +244,10 @@ export class Certificates implements OnInit {
       this.waitingForDataLoad = true; // Flag para indicar que estamos esperando la carga
 
       this.certificatesService
-        .getCertificateCompleteInfo(certificate.id)
+        .getCertificateWithCompleteInfo(certificate.id)
         .subscribe({
           next: async (response: any) => {
-            if (
-              (response.success || response.status === 'success') &&
-              response.data
-            ) {
+            if (response.status === 'success' && response.data) {
               this.certificateData = response.data;
             }
           },
@@ -288,13 +281,10 @@ export class Certificates implements OnInit {
       this.isDownloadMode = true;
 
       this.certificatesService
-        .getCertificateCompleteInfo(certificate.id)
+        .getCertificateWithCompleteInfo(certificate.id)
         .subscribe({
           next: async (response: any) => {
-            if (
-              (response.success || response.status === 'success') &&
-              response.data
-            ) {
+            if (response.status === 'success' && response.data) {
               this.certificateData = response.data;
             }
           },
@@ -335,34 +325,42 @@ export class Certificates implements OnInit {
         label: 'Sí',
       },
       accept: () => {
-        const deletePromises = this.selectedCertificates!.map((cert) => {
-          if (cert.id) {
-            return this.certificatesService
-              .deleteCertificate(cert.id)
-              .toPromise();
-          }
-          return Promise.resolve();
-        });
+        // Eliminar certificados uno por uno
+        let deletedCount = 0;
+        let totalToDelete = this.selectedCertificates!.filter(cert => cert.id).length;
+        
+        if (totalToDelete === 0) return;
 
-        Promise.all(deletePromises)
-          .then(() => {
-            this.loadCertificatesData();
-            this.selectedCertificates = null;
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Exitoso',
-              detail: 'Certificados eliminados correctamente',
-              life: 3000,
+        this.selectedCertificates!.forEach((cert) => {
+          if (cert.id) {
+            this.certificatesService.deleteCertificate(cert.id).subscribe({
+              next: (response: any) => {
+                if (response.status === 'success') {
+                  deletedCount++;
+                  if (deletedCount === totalToDelete) {
+                    // Todos los certificados han sido eliminados
+                    this.loadCertificatesData();
+                    this.selectedCertificates = null;
+                    this.messageService.add({
+                      severity: 'success',
+                      summary: 'Exitoso',
+                      detail: 'Certificados eliminados correctamente',
+                      life: 3000,
+                    });
+                  }
+                }
+              },
+              error: (error) => {
+                console.error('Error deleting certificate:', error);
+                this.messageService.add({
+                  severity: 'error',
+                  summary: 'Error',
+                  detail: 'Error al eliminar algunos certificados',
+                });
+              }
             });
-          })
-          .catch((error) => {
-            console.error('Error deleting certificates:', error);
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Error',
-              detail: 'Error al eliminar certificados',
-            });
-          });
+          }
+        });
       },
     });
   }
@@ -391,7 +389,7 @@ export class Certificates implements OnInit {
       accept: () => {
         this.certificatesService.deleteCertificate(certificate.id!).subscribe({
           next: (response: any) => {
-            if (response.success || response.status === 'success') {
+            if (response.status === 'success') {
               this.loadCertificatesData();
               this.messageService.add({
                 severity: 'success',
@@ -458,7 +456,7 @@ export class Certificates implements OnInit {
     this.certificatesService.getCertificateById(certificate.id).subscribe({
       next: (response: any) => {
         if (
-          (response.success || response.status === 'success') &&
+          (response.status === 'success') &&
           response.data
         ) {
           this.editCertificate = {
@@ -509,7 +507,7 @@ export class Certificates implements OnInit {
         .updateCertificate(this.editCertificate.id!, this.editCertificate)
         .subscribe({
           next: (response: any) => {
-            if (response.success || response.status === 'success') {
+            if (response.status === 'success') {
               // Cerrar modal
               this.certificateDialog = false;
               // Limpiar formularios
@@ -553,7 +551,7 @@ export class Certificates implements OnInit {
 
       this.certificatesService.createCertificate(this.certificate).subscribe({
         next: (response: any) => {
-          if (response.success || response.status === 'success') {
+          if (response.status === 'success') {
             // Cerrar modal
             this.certificateDialog = false;
             // Limpiar formulario

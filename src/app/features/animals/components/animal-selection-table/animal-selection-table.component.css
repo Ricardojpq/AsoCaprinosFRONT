@@ -1,0 +1,60 @@
+/* Estilos específicos para la tabla de selección de animales */
+
+.p-datatable .p-datatable-tbody > tr.p-selectable-row:hover {
+  background-color: #f8f9fa;
+  cursor: pointer;
+}
+
+.p-datatable .p-datatable-tbody > tr.p-highlight {
+  background-color: #e3f2fd;
+  color: #1976d2;
+}
+
+.p-datatable .p-datatable-tbody > tr.p-highlight .p-tag {
+  background-color: rgba(25, 118, 210, 0.1);
+}
+
+/* Mejorar la apariencia de los filtros */
+.p-toolbar {
+  border-radius: 6px;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+}
+
+/* Estilos para los tags de sexo y estatus */
+.p-tag.p-tag-success {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.p-tag.p-tag-info {
+  background-color: #d1ecf1;
+  color: #0c5460;
+}
+
+.p-tag.p-tag-danger {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .p-dialog .p-dialog-content {
+    padding: 1rem;
+  }
+  
+  .p-toolbar .flex {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .p-datatable .p-datatable-thead > tr > th {
+    font-size: 0.875rem;
+    padding: 0.5rem;
+  }
+  
+  .p-datatable .p-datatable-tbody > tr > td {
+    font-size: 0.875rem;
+    padding: 0.5rem;
+  }
+}

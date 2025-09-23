@@ -154,6 +154,13 @@ export interface AnimalUpdateDto {
   pigmen_total?: boolean;
   imagen?: string;
   
+  // Nuevos campos añadidos
+  info_orejas?: string;
+  info_cuernos?: string;
+  tipo_registro?: string;
+  aretes?: string;
+  reg_intl?: string;
+  
   // Base entity fields
   is_active?: boolean;
 }

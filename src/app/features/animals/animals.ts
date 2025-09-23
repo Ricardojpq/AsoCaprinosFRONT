@@ -1,4 +1,5 @@
 import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { firstValueFrom, BehaviorSubject, Subject } from 'rxjs';
 import {
   takeUntil,
@@ -6,11 +7,12 @@ import {
   distinctUntilChanged,
   filter,
 } from 'rxjs/operators';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { AnimalsService, AnimalQueryParams } from './services/animals-service';
 import { AnimalDto } from './models/DTOs/animal';
 import { AnimalCreateDto } from './models/DTOs/animal-create';
 import { AnimalUpdateDto } from './models/DTOs/animal-update';
-import { AnimalListResponse } from './models/DTOs/animal-list-response';
+import { LaravelPaginationResponse } from '../../core/models/DTOs';
 import { CatalogsService } from './catalogs/services/catalogs-service';
 import { CatalogSelectOption } from '../../core/models/DTOs';
 import {
@@ -19,7 +21,6 @@ import {
 } from './config/search-config';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { Table, TableModule } from 'primeng/table';
-import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { FileUploadModule } from 'primeng/fileupload';
 import { DialogModule } from 'primeng/dialog';
@@ -28,6 +29,11 @@ import { TagModule } from 'primeng/tag';
 import { ToolbarModule } from 'primeng/toolbar';
 import { ToastModule } from 'primeng/toast';
 import { InputTextModule } from 'primeng/inputtext';
+import { InputGroupModule } from 'primeng/inputgroup';
+import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
+import { FarmsTableComponent } from './components/farms-table/farms-table.component';
+import { AnimalSelectionTableComponent } from './components/animal-selection-table/animal-selection-table.component';
+import { FincaDto } from '../../core/models/DTOs/finca.dto';
 import { SelectModule } from 'primeng/select';
 import {
   LucideAngularModule,
@@ -49,7 +55,8 @@ import { TooltipModule } from 'primeng/tooltip';
   styleUrl: './animals.css',
   providers: [MessageService, ConfirmationService, DatePipe],
   imports: [
-    FormsModule,
+    CommonModule,
+    ReactiveFormsModule,
     ButtonModule,
     FileUploadModule,
     DialogModule,
@@ -59,6 +66,8 @@ import { TooltipModule } from 'primeng/tooltip';
     ToolbarModule,
     ToastModule,
     InputTextModule,
+    InputGroupModule,
+    InputGroupAddonModule,
     SelectModule,
     LucideAngularModule,
     TextareaModule,
@@ -66,6 +75,8 @@ import { TooltipModule } from 'primeng/tooltip';
     IconFieldModule,
     InputIconModule,
     TooltipModule,
+    FarmsTableComponent,
+    AnimalSelectionTableComponent,
   ],
 })
 export class Animals implements OnInit, OnDestroy {
@@ -84,8 +95,7 @@ export class Animals implements OnInit, OnDestroy {
   private readonly SEARCH_DEBOUNCE_TIME = ANIMAL_SEARCH_CONFIG.debounceTime;
 
   animals: AnimalDto[] = [];
-  selectedAnimals: AnimalDto[] = [];
-  animal: Partial<AnimalDto> = {};
+  animalForm!: FormGroup;
   animalDialog = false;
   isEditMode = false;
   cols: any[] = [];
@@ -114,13 +124,142 @@ export class Animals implements OnInit, OnDestroy {
   razaOptions: CatalogSelectOption[] = [];
   colorOptions: CatalogSelectOption[] = [];
   tipoPeloOptions: CatalogSelectOption[] = [];
+  
+  // Opciones mock para los nuevos campos
+  infoOrejasOptions: any[] = [];
+  infoCuernosOptions: any[] = [];
+  tipoRegistroOptions: any[] = [];
+
+  // Farms selection
+  showCriadorFarmsDialog = false;
+  showPropietarioFarmsDialog = false;
+  selectedCriadorFinca: FincaDto | null = null;
+  selectedPropietarioFinca: FincaDto | null = null;
+
+  // Genealogy selection
+  showPadreSelectionDialog = false;
+  showMadreSelectionDialog = false;
+  selectedPadre: AnimalDto | null = null;
+  selectedMadre: AnimalDto | null = null;
 
   constructor(
+    private fb: FormBuilder,
     private animalsService: AnimalsService,
     private catalogsService: CatalogsService,
     private messageService: MessageService,
     private confirmationService: ConfirmationService
-  ) {}
+  ) {
+    this.initializeForm();
+  }
+
+  /**
+   * Inicializa el formulario reactivo con validaciones
+   */
+  private initializeForm() {
+    this.animalForm = this.fb.group({
+      // Campos básicos requeridos
+      cod_finca: [1, [Validators.required]],
+      cod_animal: ['', [Validators.required, Validators.maxLength(15)]],
+      nomb_animal: ['', [Validators.required, Validators.maxLength(50)]],
+      sexo_animal: ['M', [Validators.required]],
+      fec_nacim: ['', [Validators.required]],
+      
+      // Campos de catálogos
+      estatus: ['A'],
+      cod_raza: [1, [Validators.required]], // Campo obligatorio
+      cod_color: [1],
+      cod_tipo_pelo: [1],
+      origen: ['N', [Validators.required]],
+      
+      // Campos de fincas - obligatorios
+      cod_finca_actual: [null, [Validators.required]], // Campo obligatorio para propietario
+      siglas_criador: [''],
+      nombre_criador: [''],
+      siglas_propietario: [''],
+      nombre_propietario: [''],
+      
+      // Campos de genealogía - opcionales
+      cod_finca_padre: [null],
+      cod_padre: [''],
+      nombre_padre: [''],
+      cod_finca_madre: [null],
+      cod_madre: [''],
+      nombre_madre: [''],
+      
+      // Campos de peso
+      peso_actual: [0, [Validators.min(0)]],
+      peso_al_nacer: [0, [Validators.min(0)]],
+      peso_al_destete: [0, [Validators.min(0)]],
+      fec_destete: [''],
+      
+      // Campos de tatuaje
+      tatuaje: [''],
+      tatuaje_oreja_izq: [''],
+      tatuaje_oreja_der: [''],
+      tatuaje_cola: [''],
+      
+      // Campos de tipo y origen
+      tipo_concepcion: ['M'],
+      tipo_parto: ['S'],
+      material_genetico: ['A'],
+      protocolo_importacion: ['S'],
+      
+      // Campos de composición racial
+      codigo_aso: [''],
+      comp_racial: [0, [Validators.min(0)]],
+      porc_racial: [0, [Validators.min(0), Validators.max(100)]],
+      
+      // Campos adicionales
+      observac: [''],
+      imagen: [''],
+      precio_con_igv: [0, [Validators.min(0)]],
+      stock_minimo: [0, [Validators.min(0)]],
+      
+      // Nuevos campos añadidos
+      info_orejas: ['', [Validators.maxLength(200)]],
+      info_cuernos: ['', [Validators.maxLength(200)]],
+      tipo_registro: ['', [Validators.maxLength(200)]],
+      aretes: ['', [Validators.maxLength(200)]],
+      reg_intl: ['', [Validators.maxLength(200)]]
+    });
+  }
+
+  /**
+   * Inicializa las opciones mock para los nuevos campos select
+   */
+  private initializeMockOptions() {
+    // Opciones para Información de Orejas
+    this.infoOrejasOptions = [
+      { label: 'Orejas Normales', value: 'normales' },
+      { label: 'Orejas Grandes', value: 'grandes' },
+      { label: 'Orejas Pequeñas', value: 'pequenas' },
+      { label: 'Orejas Caídas', value: 'caidas' },
+      { label: 'Orejas Erguidas', value: 'erguidas' },
+      { label: 'Orejas Asimétricas', value: 'asimetricas' }
+    ];
+
+    // Opciones para Información de Cuernos
+    this.infoCuernosOptions = [
+      { label: 'Sin Cuernos (Mocho)', value: 'sin_cuernos' },
+      { label: 'Cuernos Pequeños', value: 'pequenos' },
+      { label: 'Cuernos Medianos', value: 'medianos' },
+      { label: 'Cuernos Grandes', value: 'grandes' },
+      { label: 'Cuernos Curvos', value: 'curvos' },
+      { label: 'Cuernos Rectos', value: 'rectos' },
+      { label: 'Cuernos Asimétricos', value: 'asimetricos' }
+    ];
+
+    // Opciones para Tipo de Registro
+    this.tipoRegistroOptions = [
+      { label: 'Registro Nacional', value: 'nacional' },
+      { label: 'Registro Internacional', value: 'internacional' },
+      { label: 'Registro Provisional', value: 'provisional' },
+      { label: 'Registro Definitivo', value: 'definitivo' },
+      { label: 'Registro de Importación', value: 'importacion' },
+      { label: 'Registro de Exportación', value: 'exportacion' },
+      { label: 'Sin Registro', value: 'sin_registro' }
+    ];
+  }
 
   ngOnInit() {
     // Inicializar opciones de los selects usando enums
@@ -132,6 +271,9 @@ export class Animals implements OnInit, OnDestroy {
     this.materialGeneticoOptions = this.animalsService.getMaterialGeneticoOptions();
     this.protocoloImportacionOptions = this.animalsService.getProtocoloImportacionOptions();
     this.compRacialOptions = this.animalsService.getCompRacialOptions();
+    
+    // Inicializar opciones mock para los nuevos campos
+    this.initializeMockOptions();
 
     this.cols = [
       { field: 'cod_finca', header: 'Id Finca' },
@@ -310,22 +452,21 @@ export class Animals implements OnInit, OnDestroy {
   }
 
   openNew() {
-    this.animal = {
-      cod_finca: 1, // Valor por defecto
+    this.animalForm.reset({
+      cod_finca: null, // Se llenará al seleccionar criador
       cod_animal: '',
       nomb_animal: '',
-      sexo_animal: 'M', // SexoAnimalEnum.Macho
-      estatus: 'A', // EstatusAnimalEnum.ACTIVO
+      sexo_animal: 'M',
+      estatus: 'A',
       fec_nacim: new Date().toISOString().split('T')[0],
-      fec_ingreso: new Date().toISOString().split('T')[0],
       cod_raza: 1,
       cod_color: 1,
       cod_tipo_pelo: 1,
-      origen: 'N', // OrigenAnimalEnum.NacidoFinca
-      tipo_concepcion: 'M', // TipoConcepcionEnum.MN
-      tipo_parto: 'S', // TipoPartoEnum.Simple
-      material_genetico: 'A', // MaterialGeneticoEnum.Nacional
-      protocolo_importacion: 'S', // 'S' para SI
+      origen: 'N',
+      tipo_concepcion: 'M',
+      tipo_parto: 'S',
+      material_genetico: 'A',
+      protocolo_importacion: 'S',
       peso_al_nacer: 0,
       fec_destete: '',
       peso_al_destete: 0,
@@ -333,145 +474,261 @@ export class Animals implements OnInit, OnDestroy {
       tatuaje_oreja_izq: '',
       tatuaje_oreja_der: '',
       tatuaje_cola: '',
-      comp_racial: 0, // Default numeric value
+      comp_racial: 0,
       porc_racial: 0,
       precio_con_igv: 0,
       stock_minimo: 0,
       imagen: '',
-    };
+      // Campos de fincas
+      cod_finca_actual: null, // Se llenará al seleccionar propietario
+      siglas_criador: '',
+      nombre_criador: '',
+      siglas_propietario: '',
+      nombre_propietario: '',
+      // Campos de genealogía
+      cod_finca_padre: null,
+      cod_padre: '',
+      nombre_padre: '',
+      cod_finca_madre: null,
+      cod_madre: '',
+      nombre_madre: ''
+    });
+    
+    // Limpiar selecciones de fincas y genealogía
+    this.selectedCriadorFinca = null;
+    this.selectedPropietarioFinca = null;
+    this.selectedPadre = null;
+    this.selectedMadre = null;
+    
     this.isEditMode = false;
     this.animalDialog = true;
     this.submitted = false;
   }
 
   editAnimal(animal: AnimalDto) {
-    this.animal = { ...animal };
+    this.animalForm.patchValue({
+      cod_finca: animal.cod_finca,
+      cod_animal: animal.cod_animal,
+      nomb_animal: animal.nomb_animal,
+      sexo_animal: animal.sexo_animal,
+      estatus: animal.estatus,
+      fec_nacim: animal.fec_nacim,
+      cod_raza: animal.cod_raza,
+      cod_color: animal.cod_color,
+      cod_tipo_pelo: animal.cod_tipo_pelo,
+      origen: animal.origen,
+      tipo_concepcion: animal.tipo_concepcion,
+      tipo_parto: animal.tipo_parto,
+      material_genetico: animal.material_genetico,
+      protocolo_importacion: animal.protocolo_importacion,
+      peso_actual: animal.peso_actual,
+      peso_al_nacer: animal.peso_al_nacer,
+      peso_al_destete: animal.peso_al_destete,
+      fec_destete: animal.fec_destete,
+      tatuaje: animal.tatuaje,
+      tatuaje_oreja_izq: animal.tatuaje_oreja_izq,
+      tatuaje_oreja_der: animal.tatuaje_oreja_der,
+      tatuaje_cola: animal.tatuaje_cola,
+      codigo_aso: animal.codigo_aso,
+      comp_racial: animal.comp_racial,
+      porc_racial: animal.porc_racial,
+      observac: animal.observac,
+      imagen: animal.imagen,
+      precio_con_igv: animal.precio_con_igv,
+      stock_minimo: animal.stock_minimo,
+      
+      info_orejas: animal.info_orejas,
+      info_cuernos: animal.info_cuernos,
+      tipo_registro: animal.tipo_registro,
+      aretes: animal.aretes,
+      reg_intl: animal.reg_intl,
+      // Campos de fincas
+      cod_finca_actual: animal.cod_finca_actual,
+      siglas_criador: animal.criador?.cod_finca || '',
+      nombre_criador: animal.criador?.nomb_finca || '',
+      siglas_propietario: animal.propietario?.cod_finca || '',
+      nombre_propietario: animal.propietario?.nomb_finca || '',
+      // Campos de genealogía
+      cod_finca_padre: animal.cod_finca_padre,
+      cod_padre: animal.cod_padre || '',
+      nombre_padre: '', // Se llenará si hay datos de padre
+      cod_finca_madre: animal.cod_finca_madre,
+      cod_madre: animal.cod_madre || '',
+      nombre_madre: '' // Se llenará si hay datos de madre
+    });
+    
+    // Nota: No podemos establecer selectedCriadorFinca y selectedPropietarioFinca 
+    // porque FincaInfo no es compatible con FincaDto
+    // El usuario tendrá que seleccionar las fincas nuevamente si quiere cambiarlas
+    this.selectedCriadorFinca = null;
+    this.selectedPropietarioFinca = null;
+    this.selectedPadre = null;
+    this.selectedMadre = null;
+    
     this.isEditMode = true;
     this.animalDialog = true;
     this.submitted = false;
   }
 
   deleteAnimal(animal: AnimalDto) {
-    this.confirmationService.confirm({
-      message: `¿Seguro que deseas eliminar el animal ${animal.nomb_animal}?`,
-      header: 'Confirmar',
-      icon: 'pi pi-exclamation-triangle',
-      accept: () => {
-        this.loading = true;
-        this.animalsService
-          .deleteAnimal$(animal.cod_finca.toString(), animal.cod_animal)
-          .subscribe({
-            next: () => {
-              this.loadAnimals();
-              this.loading = false;
-              this.messageService.add({
-                severity: 'success',
-                summary: 'Eliminado',
-                detail: 'Animal eliminado',
-                life: 3000,
-              });
-            },
-            error: (error) => {
-              console.error('Error deleting animal:', error);
-              this.loading = false;
-              this.messageService.add({
-                severity: 'error',
-                summary: 'Error',
-                detail: 'Error al eliminar el animal',
-                life: 3000,
-              });
+    // Primero verificar si el animal puede ser eliminado
+    this.loading = true;
+    this.animalsService
+      .canDeleteAnimal$(animal.cod_finca.toString(), animal.cod_animal)
+      .subscribe({
+        next: (canDeleteResult) => {
+          this.loading = false;
+          
+          if (!canDeleteResult.can_delete) {
+            // Mostrar mensaje de error si no se puede eliminar
+            this.messageService.add({
+              severity: 'warn',
+              summary: 'No se puede eliminar',
+              detail: canDeleteResult.reason || 'El animal no puede ser eliminado',
+              life: 5000,
+            });
+            return;
+          }
+
+          // Si se puede eliminar, mostrar confirmación
+          this.confirmationService.confirm({
+            message: `¿Seguro que deseas eliminar el animal ${animal.nomb_animal}?`,
+            header: 'Confirmar',
+            icon: 'pi pi-exclamation-triangle',
+            accept: () => {
+              this.loading = true;
+              this.animalsService
+                .deleteAnimal$(animal.cod_finca.toString(), animal.cod_animal)
+                .subscribe({
+                  next: () => {
+                    this.loadAnimals();
+                    this.loading = false;
+                    this.messageService.add({
+                      severity: 'success',
+                      summary: 'Eliminado',
+                      detail: 'Animal eliminado exitosamente',
+                      life: 3000,
+                    });
+                  },
+                  error: (error) => {
+                    console.error('Error deleting animal:', error);
+                    this.loading = false;
+                    this.messageService.add({
+                      severity: 'error',
+                      summary: 'Error',
+                      detail: error.message || 'Error al eliminar el animal',
+                      life: 5000,
+                    });
+                  },
+                });
             },
           });
-      },
-    });
+        },
+        error: (error) => {
+          console.error('Error checking if animal can be deleted:', error);
+          this.loading = false;
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Error al verificar si el animal puede ser eliminado',
+            life: 3000,
+          });
+        },
+      });
   }
 
-  deleteSelectedAnimals() {
-    this.confirmationService.confirm({
-      message: '¿Seguro que deseas eliminar los animales seleccionados?',
-      header: 'Confirmar',
-      icon: 'pi pi-exclamation-triangle',
-      accept: () => {
-        this.loading = true;
-        const deletes = this.selectedAnimals.map((a) =>
-          this.animalsService.deleteAnimal$(a.cod_finca.toString(), a.cod_animal)
-        );
-        Promise.all(deletes.map((obs) => firstValueFrom(obs)))
-          .then(() => {
-            this.loadAnimals();
-            this.selectedAnimals = [];
-            this.loading = false;
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Eliminados',
-              detail: 'Animales eliminados',
-              life: 3000,
-            });
-          })
-          .catch((error) => {
-            console.error('Error deleting animals:', error);
-            this.loading = false;
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Error',
-              detail: 'Error al eliminar los animales',
-              life: 3000,
-            });
-          });
-      },
-    });
-  }
 
   hideDialog() {
     this.animalDialog = false;
-    this.animal = {};
+    this.animalForm.reset();
     this.isEditMode = false;
     this.submitted = false;
+  }
+
+  /**
+   * Valida si un campo específico del formulario es inválido
+   */
+  isFieldInvalid(fieldName: string): boolean {
+    const field = this.animalForm.get(fieldName);
+    return !!(field && field.invalid && (field.dirty || field.touched || this.submitted));
+  }
+
+  /**
+   * Obtiene el mensaje de error para un campo específico
+   */
+  getFieldError(fieldName: string): string {
+    const field = this.animalForm.get(fieldName);
+    if (field?.errors) {
+      if (field.errors['required']) {
+        return `${fieldName} es requerido`;
+      }
+      if (field.errors['maxlength']) {
+        return `${fieldName} excede la longitud máxima`;
+      }
+      if (field.errors['min']) {
+        return `${fieldName} debe ser mayor o igual a ${field.errors['min'].min}`;
+      }
+      if (field.errors['max']) {
+        return `${fieldName} debe ser menor o igual a ${field.errors['max'].max}`;
+      }
+    }
+    return '';
+  }
+
+  /**
+   * Marca todos los campos del formulario como touched para mostrar errores
+   */
+  private markFormGroupTouched() {
+    Object.keys(this.animalForm.controls).forEach(key => {
+      const control = this.animalForm.get(key);
+      control?.markAsTouched();
+    });
   }
 
   saveAnimal() {
     this.submitted = true;
 
-    // Validaciones requeridas según el backend
-    if (
-      !this.animal.cod_finca ||
-      !this.animal.cod_animal ||
-      !this.animal.nomb_animal ||
-      !this.animal.sexo_animal
-    ) {
+    // Validar formulario
+    if (this.animalForm.invalid) {
+      this.markFormGroupTouched();
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
-        detail:
-          'Completa todos los campos obligatorios marcados con *',
+        detail: 'Completa todos los campos obligatorios marcados con *',
         life: 3000,
       });
       return;
     }
 
     this.loading = true;
+    const formValue = this.animalForm.value;
 
     if (this.isEditMode) {
       // Update - solo enviar campos que se pueden actualizar
       const updateData: AnimalUpdateDto = {
-        nomb_animal: this.animal.nomb_animal,
-        sexo_animal: this.animal.sexo_animal,
-
-        estatus: this.animal.estatus,
-        cod_raza: this.animal.cod_raza,
-        peso_actual: this.animal.peso_actual,
-        peso_al_nacer: this.animal.peso_al_nacer,
-        fec_nacim: this.animal.fec_nacim,
-        fec_ingreso: this.animal.fec_ingreso,
-        cod_color: this.animal.cod_color,
-        tatuaje: this.animal.tatuaje,
-        observac: this.animal.observac,
+        nomb_animal: formValue.nomb_animal,
+        sexo_animal: formValue.sexo_animal,
+        estatus: formValue.estatus,
+        cod_raza: formValue.cod_raza,
+        peso_actual: formValue.peso_actual,
+        peso_al_nacer: formValue.peso_al_nacer,
+        fec_nacim: formValue.fec_nacim,
+        cod_color: formValue.cod_color,
+        tatuaje: formValue.tatuaje,
+        observac: formValue.observac,
+        
+        // Nuevos campos añadidos
+        info_orejas: formValue.info_orejas,
+        info_cuernos: formValue.info_cuernos,
+        tipo_registro: formValue.tipo_registro,
+        aretes: formValue.aretes,
+        reg_intl: formValue.reg_intl,
       };
 
       this.animalsService
         .updateAnimal$(
-          this.animal.cod_finca.toString(),
-          this.animal.cod_animal,
+          formValue.cod_finca.toString(),
+          formValue.cod_animal,
           updateData
         )
         .subscribe({
@@ -496,7 +753,7 @@ export class Animals implements OnInit, OnDestroy {
             } else if (error.message) {
               errorDetail = error.message;
             }
-
+ 
             this.messageService.add({
               severity: 'error',
               summary: 'Error',
@@ -509,50 +766,63 @@ export class Animals implements OnInit, OnDestroy {
       // Create - enviar todos los campos requeridos
       const createData: Partial<AnimalCreateDto> = {
         // Campos básicos requeridos
-        cod_finca: this.animal.cod_finca!,
-        cod_animal: this.animal.cod_animal!,
-        nomb_animal: this.animal.nomb_animal!,
-        sexo_animal: this.animal.sexo_animal!,
-        fec_nacim: this.animal.fec_nacim,
-        fec_ingreso: this.animal.fec_ingreso || new Date().toISOString().split('T')[0],
+        cod_finca: formValue.cod_finca, // Finca del criador (donde nació el animal)
+        cod_animal: formValue.cod_animal,
+        nomb_animal: formValue.nomb_animal,
+        sexo_animal: formValue.sexo_animal,
+        fec_nacim: formValue.fec_nacim,
+        fec_ingreso: new Date().toISOString().split('T')[0],
+        
+        // Finca actual (propietario actual)
+        cod_finca_actual: formValue.cod_finca_actual,
+        
+        // Campos de genealogía (opcionales)
+        cod_finca_padre: formValue.cod_finca_padre || undefined,
+        cod_padre: formValue.cod_padre || undefined,
+        cod_finca_madre: formValue.cod_finca_madre || undefined,
+        cod_madre: formValue.cod_madre || undefined,
         
         // Campos de catálogos
-        estatus: this.animal.estatus || 'A',
-        cod_raza: this.animal.cod_raza || 0,
-        cod_color: this.animal.cod_color || 0,
-        cod_tipo_pelo: this.animal.cod_tipo_pelo || undefined, // Campo faltante
+        estatus: formValue.estatus || 'A',
+        cod_raza: formValue.cod_raza || 0,
+        cod_color: formValue.cod_color || 0,
+        cod_tipo_pelo: formValue.cod_tipo_pelo || undefined,
         
         // Campos de peso
-        peso_actual: this.animal.peso_actual || 0,
-        peso_al_nacer: this.animal.peso_al_nacer || 0,
-        peso_destete: this.animal.peso_al_destete || undefined, // Mapeo correcto
-        fec_destete: this.animal.fec_destete || undefined,
+        peso_actual: formValue.peso_actual || 0,
+        peso_al_nacer: formValue.peso_al_nacer || 0,
+        peso_destete: formValue.peso_al_destete || undefined,
+        fec_destete: formValue.fec_destete || undefined,
         
         // Campos de tatuaje
-        tatuaje: this.animal.tatuaje || undefined,
-        tatuaje_oreja_izq: this.animal.tatuaje_oreja_izq || undefined,
-        tatuaje_oreja_der: this.animal.tatuaje_oreja_der || undefined,
-        tatuaje_cola: this.animal.tatuaje_cola || undefined,
+        tatuaje: formValue.tatuaje || undefined,
+        tatuaje_oreja_izq: formValue.tatuaje_oreja_izq || undefined,
+        tatuaje_oreja_der: formValue.tatuaje_oreja_der || undefined,
+        tatuaje_cola: formValue.tatuaje_cola || undefined,
         
         // Campos de origen y tipo
-        origen: this.animal.origen || 'N', // N = Nacido en finca
-        tipo_concepcion: this.animal.tipo_concepcion || 'M', // M = Monta Natural
-        tipo_parto: this.animal.tipo_parto || 'S', // S = Simple
+        origen: formValue.origen || 'N',
+        tipo_concepcion: formValue.tipo_concepcion || 'M',
+        tipo_parto: formValue.tipo_parto || 'S',
         
         // Campos de material genético y protocolo
-        tipo_material_gen: this.animal.material_genetico || undefined, // Mapeo correcto
-        protocolo_imp: this.animal.protocolo_importacion || undefined, // Mapeo correcto
+        tipo_material_gen: formValue.material_genetico || undefined,
+        protocolo_imp: formValue.protocolo_importacion || undefined,
         
         // Campos de asociación y composición racial
-        cod_asociacion: this.animal.codigo_aso || undefined, // String field
-        porcen_sangre: this.animal.porc_racial || undefined, // Mapeo correcto
+        cod_asociacion: formValue.codigo_aso || undefined,
+        porcen_sangre: formValue.porc_racial || undefined,
         
         // Campos adicionales
-        observac: this.animal.observac || undefined,
-        imagen: this.animal.imagen || undefined,
+        observac: formValue.observac || undefined,
+        imagen: formValue.imagen || undefined,
         
-        // Campos que no están en el formulario pero pueden ser útiles
-        foto: this.animal.foto || undefined,
+        // Nuevos campos añadidos
+        info_orejas: formValue.info_orejas || undefined,
+        info_cuernos: formValue.info_cuernos || undefined,
+        tipo_registro: formValue.tipo_registro || undefined,
+        aretes: formValue.aretes || undefined,
+        reg_intl: formValue.reg_intl || undefined,
       };
 
       this.animalsService.addAnimal$(createData).subscribe({
@@ -602,5 +872,109 @@ export class Animals implements OnInit, OnDestroy {
       default:
         return 'secondary';
     }
+  }
+
+  // Farm selection methods
+  openCriadorFarmsDialog() {
+    this.showCriadorFarmsDialog = true;
+  }
+
+  openPropietarioFarmsDialog() {
+    this.showPropietarioFarmsDialog = true;
+  }
+
+  onCriadorFincaSelected(finca: FincaDto) {
+    this.selectedCriadorFinca = finca;
+    this.animalForm.patchValue({
+      cod_finca: finca.cod_finca, // Llenar cod_finca con la finca del criador
+      siglas_criador: finca.ide_finca,
+      nombre_criador: finca.nomb_finca
+    });
+    this.showCriadorFarmsDialog = false;
+    
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Criador Seleccionado',
+      detail: `Finca criadora: ${finca.nomb_finca} (${finca.ide_finca})`,
+      life: 3000,
+    });
+  }
+
+  onPropietarioFincaSelected(finca: FincaDto) {
+    this.selectedPropietarioFinca = finca;
+    this.animalForm.patchValue({
+      cod_finca_actual: finca.cod_finca, // Llenar cod_finca_actual con la finca del propietario
+      siglas_propietario: finca.ide_finca,
+      nombre_propietario: finca.nomb_finca
+    });
+    this.showPropietarioFarmsDialog = false;
+    
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Propietario Seleccionado',
+      detail: `Finca propietaria: ${finca.nomb_finca} (${finca.ide_finca})`,
+      life: 3000,
+    });
+  }
+
+  // Genealogy selection methods
+  openPadreSelectionDialog() {
+    this.showPadreSelectionDialog = true;
+  }
+
+  openMadreSelectionDialog() {
+    this.showMadreSelectionDialog = true;
+  }
+
+  onPadreSelected(padre: AnimalDto) {
+    this.selectedPadre = padre;
+    this.animalForm.patchValue({
+      cod_finca_padre: padre.cod_finca,
+      cod_padre: padre.cod_animal,
+      nombre_padre: padre.nomb_animal
+    });
+    this.showPadreSelectionDialog = false;
+    
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Padre Seleccionado',
+      detail: `Padre: ${padre.nomb_animal} (${padre.cod_finca}-${padre.cod_animal})`,
+      life: 3000,
+    });
+  }
+
+  onMadreSelected(madre: AnimalDto) {
+    this.selectedMadre = madre;
+    this.animalForm.patchValue({
+      cod_finca_madre: madre.cod_finca,
+      cod_madre: madre.cod_animal,
+      nombre_madre: madre.nomb_animal
+    });
+    this.showMadreSelectionDialog = false;
+    
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Madre Seleccionada',
+      detail: `Madre: ${madre.nomb_animal} (${madre.cod_finca}-${madre.cod_animal})`,
+      life: 3000,
+    });
+  }
+
+  clearPadre() {
+    this.selectedPadre = null;
+    this.animalForm.patchValue({
+      cod_finca_padre: null,
+      cod_padre: '',
+      nombre_padre: ''
+    });
+  }
+
+  clearMadre() {
+    this.selectedMadre = null;
+    this.animalForm.patchValue({
+      cod_finca_madre: null,
+      cod_madre: '',
+      nombre_madre: ''
+    });
   }
 }

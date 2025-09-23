@@ -2,14 +2,12 @@ import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { firstValueFrom, BehaviorSubject, Subject } from 'rxjs';
 import { takeUntil, debounceTime, distinctUntilChanged, filter } from 'rxjs/operators';
+import { CatalogsService, CatalogQueryParams } from '../services/catalogs-service';
 import { 
-  CatalogsService, 
   RazaDto, 
   RazaCreateDto, 
-  RazaUpdateDto, 
-  CatalogQueryParams,
-  CatalogListResponse 
-} from '../services/catalogs-service';
+  RazaUpdateDto 
+} from '../../../../core/models/DTOs';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { Table, TableModule } from 'primeng/table';
 import { FormsModule } from '@angular/forms';

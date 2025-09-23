@@ -24,7 +24,6 @@ import {
   MunicipioDto,
   EstadoDto,
   PaisDto,
-  PoliticalDivisionListResponse,
   PoliticalDivisionSelectOption,
 } from '../../models/political-division.dto';
 
@@ -51,6 +50,7 @@ import {
   Search,
   Trash,
 } from 'lucide-angular';
+import { LaravelApiResponse } from '@core/models/DTOs';
 
 @Component({
   selector: 'app-parishes-tab',
@@ -141,8 +141,8 @@ export class ParishesTabComponent implements OnInit, OnChanges {
     this.politicalDivisionService
       .getPaises({ page: 1, per_page: 100 })
       .subscribe({
-        next: (response: PoliticalDivisionListResponse<PaisDto>) => {
-          this.countryOptions = response.message.data.map((country) => ({
+        next: (response: LaravelApiResponse<PaisDto>) => {
+          this.countryOptions = response.data.data.map((country) => ({
             label: country.nom_pais,
             value: country.cod_pais,
           }));
@@ -161,8 +161,8 @@ export class ParishesTabComponent implements OnInit, OnChanges {
       this.politicalDivisionService
         .getEstados({ page: 1, per_page: 100 })
         .subscribe({
-          next: (response: PoliticalDivisionListResponse<EstadoDto>) => {
-            this.allStateOptions = response.message.data.map((state) => ({
+          next: (response: LaravelApiResponse<EstadoDto>) => {
+            this.allStateOptions = response.data.data.map((state) => ({
               label: state.nom_estado,
               value: state.cod_estado,
               cod_pais: state.cod_pais,
@@ -185,8 +185,8 @@ export class ParishesTabComponent implements OnInit, OnChanges {
       this.politicalDivisionService
         .getMunicipios({ page: 1, per_page: 100 })
         .subscribe({
-          next: (response: PoliticalDivisionListResponse<MunicipioDto>) => {
-            this.allMunicipalityOptions = response.message.data.map(
+          next: (response: LaravelApiResponse<MunicipioDto>) => {
+            this.allMunicipalityOptions = response.data.data.map(
               (municipality) => ({
                 label: municipality.nom_municipio,
                 value: municipality.cod_municipio,
@@ -216,8 +216,8 @@ export class ParishesTabComponent implements OnInit, OnChanges {
           cod_pais: selectedCountryCode, // Filtrar por país en el backend
         })
         .subscribe({
-          next: (response: PoliticalDivisionListResponse<EstadoDto>) => {
-            this.stateOptions = response.message.data.map((state) => ({
+          next: (response: LaravelApiResponse<EstadoDto>) => {
+            this.stateOptions = response.data.data.map((state) => ({
               label: state.nom_estado,
               value: state.cod_estado,
             }));
@@ -252,8 +252,8 @@ export class ParishesTabComponent implements OnInit, OnChanges {
           cod_estado: selectedStateCode, // Filtrar por estado en el backend
         })
         .subscribe({
-          next: (response: PoliticalDivisionListResponse<MunicipioDto>) => {
-            this.municipalityOptions = response.message.data.map(
+          next: (response: LaravelApiResponse<MunicipioDto>) => {
+            this.municipalityOptions = response.data.data.map(
               (municipality) => ({
                 label: municipality.nom_municipio,
                 value: municipality.cod_municipio,
@@ -293,9 +293,9 @@ export class ParishesTabComponent implements OnInit, OnChanges {
     };
 
     this.politicalDivisionService.getParroquias(params).subscribe({
-      next: (response: PoliticalDivisionListResponse<ParroquiaDto>) => {
-        this.parishes = response.message.data;
-        this.totalRecords = response.message.total;
+      next: (response: LaravelApiResponse<ParroquiaDto>) => {
+        this.parishes = response.data.data;
+        this.totalRecords = response.data.total;
         this.loading = false;
       },
       error: (error) => {

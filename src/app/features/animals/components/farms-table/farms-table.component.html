@@ -1,0 +1,178 @@
+<p-dialog
+  [(visible)]="visible"
+  [header]="title"
+  [modal]="true"
+  [style]="{ width: '95vw', maxWidth: '1200px' }"
+  [closable]="true"
+  [maximizable]="true"
+  (onHide)="hideDialog()"
+>
+  <div class="space-y-4">
+    <!-- Toolbar -->
+    <p-toolbar class="mb-4 gap-2 bg-gray-50">
+      <ng-template pTemplate="start">
+        <div class="flex items-center gap-2">
+          <i class="pi pi-search text-gray-600"></i>
+          <span class="text-sm font-medium text-gray-700">Buscar:</span>
+          <input
+            pInputText
+            type="text"
+            placeholder="Buscar finca..."
+            class="w-64"
+            [value]="globalFilterValue"
+            (input)="onGlobalFilter(dt, $event)"
+          />
+          <p-button
+            icon="pi pi-filter-slash"
+            label="Limpiar"
+            severity="secondary"
+            size="small"
+            (onClick)="clear(dt)"
+          />
+        </div>
+      </ng-template>
+      
+      <ng-template pTemplate="end">
+        <div class="text-sm text-gray-600">
+          Total: {{ totalRecords }} fincas
+        </div>
+      </ng-template>
+    </p-toolbar>
+
+    <!-- Table Container -->
+      <p-table
+        #dt
+        [value]="farms"
+        [globalFilterFields]="['ide_finca', 'nomb_finca', 'estado', 'municipio', 'ciudad', 'propietario']"
+        selectionMode="single"
+        [(selection)]="selectedFarm"
+        (onRowSelect)="onRowSelect($event)"
+        (onRowUnselect)="onRowUnselect($event)"
+        [scrollable]="true"
+        scrollHeight="400px"
+        styleClass="p-datatable-sm"
+        [tableStyle]="{ 'min-width': '50rem' }"
+        [paginator]="true"
+        [rows]="10"
+        [rowsPerPageOptions]="[10, 25, 50]"
+        [showCurrentPageReport]="true"
+        currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} fincas"
+        [totalRecords]="totalRecords"
+      >
+        <ng-template pTemplate="header">
+          <tr>
+            <th style="width: 3rem">
+              <i class="pi pi-check-circle text-green-600"></i>
+            </th>
+            <th pSortableColumn="ide_finca" style="min-width: 8rem">
+              <div class="flex align-items-center">
+                <i class="pi pi-hashtag text-blue-600 mr-2"></i>
+                Siglas
+                <p-sortIcon field="ide_finca" />
+              </div>
+            </th>
+            <th pSortableColumn="nomb_finca" style="min-width: 15rem">
+              <div class="flex align-items-center">
+                <i class="pi pi-building text-green-600 mr-2"></i>
+                Nombre
+                <p-sortIcon field="nomb_finca" />
+              </div>
+            </th>
+            <th pSortableColumn="estado" style="min-width: 10rem">
+              <div class="flex align-items-center">
+                <i class="pi pi-map text-purple-600 mr-2"></i>
+                Estado
+                <p-sortIcon field="estado" />
+              </div>
+            </th>
+            <th pSortableColumn="municipio" style="min-width: 12rem">
+              <div class="flex align-items-center">
+                <i class="pi pi-map-marker text-orange-600 mr-2"></i>
+                Municipio
+                <p-sortIcon field="municipio" />
+              </div>
+            </th>
+            <th pSortableColumn="ciudad" style="min-width: 12rem">
+              <div class="flex align-items-center">
+                <i class="pi pi-home text-teal-600 mr-2"></i>
+                Ciudad
+                <p-sortIcon field="ciudad" />
+              </div>
+            </th>
+            <th pSortableColumn="propietario" style="min-width: 15rem">
+              <div class="flex align-items-center">
+                <i class="pi pi-user text-indigo-600 mr-2"></i>
+                Propietario
+                <p-sortIcon field="propietario" />
+              </div>
+            </th>
+          </tr>
+        </ng-template>
+        
+        <ng-template pTemplate="body" let-farm let-rowIndex="rowIndex">
+          <tr [pSelectableRow]="farm" [pSelectableRowIndex]="rowIndex">
+            <td class="text-center">
+              @if (selectedFarm?.cod_finca === farm.cod_finca) {
+                <i class="pi pi-check-circle text-green-600 text-lg"></i>
+              } @else {
+                <i class="pi pi-circle text-gray-300"></i>
+              }
+            </td>
+            <td>
+              <span class="font-semibold text-blue-700 bg-blue-50 px-2 py-1 rounded text-sm">
+                {{ farm.ide_finca }}
+              </span>
+            </td>
+            <td>
+              <div class="font-medium text-gray-900">{{ farm.nomb_finca }}</div>
+            </td>
+            <td>
+              <span class="text-gray-700">{{ farm.estado }}</span>
+            </td>
+            <td>
+              <span class="text-gray-700">{{ farm.municipio }}</span>
+            </td>
+            <td>
+              <span class="text-gray-700">{{ farm.ciudad }}</span>
+            </td>
+            <td>
+              <div class="flex items-center gap-2">
+                <i class="pi pi-user text-gray-500"></i>
+                <span class="text-gray-700">{{ farm.propietario }}</span>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+        
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="7" class="text-center py-8">
+              <div class="flex flex-col items-center gap-3">
+                <i class="pi pi-search text-gray-400 text-4xl"></i>
+                <p class="text-gray-500 text-lg">No se encontraron fincas</p>
+                <p class="text-gray-400 text-sm">Intenta con otros términos de búsqueda</p>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+
+    <!-- Action Buttons -->
+    <div class="flex justify-end gap-3 pt-4 border-t mt-4">
+      <p-button
+        type="button"
+        label="Cancelar"
+        icon="pi pi-times"
+        severity="secondary"
+        (onClick)="hideDialog()"
+      />
+      <p-button
+        type="button"
+        label="Seleccionar"
+        icon="pi pi-check"
+        [disabled]="!selectedFarm"
+        (onClick)="selectFarm()"
+      />
+    </div>
+  </div>
+</p-dialog>

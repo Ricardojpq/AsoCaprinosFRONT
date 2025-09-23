@@ -8,9 +8,8 @@ import {
   CertificateTableData,
   CertificateFormData,
   CreateCertificateDto,
-  ApiResponse,
-  PaginatedResponse,
 } from '../models/certificate.dto';
+import { LaravelApiResponse, LaravelSingleItemResponse, LaravelPaginationResponse } from '../../../core/models/DTOs';
 
 @Injectable({
   providedIn: 'root',
@@ -32,7 +31,7 @@ export class CertificatesService {
       cod_propietario?: string;
       search?: string;
     }
-  ): Observable<ApiResponse<PaginatedResponse<Certificate>>> {
+  ): Observable<LaravelApiResponse<LaravelPaginationResponse<Certificate>>> {
     let params = new HttpParams()
       .set('page', page.toString())
       .set('per_page', perPage.toString());
@@ -52,7 +51,7 @@ export class CertificatesService {
       }
     }
 
-    return this.http.get<ApiResponse<PaginatedResponse<Certificate>>>(
+    return this.http.get<LaravelApiResponse<LaravelPaginationResponse<Certificate>>>(
       this.baseUrl,
       { params }
     );
@@ -61,19 +60,15 @@ export class CertificatesService {
   /**
    * Obtiene un certificado por ID
    */
-  getCertificateById(id: number): Observable<ApiResponse<Certificate>> {
-    return this.http.get<ApiResponse<Certificate>>(`${this.baseUrl}/${id}`);
+  getCertificateById(id: number): Observable<LaravelSingleItemResponse<Certificate>> {
+    return this.http.get<LaravelSingleItemResponse<Certificate>>(`${this.baseUrl}/${id}`);
   }
 
   /**
    * Obtiene información completa del certificado
    */
-  getCertificateCompleteInfo(
-    id: number
-  ): Observable<ApiResponse<CertificateDto>> {
-    return this.http.get<ApiResponse<CertificateDto>>(
-      `${this.baseUrl}/${id}/complete-info`
-    );
+  getCertificateWithCompleteInfo(id: number): Observable<LaravelSingleItemResponse<CertificateDto>> {
+    return this.http.get<LaravelSingleItemResponse<CertificateDto>>(`${this.baseUrl}/${id}/complete-info`);
   }
 
   /**
@@ -81,8 +76,8 @@ export class CertificatesService {
    */
   createCertificate(
     certificate: CreateCertificateDto
-  ): Observable<ApiResponse<Certificate>> {
-    return this.http.post<ApiResponse<Certificate>>(this.baseUrl, certificate);
+  ): Observable<LaravelSingleItemResponse<Certificate>> {
+    return this.http.post<LaravelSingleItemResponse<Certificate>>(this.baseUrl, certificate);
   }
 
   /**
@@ -90,8 +85,8 @@ export class CertificatesService {
    */
   createCertificateLegacy(
     certificate: CertificateFormData
-  ): Observable<ApiResponse<Certificate>> {
-    return this.http.post<ApiResponse<Certificate>>(this.baseUrl, certificate);
+  ): Observable<LaravelSingleItemResponse<Certificate>> {
+    return this.http.post<LaravelSingleItemResponse<Certificate>>(this.baseUrl, certificate);
   }
 
   /**
@@ -100,18 +95,15 @@ export class CertificatesService {
   updateCertificate(
     id: number,
     certificate: Partial<CertificateFormData>
-  ): Observable<ApiResponse<Certificate>> {
-    return this.http.put<ApiResponse<Certificate>>(
-      `${this.baseUrl}/${id}`,
-      certificate
-    );
+  ): Observable<LaravelSingleItemResponse<Certificate>> {
+    return this.http.put<LaravelSingleItemResponse<Certificate>>(`${this.baseUrl}/${id}`, certificate);
   }
 
   /**
    * Elimina un certificado
    */
-  deleteCertificate(id: number): Observable<ApiResponse<null>> {
-    return this.http.delete<ApiResponse<null>>(`${this.baseUrl}/${id}`);
+  deleteCertificate(id: number): Observable<LaravelApiResponse<any>> {
+    return this.http.delete<LaravelApiResponse<any>>(`${this.baseUrl}/${id}`);
   }
 
   /**
@@ -121,13 +113,13 @@ export class CertificatesService {
     query: string,
     page: number = 1,
     perPage: number = 10
-  ): Observable<ApiResponse<PaginatedResponse<Certificate>>> {
+  ): Observable<LaravelApiResponse<LaravelPaginationResponse<Certificate>>> {
     let params = new HttpParams()
       .set('q', query)
       .set('page', page.toString())
       .set('per_page', perPage.toString());
 
-    return this.http.get<ApiResponse<PaginatedResponse<Certificate>>>(
+    return this.http.get<LaravelApiResponse<LaravelPaginationResponse<Certificate>>>(
       `${this.baseUrl}/search`,
       { params }
     );
@@ -136,13 +128,13 @@ export class CertificatesService {
   /**
    * Obtiene lista de animales para selección
    */
-  getAnimalsForSelection(search?: string): Observable<ApiResponse<any[]>> {
+  getAnimalsForSelection(search?: string): Observable<LaravelApiResponse<any>> {
     let params = new HttpParams();
     if (search) {
       params = params.set('search', search);
     }
 
-    return this.http.get<ApiResponse<any[]>>(
+    return this.http.get<LaravelApiResponse<any>>(
       `${environment.apiUrl}/api/v1/animals`,
       { params }
     );
@@ -151,13 +143,13 @@ export class CertificatesService {
   /**
    * Obtiene lista de socios para selección
    */
-  getSociosForSelection(search?: string): Observable<ApiResponse<any[]>> {
+  getSociosForSelection(search?: string): Observable<LaravelApiResponse<any>> {
     let params = new HttpParams();
     if (search) {
       params = params.set('search', search);
     }
 
-    return this.http.get<ApiResponse<any[]>>(
+    return this.http.get<LaravelApiResponse<any>>(
       `${environment.apiUrl}/api/v1/socios`,
       { params }
     );
@@ -168,13 +160,13 @@ export class CertificatesService {
    */
   getClasificadoresForSelection(
     search?: string
-  ): Observable<ApiResponse<any[]>> {
+  ): Observable<LaravelApiResponse<any>> {
     let params = new HttpParams();
     if (search) {
       params = params.set('search', search);
     }
 
-    return this.http.get<ApiResponse<any[]>>(
+    return this.http.get<LaravelApiResponse<any>>(
       `${environment.apiUrl}/api/v1/clasificadores`,
       { params }
     );

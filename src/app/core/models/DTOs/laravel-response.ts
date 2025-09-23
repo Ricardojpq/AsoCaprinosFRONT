@@ -28,11 +28,12 @@ export interface LaravelPaginationResponse<T> {
 
 /**
  * Laravel API response structure for list endpoints
+ * Based on real backend response structure
  */
 export interface LaravelApiResponse<T> {
   status: 'success' | 'error';
-  message: T; // For list endpoints, this contains the pagination data
-  data: string; // Success/error message
+  message: string; // Success/error message
+  data: LaravelPaginationResponse<T>; // Pagination data
 }
 
 /**
@@ -42,17 +43,4 @@ export interface LaravelSingleItemResponse<T> {
   status: 'success' | 'error';
   message: string;
   data: T;
-}
-
-/**
- * Simplified response interface for components
- */
-export interface CatalogListResponse<T> {
-  data: T[];
-  total: number;
-  per_page: number;
-  current_page: number;
-  last_page: number;
-  from: number;
-  to: number;
 }

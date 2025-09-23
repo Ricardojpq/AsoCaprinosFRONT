@@ -1,0 +1,131 @@
+<p-dialog
+  [(visible)]="visible"
+  [header]="title"
+  [modal]="true"
+  [style]="{ width: '95vw', maxWidth: '1200px' }"
+  [closable]="true"
+  [maximizable]="true"
+  (onHide)="hideDialog()"
+>
+  <div class="space-y-4">
+    <!-- Toolbar -->
+    <p-toolbar class="mb-4 gap-2 bg-gray-50">
+      <ng-template pTemplate="start">
+        <div class="flex items-center gap-2">
+          <i class="pi pi-search text-gray-600"></i>
+          <span class="text-sm font-medium text-gray-700">Buscar:</span>
+          <input
+            pInputText
+            type="text"
+            placeholder="Buscar socio..."
+            class="w-64"
+            [value]="globalFilterValue"
+            (input)="onGlobalFilter($event)"
+          />
+          <p-button
+            icon="pi pi-filter-slash"
+            label="Limpiar"
+            severity="secondary"
+            size="small"
+            (onClick)="clearSearch()"
+          />
+        </div>
+      </ng-template>
+      
+      <ng-template pTemplate="end">
+        <div class="text-sm text-gray-600">
+          Total: {{ totalRecords }} socios
+        </div>
+      </ng-template>
+    </p-toolbar>
+
+    <!-- Table Container -->
+    <p-table
+      #dt
+      [value]="socios"
+      [globalFilterFields]="['ced_socio', 'nom_persona', 'ape_persona', 'finca']"
+      selectionMode="single"
+      [(selection)]="selectedSocio"
+      (onRowSelect)="onRowSelect($event)"
+      (onRowUnselect)="onRowUnselect($event)"
+      [paginator]="true"
+      [rows]="perPage"
+      [rowsPerPageOptions]="[10, 25, 50]"
+      [showCurrentPageReport]="true"
+      [totalRecords]="totalRecords"
+      [lazy]="true"
+      [loading]="loading"
+      (onLazyLoad)="onTableLazyLoad($event)"
+      currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} socios"
+      [tableStyle]="{ 'min-width': '50rem' }"
+      styleClass="p-datatable-gridlines p-datatable-striped"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th pSortableColumn="ced_socio" style="min-width: 12rem">
+            Cédula
+            <p-sortIcon field="ced_socio"></p-sortIcon>
+          </th>
+          <th pSortableColumn="persona.nom_persona" style="min-width: 14rem">
+            Nombre
+            <p-sortIcon field="persona.nom_persona"></p-sortIcon>
+          </th>
+          <th pSortableColumn="persona.ape_persona" style="min-width: 14rem">
+            Apellido
+            <p-sortIcon field="persona.ape_persona"></p-sortIcon>
+          </th>
+          <th pSortableColumn="persona.tlf_persona" style="min-width: 12rem">
+            Teléfono
+            <p-sortIcon field="persona.tlf_persona"></p-sortIcon>
+          </th>
+          <th style="min-width: 16rem">Finca</th>
+        </tr>
+      </ng-template>
+      
+      <ng-template pTemplate="body" let-socio let-rowIndex="rowIndex">
+        <tr [pSelectableRow]="socio" [pSelectableRowIndex]="rowIndex">
+          <td>
+            <span class="font-medium text-blue-600">{{ socio.ced_socio }}</span>
+          </td>
+          <td>{{ socio.nom_persona }}</td>
+          <td>{{ socio.ape_persona }}</td>
+          <td>
+            <span class="text-sm text-gray-600">{{ socio.tlf_persona || 'N/A' }}</span>
+          </td>
+          <td>
+            <span class="text-sm font-medium text-green-600">{{ socio.finca || 'N/A' }}</span>
+          </td>
+        </tr>
+      </ng-template>
+      
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="5" class="text-center py-8">
+            <div class="flex flex-col items-center gap-2">
+              <i class="pi pi-users text-4xl text-gray-400"></i>
+              <span class="text-gray-500">No se encontraron socios</span>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <!-- Dialog Footer -->
+  <ng-template pTemplate="footer">
+    <div class="flex justify-between items-center">
+      <div class="flex gap-2">
+        <p-button
+          label="Cancelar"
+          severity="secondary"
+          (onClick)="hideDialog()"
+        />
+        <p-button
+          label="Seleccionar"
+          [disabled]="!selectedSocio"
+          (onClick)="selectSocio()"
+        />
+      </div>
+    </div>
+  </ng-template>
+</p-dialog>

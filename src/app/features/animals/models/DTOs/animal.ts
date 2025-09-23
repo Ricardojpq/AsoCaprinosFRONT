@@ -171,6 +171,12 @@ export interface AnimalDto {
   pigmen_total?: boolean;
   imagen?: string;
   
+  info_orejas?: string;
+  info_cuernos?: string;
+  tipo_registro?: string;
+  aretes?: string;
+  reg_intl?: string;
+  
   // Base Entity Fields
   is_active?: boolean;
   created_by?: number;

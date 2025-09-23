@@ -1,13 +1,10 @@
 // ============= BASE INTERFACES =============
 
-export interface BasePoliticalEntity {
-  is_active: boolean;
-  created_by?: number;
-  updated_by?: number;
-  is_deleted: boolean;
-  created_at?: string;
-  updated_at?: string;
-  deleted_at?: string;
+import { BaseEntity } from '../../../core/models/DTOs/base-entity';
+import { LaravelApiResponse, LaravelSingleItemResponse } from '../../../core/models/DTOs';
+
+export interface BasePoliticalEntity extends BaseEntity {
+  // BaseEntity ya incluye todos estos campos, solo agregamos los específicos si es necesario
 }
 
 export interface PoliticalDivisionQueryParams {
@@ -17,30 +14,6 @@ export interface PoliticalDivisionQueryParams {
   sort_dir?: 'asc' | 'desc';
 }
 
-export interface PoliticalDivisionListResponse<T> {
-  status: string;
-  message: {
-    current_page: number;
-    data: T[];
-    first_page_url: string;
-    from: number;
-    last_page: number;
-    links: any[];
-    next_page_url: string | null;
-    path: string;
-    per_page: number;
-    prev_page_url: string | null;
-    to: number;
-    total: number;
-  };
-  data: string;
-}
-
-export interface SingleItemResponse<T> {
-  status: string;
-  message: string;
-  data: T;
-}
 
 // ============= PAÍS =============
 
@@ -188,6 +161,7 @@ export interface CiudadUpdateDto {
 }
 
 export interface CiudadQueryParams extends PoliticalDivisionQueryParams {
+  cod_municipio?: number;
   nom_ciudad?: string;
   estado_ciudad?: string;
   municipio_ciudad?: string;
