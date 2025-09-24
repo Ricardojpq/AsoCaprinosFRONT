@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
@@ -6,7 +6,12 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { DialogModule } from 'primeng/dialog';
 import { ToolbarModule } from 'primeng/toolbar';
-import { FincaDto, FincaSelectionDto } from '../../../../core/models/DTOs/finca.dto';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
+import { FarmsService } from '../../../farms/Services/farms-service';
+import { FincaDto, FincaSelectionDto } from '../../../farms/models/finca.dto';
+import { Subject, debounceTime, distinctUntilChanged, takeUntil, filter } from 'rxjs';
 
 @Component({
   selector: 'app-farms-table',
@@ -18,12 +23,15 @@ import { FincaDto, FincaSelectionDto } from '../../../../core/models/DTOs/finca.
     ButtonModule,
     InputTextModule,
     DialogModule,
-    ToolbarModule
+    ToolbarModule,
+    ProgressSpinnerModule,
+    ToastModule
   ],
   templateUrl: './farms-table.component.html',
-  styleUrls: ['./farms-table.component.css']
+  styleUrls: ['./farms-table.component.css'],
+  providers: [MessageService]
 })
-export class FarmsTableComponent implements OnInit {
+export class FarmsTableComponent implements OnInit, OnDestroy {
   @Input() visible: boolean = false;
   @Input() title: string = 'Seleccionar Finca';
   @Output() visibleChange = new EventEmitter<boolean>();
@@ -33,453 +41,130 @@ export class FarmsTableComponent implements OnInit {
   selectedFarm: FincaSelectionDto | null = null;
   globalFilterValue: string = '';
   totalRecords: number = 0;
+  loading: boolean = false;
+  
+  // Pagination
+  first: number = 0;
+  rows: number = 10;
+  
+  // Search debounce
+  private searchSubject = new Subject<string>();
+  private destroy$ = new Subject<void>();
+  
+  // Store complete farm data for selection
+  private completeFarmsData: FincaDto[] = [];
 
-  // Mock data based on the backend response structure
-  mockFarms: FincaDto[] = [
-    {
-      cod_finca: 1,
-      cod_empresa: 1,
-      cod_municipio: 1,
-      cod_estado: 1,
-      cod_ciudad: 1,
-      ide_finca: "LE",
-      direccion: "Carretera Nacional Km 15",
-      nomb_finca: "La Esperanza",
-      tlf: "0414-1111111",
-      rif: null,
-      fec_inicio: "2024-01-01T00:00:00.000000Z",
-      fec_actualizacion: "2025-09-13T00:00:00.000000Z",
-      hierro: null,
-      tipo_ganaderia: null,
-      tipo_sistema: null,
-      banco_semen: null,
-      nro_sec_exp: null,
-      dir_export: null,
-      dir_import: null,
-      formato_export: null,
-      ced_propietario: "12345678",
-      cel_propietrio: null,
-      email_propietario: null,
-      persona_contacto: null,
-      cel_contacto: null,
-      email_contacto: null,
-      previa_sigmav: null,
-      tipo_criador: null,
-      es_socio: null,
-      cod_pais: 1,
-      ide_criador_externo: null,
-      fec_ult_celo: null,
-      fec_ult_servicio: null,
-      fec_ult_diagnostico: null,
-      fec_ult_parto: null,
-      fec_ult_prog_monta: null,
-      predio_estado: null,
-      predio_municipio: null,
-      predio_parroquia: null,
-      abr_finca: null,
-      id_criador: null,
-      imagen: "finca1.jpg",
-      estatus_finca: "A",
-      is_active: true,
-      created_by: 1,
-      updated_by: null,
-      is_deleted: false,
-      created_at: "2025-09-13T15:26:47.000000Z",
-      updated_at: null,
-      deleted_at: null,
-      pais: {
-        cod_pais: 1,
-        nom_pais: "Venezuela",
-        siglas_pais: "VE",
-        capital_pais: "Caracas",
-        is_active: true,
-        created_by: 1,
-        updated_by: null,
-        is_deleted: false,
-        created_at: "2025-09-13T15:26:44.000000Z",
-        updated_at: null,
-        deleted_at: null
-      },
-      estado: {
-        cod_estado: 1,
-        nom_estado: "Amazonas",
-        siglas_estado: null,
-        cod_pais: 1,
-        capital_estado: "Puerto Ayacucho",
-        is_active: true,
-        created_by: 1,
-        updated_by: null,
-        is_deleted: false,
-        created_at: "2025-09-13T15:26:44.000000Z",
-        updated_at: null,
-        deleted_at: null
-      },
-      municipio: {
-        cod_municipio: 1,
-        cod_estado: 1,
-        nom_municipio: "Alto Orinoco",
-        capital_municipio: "La Esmeralda",
-        is_active: true,
-        created_by: 1,
-        updated_by: null,
-        is_deleted: false,
-        created_at: "2025-09-13T15:26:44.000000Z",
-        updated_at: null,
-        deleted_at: null
-      },
-      ciudad: {
-        cod_ciudad: 1,
-        nom_ciudad: "La Esmeralda",
-        estado_ciudad: "Amazonas",
-        municipio_ciudad: "Alto Orinoco",
-        is_active: true,
-        created_by: 1,
-        updated_by: null,
-        is_deleted: false,
-        created_at: "2025-09-13T15:26:45.000000Z",
-        updated_at: null,
-        deleted_at: null
-      },
-      propietario: {
-        ced_persona: "12345678",
-        cod_estado: null,
-        cod_municipio: null,
-        cod_ciudad: null,
-        ape_persona: "Pérez",
-        nom_persona: "Juan",
-        nac_persona: "V",
-        sexo_persona: "M",
-        fnac_persona: null,
-        edad_persona: null,
-        tlf_persona: null,
-        cel_persona: null,
-        dir_persona: null,
-        email_persona: null,
-        foto_persona: null,
-        estatus_persona: "A",
-        es_socio: true,
-        num_ced_e: null,
-        es_veteri: null,
-        es_personal: null,
-        es_empleado: null,
-        cod_pais: null,
-        es_externo: null,
-        imagen: null,
-        is_active: true,
-        created_by: 1,
-        updated_by: null,
-        is_deleted: false,
-        created_at: "2025-09-13T15:26:46.000000Z",
-        updated_at: null,
-        deleted_at: null
-      }
-    },
-    {
-      cod_finca: 2,
-      cod_empresa: 1,
-      cod_municipio: 2,
-      cod_estado: 1,
-      cod_ciudad: 2,
-      ide_finca: "EP",
-      direccion: "Sector Los Altos",
-      nomb_finca: "El Paraíso",
-      tlf: "0424-2222222",
-      rif: null,
-      fec_inicio: "2024-01-15T00:00:00.000000Z",
-      fec_actualizacion: "2025-09-13T00:00:00.000000Z",
-      hierro: null,
-      tipo_ganaderia: null,
-      tipo_sistema: null,
-      banco_semen: null,
-      nro_sec_exp: null,
-      dir_export: null,
-      dir_import: null,
-      formato_export: null,
-      ced_propietario: "87654321",
-      cel_propietrio: null,
-      email_propietario: null,
-      persona_contacto: null,
-      cel_contacto: null,
-      email_contacto: null,
-      previa_sigmav: null,
-      tipo_criador: null,
-      es_socio: null,
-      cod_pais: 1,
-      ide_criador_externo: null,
-      fec_ult_celo: null,
-      fec_ult_servicio: null,
-      fec_ult_diagnostico: null,
-      fec_ult_parto: null,
-      fec_ult_prog_monta: null,
-      predio_estado: null,
-      predio_municipio: null,
-      predio_parroquia: null,
-      abr_finca: null,
-      id_criador: null,
-      imagen: "finca2.jpg",
-      estatus_finca: "A",
-      is_active: true,
-      created_by: 1,
-      updated_by: null,
-      is_deleted: false,
-      created_at: "2025-09-13T15:26:47.000000Z",
-      updated_at: null,
-      deleted_at: null,
-      pais: {
-        cod_pais: 1,
-        nom_pais: "Venezuela",
-        siglas_pais: "VE",
-        capital_pais: "Caracas",
-        is_active: true,
-        created_by: 1,
-        updated_by: null,
-        is_deleted: false,
-        created_at: "2025-09-13T15:26:44.000000Z",
-        updated_at: null,
-        deleted_at: null
-      },
-      estado: {
-        cod_estado: 1,
-        nom_estado: "Amazonas",
-        siglas_estado: null,
-        cod_pais: 1,
-        capital_estado: "Puerto Ayacucho",
-        is_active: true,
-        created_by: 1,
-        updated_by: null,
-        is_deleted: false,
-        created_at: "2025-09-13T15:26:44.000000Z",
-        updated_at: null,
-        deleted_at: null
-      },
-      municipio: {
-        cod_municipio: 2,
-        cod_estado: 1,
-        nom_municipio: "Atabapo",
-        capital_municipio: "San Fernando de Atabapo",
-        is_active: true,
-        created_by: 1,
-        updated_by: null,
-        is_deleted: false,
-        created_at: "2025-09-13T15:26:44.000000Z",
-        updated_at: null,
-        deleted_at: null
-      },
-      ciudad: {
-        cod_ciudad: 2,
-        nom_ciudad: "San Fernando de Atabapo",
-        estado_ciudad: "Amazonas",
-        municipio_ciudad: "Atabapo",
-        is_active: true,
-        created_by: 1,
-        updated_by: null,
-        is_deleted: false,
-        created_at: "2025-09-13T15:26:45.000000Z",
-        updated_at: null,
-        deleted_at: null
-      },
-      propietario: {
-        ced_persona: "87654321",
-        cod_estado: null,
-        cod_municipio: null,
-        cod_ciudad: null,
-        ape_persona: "González",
-        nom_persona: "María",
-        nac_persona: "V",
-        sexo_persona: "M",
-        fnac_persona: null,
-        edad_persona: null,
-        tlf_persona: null,
-        cel_persona: null,
-        dir_persona: null,
-        email_persona: null,
-        foto_persona: null,
-        estatus_persona: "A",
-        es_socio: true,
-        num_ced_e: null,
-        es_veteri: null,
-        es_personal: null,
-        es_empleado: null,
-        cod_pais: null,
-        es_externo: null,
-        imagen: null,
-        is_active: true,
-        created_by: 1,
-        updated_by: null,
-        is_deleted: false,
-        created_at: "2025-09-13T15:26:46.000000Z",
-        updated_at: null,
-        deleted_at: null
-      }
-    },
-    // Additional mock data
-    {
-      cod_finca: 3,
-      cod_empresa: 1,
-      cod_municipio: 1,
-      cod_estado: 2,
-      cod_ciudad: 3,
-      ide_finca: "AEC",
-      direccion: "Zona Industrial Norte",
-      nomb_finca: "AGROINVERSIONES EL CAFETAL",
-      tlf: "0412-3333333",
-      rif: "J-12345678-9",
-      fec_inicio: "2023-05-10T00:00:00.000000Z",
-      fec_actualizacion: "2025-09-13T00:00:00.000000Z",
-      hierro: null,
-      tipo_ganaderia: null,
-      tipo_sistema: null,
-      banco_semen: null,
-      nro_sec_exp: null,
-      dir_export: null,
-      dir_import: null,
-      formato_export: null,
-      ced_propietario: "11223344",
-      cel_propietrio: null,
-      email_propietario: null,
-      persona_contacto: null,
-      cel_contacto: null,
-      email_contacto: null,
-      previa_sigmav: null,
-      tipo_criador: null,
-      es_socio: null,
-      cod_pais: 1,
-      ide_criador_externo: null,
-      fec_ult_celo: null,
-      fec_ult_servicio: null,
-      fec_ult_diagnostico: null,
-      fec_ult_parto: null,
-      fec_ult_prog_monta: null,
-      predio_estado: null,
-      predio_municipio: null,
-      predio_parroquia: null,
-      abr_finca: null,
-      id_criador: null,
-      imagen: "finca3.jpg",
-      estatus_finca: "A",
-      is_active: true,
-      created_by: 1,
-      updated_by: null,
-      is_deleted: false,
-      created_at: "2025-09-13T15:26:47.000000Z",
-      updated_at: null,
-      deleted_at: null,
-      pais: {
-        cod_pais: 1,
-        nom_pais: "Venezuela",
-        siglas_pais: "VE",
-        capital_pais: "Caracas",
-        is_active: true,
-        created_by: 1,
-        updated_by: null,
-        is_deleted: false,
-        created_at: "2025-09-13T15:26:44.000000Z",
-        updated_at: null,
-        deleted_at: null
-      },
-      estado: {
-        cod_estado: 2,
-        nom_estado: "Lara",
-        siglas_estado: "LA",
-        cod_pais: 1,
-        capital_estado: "Barquisimeto",
-        is_active: true,
-        created_by: 1,
-        updated_by: null,
-        is_deleted: false,
-        created_at: "2025-09-13T15:26:44.000000Z",
-        updated_at: null,
-        deleted_at: null
-      },
-      municipio: {
-        cod_municipio: 3,
-        cod_estado: 2,
-        nom_municipio: "Morán",
-        capital_municipio: "El Tocuyo",
-        is_active: true,
-        created_by: 1,
-        updated_by: null,
-        is_deleted: false,
-        created_at: "2025-09-13T15:26:44.000000Z",
-        updated_at: null,
-        deleted_at: null
-      },
-      ciudad: {
-        cod_ciudad: 3,
-        nom_ciudad: "Anzoátegui",
-        estado_ciudad: "Lara",
-        municipio_ciudad: "Morán",
-        is_active: true,
-        created_by: 1,
-        updated_by: null,
-        is_deleted: false,
-        created_at: "2025-09-13T15:26:45.000000Z",
-        updated_at: null,
-        deleted_at: null
-      },
-      propietario: {
-        ced_persona: "11223344",
-        cod_estado: null,
-        cod_municipio: null,
-        cod_ciudad: null,
-        ape_persona: "Rodríguez Cubas",
-        nom_persona: "Nelson José",
-        nac_persona: "V",
-        sexo_persona: "M",
-        fnac_persona: null,
-        edad_persona: null,
-        tlf_persona: null,
-        cel_persona: null,
-        dir_persona: null,
-        email_persona: null,
-        foto_persona: null,
-        estatus_persona: "A",
-        es_socio: true,
-        num_ced_e: null,
-        es_veteri: null,
-        es_personal: null,
-        es_empleado: null,
-        cod_pais: null,
-        es_externo: null,
-        imagen: null,
-        is_active: true,
-        created_by: 1,
-        updated_by: null,
-        is_deleted: false,
-        created_at: "2025-09-13T15:26:46.000000Z",
-        updated_at: null,
-        deleted_at: null
-      }
-    }
-  ];
+  constructor(
+    private farmsService: FarmsService,
+    private messageService: MessageService
+  ) {}
 
   ngOnInit() {
-    this.loadFarms();
+    this.setupSearchDebounce();
+    // No llamar loadFarms() aquí - se maneja con lazy loading
   }
 
-  loadFarms() {
-    // Transform mock data to selection format
-    this.farms = this.mockFarms.map(farm => ({
-      cod_finca: farm.cod_finca,
-      ide_finca: farm.ide_finca,
-      nomb_finca: farm.nomb_finca,
-      estado: farm.estado.nom_estado,
-      municipio: farm.municipio.nom_municipio,
-      ciudad: farm.ciudad.nom_ciudad,
-      propietario: `${farm.propietario.nom_persona} ${farm.propietario.ape_persona}`
-    }));
-    this.totalRecords = this.farms.length;
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
-  onGlobalFilter(table: any, event: Event) {
+  private setupSearchDebounce() {
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      filter(searchTerm => !searchTerm || searchTerm.length >= 3), // Mínimo 3 caracteres
+      takeUntil(this.destroy$)
+    ).subscribe(searchTerm => {
+      this.performSearch(searchTerm);
+    });
+  }
+
+  onTableLazyLoad(event?: any) {
+    this.loading = true;
+    
+    // Calculate pagination parameters from PrimeNG event
+    const page = event ? Math.floor(event.first / event.rows) + 1 : 1;
+    const perPage = event ? event.rows : this.rows;
+    
+    // Handle sorting from PrimeNG event
+    let sortField = 'nomb_finca'; // default
+    let sortOrder: 'asc' | 'desc' = 'asc';
+    
+    if (event?.sortField) {
+      sortField = event.sortField;
+      sortOrder = event.sortOrder === 1 ? 'asc' : 'desc';
+    }
+    
+    // Prepare query parameters
+    const params = {
+      page,
+      per_page: perPage,
+      sort_by: sortField,
+      sort_dir: sortOrder,
+      estatus_finca: 'A', // Only active farms
+      search: this.globalFilterValue || undefined
+    };
+
+    this.farmsService.getFincas$(params).subscribe({
+      next: (response) => {
+        // Store complete data for selection
+        this.completeFarmsData = response.data;
+        
+        // Transform to selection format for table display
+        this.farms = response.data.map(farm => ({
+          cod_finca: farm.cod_finca,
+          ide_finca: farm.ide_finca,
+          nomb_finca: farm.nomb_finca,
+          estado: farm.estado?.nom_estado || 'N/A',
+          municipio: farm.municipio?.nom_municipio || 'N/A',
+          ciudad: farm.ciudad?.nom_ciudad || 'N/A',
+          propietario: farm.propietario ? 
+            `${farm.propietario.nom_persona} ${farm.propietario.ape_persona}` : 'N/A'
+        }));
+        
+        this.totalRecords = response.total;
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error loading farms:', error);
+        this.farms = [];
+        this.totalRecords = 0;
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Error al cargar las fincas. Por favor, intente nuevamente.',
+          life: 3000
+        });
+        this.loading = false;
+      }
+    });
+  }
+
+  private performSearch(searchTerm: string) {
+    this.first = 0; // Reset pagination
+    // Trigger lazy load with current parameters
+    this.onTableLazyLoad({
+      first: this.first,
+      rows: this.rows
+    });
+  }
+
+  onGlobalFilter(event: Event) {
     const target = event.target as HTMLInputElement;
     this.globalFilterValue = target.value;
-    table.filterGlobal(target.value, 'contains');
+    this.searchSubject.next(target.value);
   }
 
-  clear(table: any) {
-    table.clear();
+  clear() {
     this.globalFilterValue = '';
+    this.searchSubject.next('');
+    this.first = 0;
+    // Trigger lazy load to refresh data
+    this.onTableLazyLoad({
+      first: this.first,
+      rows: this.rows
+    });
   }
 
   onRowSelect(event: any) {
@@ -493,9 +178,14 @@ export class FarmsTableComponent implements OnInit {
   selectFarm() {
     if (this.selectedFarm) {
       // Find the complete farm data
-      const completeFarm = this.mockFarms.find(f => f.cod_finca === this.selectedFarm!.cod_finca);
+      const completeFarm = this.completeFarmsData.find(f => f.cod_finca === this.selectedFarm!.cod_finca);
       if (completeFarm) {
         this.fincaSelected.emit(completeFarm);
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Finca Seleccionada',
+          detail: `Se seleccionó la finca: ${completeFarm.nomb_finca}`
+        });
         this.hideDialog();
       }
     }

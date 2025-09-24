@@ -1,1 +1,189 @@
-<p>animal-selection-table works!</p>
+<p-dialog 
+  [header]="title" 
+  [(visible)]="visible" 
+  [modal]="true" 
+  [style]="{ width: '90vw', maxWidth: '1200px' }"
+  [draggable]="false" 
+  [resizable]="false"
+  styleClass="p-fluid"
+  (onHide)="hideDialog()">
+  
+  <!-- Toolbar con filtros y búsqueda -->
+  <p-toolbar class="mb-4 gap-2">
+    <ng-template pTemplate="start">
+      <div class="flex flex-wrap gap-2 align-items-center">
+        <!-- Búsqueda global -->
+        <p-iconfield iconPosition="left">
+          <p-inputicon>
+            <lucide-angular [img]="searchIcon" size="16"></lucide-angular>
+          </p-inputicon>
+          <input 
+            type="text" 
+            pInputText 
+            placeholder="Buscar animal" 
+            [(ngModel)]="globalFilterValue"
+            (input)="onGlobalFilter($event)"
+            class="w-20rem"
+          />
+        </p-iconfield>
+
+        <!-- Filtro por sexo -->
+        <p-select
+          [(ngModel)]="filters.sexo_animal"
+          [options]="sexOptions"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Sexo"
+          (onChange)="onFilterChange()"
+          [disabled]="!!sexFilter"
+          class="w-8rem"
+        />
+
+        <!-- Filtro por estatus -->
+        <p-select
+          [(ngModel)]="filters.estatus"
+          [options]="statusOptions"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Estatus"
+          (onChange)="onFilterChange()"
+          class="w-8rem"
+        />
+
+        <!-- Botón limpiar filtros -->
+        <p-button 
+          icon="pi pi-filter-slash" 
+          label="Limpiar" 
+          severity="secondary" 
+          size="small"
+          (onClick)="clearFilters()"
+        />
+      </div>
+    </ng-template>
+
+    <ng-template pTemplate="end">
+      <div class="flex flex-column align-items-end gap-1">
+        <span class="text-sm text-gray-600">
+          Total: {{ totalRecords }} animales
+        </span>
+        @if (globalFilterValue) {
+          <small class="text-xs text-gray-500">
+            Buscando en: Código Finca, Código Animal, Nombre, Fecha Nac., Fecha Ingreso
+          </small>
+        }
+      </div>
+    </ng-template>
+  </p-toolbar>
+
+  <!-- Tabla de animales -->
+  <p-table 
+    #dt
+    [value]="animals" 
+    [rows]="perPage"
+    [totalRecords]="totalRecords"
+    [lazy]="true"
+    [loading]="loading"
+    [paginator]="true"
+    [rowsPerPageOptions]="[10, 25, 50]"
+    [showCurrentPageReport]="true"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} animales"
+    selectionMode="single"
+    [(selection)]="selectedAnimal"
+    (onRowSelect)="onRowSelect($event)"
+    (onRowUnselect)="onRowUnselect($event)"
+    (onLazyLoad)="loadAnimals($event)"
+    [sortField]="sortField"
+    [sortOrder]="sortOrder === 'asc' ? 1 : -1"
+    styleClass="p-datatable-sm"
+    [tableStyle]="{ 'min-width': '50rem' }">
+
+    <!-- Columnas de la tabla -->
+    <ng-template pTemplate="header">
+      <tr>
+        <th pSortableColumn="cod_finca" style="min-width: 8rem">
+          Finca <p-sortIcon field="cod_finca"></p-sortIcon>
+        </th>
+        <th pSortableColumn="cod_animal" style="min-width: 8rem">
+          Código <p-sortIcon field="cod_animal"></p-sortIcon>
+        </th>
+        <th pSortableColumn="nomb_animal" style="min-width: 12rem">
+          Nombre <p-sortIcon field="nomb_animal"></p-sortIcon>
+        </th>
+        <th pSortableColumn="sexo_animal" style="min-width: 6rem">
+          Sexo 
+        </th>
+        <th pSortableColumn="fec_nacim" style="min-width: 8rem">
+          Fecha Nac. <p-sortIcon field="fec_nacim"></p-sortIcon>
+        </th>
+        <th style="min-width: 8rem">Raza</th>
+        <th pSortableColumn="estatus" style="min-width: 6rem">
+          Estatus 
+        </th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-animal let-rowIndex="rowIndex">
+      <tr [pSelectableRow]="animal" [pSelectableRowIndex]="rowIndex">
+        <td>
+          <span class="font-medium">{{ animal.cod_finca }}</span>
+        </td>
+        <td>
+          <span class="font-medium text-blue-600">{{ animal.cod_animal }}</span>
+        </td>
+        <td>
+          <span class="font-semibold">{{ animal.nomb_animal }}</span>
+        </td>
+        <td>
+          <p-tag 
+            [value]="getSexLabel(animal.sexo_animal)" 
+            [severity]="animal.sexo_animal === 'M' ? 'info' : 'success'"
+          />
+        </td>
+        <td>
+          {{ animal.fec_nacim | date:'dd/MM/yyyy' }}
+        </td>
+        <td>
+          <span class="text-sm">{{ animal.raza_info?.nomb_raza || 'N/A' }}</span>
+        </td>
+        <td>
+          <p-tag 
+            [value]="getStatusLabel(animal.estatus || 'A')" 
+            [severity]="getStatusSeverity(animal.estatus || 'A')"
+          />
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="9" class="text-center p-4">
+          <div class="flex flex-column align-items-center gap-2">
+            <i class="pi pi-search text-4xl text-gray-400"></i>
+            <span class="text-gray-500">No se encontraron animales</span>
+            <small class="text-gray-400">Intenta ajustar los filtros de búsqueda</small>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+
+  <!-- Footer con botones -->
+  <ng-template pTemplate="footer">
+    <div class="flex justify-content-between align-items-center">
+      <div class="flex gap-2">
+        <p-button 
+          label="Cancelar" 
+          icon="pi pi-times" 
+          severity="secondary" 
+          (onClick)="hideDialog()"
+        />
+        <p-button 
+          label="Seleccionar" 
+          icon="pi pi-check" 
+          (onClick)="selectAnimal()"
+          [disabled]="!selectedAnimal"
+        />
+      </div>
+    </div>
+  </ng-template>
+</p-dialog>

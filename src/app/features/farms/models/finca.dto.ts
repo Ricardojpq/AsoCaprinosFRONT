@@ -218,6 +218,19 @@ export interface FincaQueryParams {
 }
 
 /**
+ * Simplified Finca DTO for selection tables
+ */
+export interface FincaSelectionDto {
+  cod_finca: number;
+  ide_finca: string;
+  nomb_finca: string;
+  estado: string;
+  municipio: string;
+  ciudad: string;
+  propietario: string;
+}
+
+/**
  * Filters interface for Finca table
  */
 export interface FincaFilters {

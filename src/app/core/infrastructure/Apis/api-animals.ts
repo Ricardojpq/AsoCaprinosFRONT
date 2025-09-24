@@ -9,7 +9,7 @@ export class ApiAnimals {
     return `${baseUrl}${environment.apiPrefix}/${environment.apiVersion}/animals${params ? '?' + params : ''}`;
   }
 
-  static GetAnimalById(baseUrl: string, cod_finca: string, cod_animal: string) {
+  static GetAnimalById(baseUrl: string, cod_finca: string, cod_animal: number) {
     return `${baseUrl}${environment.apiPrefix}/${environment.apiVersion}/animals/${cod_finca}/${cod_animal}`;
   }
 

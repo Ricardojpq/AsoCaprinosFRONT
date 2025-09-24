@@ -145,7 +145,7 @@ export class AnimalsService {
     }
   }
 
-  getAnimalById$(cod_finca: string, cod_animal: string): Observable<AnimalDto> {
+  getAnimalById$(cod_finca: string, cod_animal: number): Observable<AnimalDto> {
     try {
       const uri = ApiAnimals.GetAnimalById(this.animalsURL, cod_finca, cod_animal);
       return this.httpClient.get<LaravelSingleItemResponse<AnimalDto>>(uri).pipe(

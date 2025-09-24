@@ -84,6 +84,20 @@ export interface AnimalCreateDto {
   tipo_material_gen?: string;
   imagen?: string;
   
+  // Campos adicionales de padre
+  cri_padre?: string; // criador del padre
+  nro_reg_padre?: string; // nro_registro_cla del padre
+  cod_aso_padre?: string; // cod_asociacion del padre
+  padre_aso?: string; // old_aso del padre
+  pru_aso_padre?: string; // pru_aso del padre
+  
+  // Campos adicionales de madre
+  cri_madre?: string; // criador de la madre
+  nro_reg_madre?: string; // nro_registro_cla de la madre
+  cod_aso_madre?: string; // cod_asociacion de la madre
+  madre_aso?: string; // old_aso de la madre
+  pru_aso_madre?: string; // pru_aso de la madre
+  
   // Nuevos campos añadidos
   info_orejas?: string;
   info_cuernos?: string;

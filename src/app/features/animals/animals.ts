@@ -32,8 +32,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { FarmsTableComponent } from './components/farms-table/farms-table.component';
-import { AnimalSelectionTableComponent } from './components/animal-selection-table/animal-selection-table.component';
-import { FincaDto } from '../../core/models/DTOs/finca.dto';
+import { FincaDto } from '../farms/models/finca.dto';
 import { SelectModule } from 'primeng/select';
 import {
   LucideAngularModule,
@@ -48,6 +47,7 @@ import { DatePipe } from '@angular/common';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { TooltipModule } from 'primeng/tooltip';
+import { AnimalSelectionTable } from "./components/animal-selection-table/animal-selection-table";
 
 @Component({
   selector: 'app-animals',
@@ -76,8 +76,8 @@ import { TooltipModule } from 'primeng/tooltip';
     InputIconModule,
     TooltipModule,
     FarmsTableComponent,
-    AnimalSelectionTableComponent,
-  ],
+    AnimalSelectionTable
+],
 })
 export class Animals implements OnInit, OnDestroy {
   readonly trashIcon = Trash2;
@@ -182,9 +182,20 @@ export class Animals implements OnInit, OnDestroy {
       cod_finca_padre: [null],
       cod_padre: [''],
       nombre_padre: [''],
+      cri_padre: [''], // criador del padre
+      nro_reg_padre: [''], // nro_registro_cla del padre
+      cod_aso_padre: [''], // cod_asociacion del padre
+      padre_aso: [''], // old_aso del padre
+      pru_aso_padre: [''], // pru_aso del padre
+      
       cod_finca_madre: [null],
       cod_madre: [''],
       nombre_madre: [''],
+      cri_madre: [''], // criador de la madre
+      nro_reg_madre: [''], // nro_registro_cla de la madre
+      cod_aso_madre: [''], // cod_asociacion de la madre
+      madre_aso: [''], // old_aso de la madre
+      pru_aso_madre: [''], // pru_aso de la madre
       
       // Campos de peso
       peso_actual: [0, [Validators.min(0)]],
@@ -489,9 +500,20 @@ export class Animals implements OnInit, OnDestroy {
       cod_finca_padre: null,
       cod_padre: '',
       nombre_padre: '',
+      cri_padre: '',
+      nro_reg_padre: '',
+      cod_aso_padre: '',
+      padre_aso: '',
+      pru_aso_padre: '',
+      
       cod_finca_madre: null,
       cod_madre: '',
-      nombre_madre: ''
+      nombre_madre: '',
+      cri_madre: '',
+      nro_reg_madre: '',
+      cod_aso_madre: '',
+      madre_aso: '',
+      pru_aso_madre: ''
     });
     
     // Limpiar selecciones de fincas y genealogía
@@ -506,25 +528,26 @@ export class Animals implements OnInit, OnDestroy {
   }
 
   editAnimal(animal: AnimalDto) {
+    console.log('Animal a editar:', animal);
     this.animalForm.patchValue({
       cod_finca: animal.cod_finca,
       cod_animal: animal.cod_animal,
       nomb_animal: animal.nomb_animal,
       sexo_animal: animal.sexo_animal,
       estatus: animal.estatus,
-      fec_nacim: animal.fec_nacim,
+      fec_nacim: this.formatDateForInput(animal.fec_nacim),
       cod_raza: animal.cod_raza,
       cod_color: animal.cod_color,
       cod_tipo_pelo: animal.cod_tipo_pelo,
       origen: animal.origen,
       tipo_concepcion: animal.tipo_concepcion,
       tipo_parto: animal.tipo_parto,
-      material_genetico: animal.material_genetico,
-      protocolo_importacion: animal.protocolo_importacion,
+      material_genetico: animal.tipo_material_gen,
+      protocolo_importacion: animal.protocolo_imp,
       peso_actual: animal.peso_actual,
       peso_al_nacer: animal.peso_al_nacer,
       peso_al_destete: animal.peso_al_destete,
-      fec_destete: animal.fec_destete,
+      fec_destete: this.formatDateForInput(animal.fec_destete),
       tatuaje: animal.tatuaje,
       tatuaje_oreja_izq: animal.tatuaje_oreja_izq,
       tatuaje_oreja_der: animal.tatuaje_oreja_der,
@@ -552,10 +575,25 @@ export class Animals implements OnInit, OnDestroy {
       cod_finca_padre: animal.cod_finca_padre,
       cod_padre: animal.cod_padre || '',
       nombre_padre: '', // Se llenará si hay datos de padre
+      cri_padre: animal.cri_padre || '',
+      nro_reg_padre: animal.nro_reg_padre || '',
+      cod_aso_padre: animal.cod_aso_padre || '',
+      padre_aso: animal.padre_aso || '',
+      pru_aso_padre: animal.pru_aso_padre || '',
+      
       cod_finca_madre: animal.cod_finca_madre,
       cod_madre: animal.cod_madre || '',
-      nombre_madre: '' // Se llenará si hay datos de madre
+      nombre_madre: '', // Se llenará si hay datos de madre
+      cri_madre: animal.cri_madre || '',
+      nro_reg_madre: animal.nro_reg_madre || '',
+      cod_aso_madre: animal.cod_aso_madre || '',
+      madre_aso: animal.madre_aso || '',
+      pru_aso_madre: animal.pru_aso_madre || ''
     });
+    
+    // Cargar nombres de padre y madre si existen
+    this.loadParentNames(animal);
+    
     
     // Nota: No podemos establecer selectedCriadorFinca y selectedPropietarioFinca 
     // porque FincaInfo no es compatible con FincaDto
@@ -713,7 +751,15 @@ export class Animals implements OnInit, OnDestroy {
         peso_actual: formValue.peso_actual,
         peso_al_nacer: formValue.peso_al_nacer,
         fec_nacim: formValue.fec_nacim,
+        fec_destete: formValue.fec_destete,
+        peso_destete: formValue.peso_al_destete,
         cod_color: formValue.cod_color,
+        cod_tipo_pelo: formValue.cod_tipo_pelo,
+        origen: formValue.origen,
+        tipo_concepcion: formValue.tipo_concepcion,
+        tipo_parto: formValue.tipo_parto,
+        tipo_material_gen: formValue.material_genetico,
+        protocolo_imp: formValue.protocolo_importacion,
         tatuaje: formValue.tatuaje,
         observac: formValue.observac,
         
@@ -779,8 +825,19 @@ export class Animals implements OnInit, OnDestroy {
         // Campos de genealogía (opcionales)
         cod_finca_padre: formValue.cod_finca_padre || undefined,
         cod_padre: formValue.cod_padre || undefined,
+        cri_padre: formValue.cri_padre || undefined,
+        nro_reg_padre: formValue.nro_reg_padre || undefined,
+        cod_aso_padre: formValue.cod_aso_padre || undefined,
+        padre_aso: formValue.padre_aso || undefined,
+        pru_aso_padre: formValue.pru_aso_padre || undefined,
+        
         cod_finca_madre: formValue.cod_finca_madre || undefined,
         cod_madre: formValue.cod_madre || undefined,
+        cri_madre: formValue.cri_madre || undefined,
+        nro_reg_madre: formValue.nro_reg_madre || undefined,
+        cod_aso_madre: formValue.cod_aso_madre || undefined,
+        madre_aso: formValue.madre_aso || undefined,
+        pru_aso_madre: formValue.pru_aso_madre || undefined,
         
         // Campos de catálogos
         estatus: formValue.estatus || 'A',
@@ -929,9 +986,15 @@ export class Animals implements OnInit, OnDestroy {
   onPadreSelected(padre: AnimalDto) {
     this.selectedPadre = padre;
     this.animalForm.patchValue({
-      cod_finca_padre: padre.cod_finca,
-      cod_padre: padre.cod_animal,
-      nombre_padre: padre.nomb_animal
+      // Mapeo según los requerimientos:
+      cod_finca_padre: padre.cod_finca_actual || padre.cod_finca, // cod_finca_padre -> cod_finca_actual del padre
+      cod_padre: padre.cod_animal, // cod_padre -> cod_animal del padre
+      nombre_padre: padre.nomb_animal,
+      cri_padre: padre.cod_criador?.toString() || '', // cri_padre -> cod_criador del padre
+      nro_reg_padre: padre.nro_registro_cla || '', // nro_reg_padre -> nro_registro_cla del padre
+      cod_aso_padre: padre.cod_asociacion?.toString() || '', // cod_aso_padre -> cod_asociacion del padre
+      padre_aso: padre.old_aso || '', // padre_aso -> old_aso del padre
+      pru_aso_padre: padre.pru_aso || '' // pru_aso_padre -> pru_aso del padre
     });
     this.showPadreSelectionDialog = false;
     
@@ -946,9 +1009,15 @@ export class Animals implements OnInit, OnDestroy {
   onMadreSelected(madre: AnimalDto) {
     this.selectedMadre = madre;
     this.animalForm.patchValue({
-      cod_finca_madre: madre.cod_finca,
-      cod_madre: madre.cod_animal,
-      nombre_madre: madre.nomb_animal
+      // Mapeo según los requerimientos:
+      cod_finca_madre: madre.cod_finca_actual || madre.cod_finca, // cod_finca_madre -> cod_finca_actual de la madre
+      cod_madre: madre.cod_animal, // cod_madre -> cod_animal de la madre
+      nombre_madre: madre.nomb_animal,
+      cri_madre: madre.cod_criador?.toString() || '', // cri_madre -> cod_criador de la madre
+      nro_reg_madre: madre.nro_registro_cla || '', // nro_reg_madre -> nro_registro_cla de la madre
+      cod_aso_madre: madre.cod_asociacion?.toString() || '', // cod_aso_madre -> cod_asociacion de la madre
+      madre_aso: madre.old_aso || '', // madre_aso -> old_aso de la madre
+      pru_aso_madre: madre.pru_aso || '' // pru_aso_madre -> pru_aso de la madre
     });
     this.showMadreSelectionDialog = false;
     
@@ -965,7 +1034,12 @@ export class Animals implements OnInit, OnDestroy {
     this.animalForm.patchValue({
       cod_finca_padre: null,
       cod_padre: '',
-      nombre_padre: ''
+      nombre_padre: '',
+      cri_padre: '',
+      nro_reg_padre: '',
+      cod_aso_padre: '',
+      padre_aso: '',
+      pru_aso_padre: ''
     });
   }
 
@@ -974,7 +1048,79 @@ export class Animals implements OnInit, OnDestroy {
     this.animalForm.patchValue({
       cod_finca_madre: null,
       cod_madre: '',
-      nombre_madre: ''
+      nombre_madre: '',
+      cri_madre: '',
+      nro_reg_madre: '',
+      cod_aso_madre: '',
+      madre_aso: '',
+      pru_aso_madre: ''
     });
+  }
+
+  /**
+   * Formatea una fecha para input de tipo date (YYYY-MM-DD)
+   */
+  private formatDateForInput(dateString: string | null | undefined): string {
+    if (!dateString) return '';
+    
+    // Si ya está en formato YYYY-MM-DD, devolverla tal como está
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+      return dateString;
+    }
+    
+    // Si está en formato DD/MM/YYYY, convertirla
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) {
+      const [day, month, year] = dateString.split('/');
+      return `${year}-${month}-${day}`;
+    }
+    
+    // Intentar parsear como fecha y formatear
+    try {
+      const date = new Date(dateString);
+      if (!isNaN(date.getTime())) {
+        return date.toISOString().split('T')[0];
+      }
+    } catch (error) {
+      console.warn('Error al formatear fecha:', dateString, error);
+    }
+    
+    return '';
+  }
+
+  /**
+   * Carga los nombres de padre y madre cuando se edita un animal
+   */
+  private loadParentNames(animal: AnimalDto): void {
+    // Cargar nombre del padre si existe
+    if (animal.cod_finca_padre && animal.cod_padre) {
+      this.animalsService.getAnimalById$(animal.cod_finca_padre!.toString(), animal.cod_padre).subscribe({
+        next: (padre: AnimalDto) => {
+          if (padre) {
+            this.animalForm.patchValue({
+              nombre_padre: padre.nomb_animal
+            });
+          }
+        },
+        error: (error: any) => {
+          console.warn('No se pudo cargar el nombre del padre:', error);
+        }
+      });
+    }
+
+    // Cargar nombre de la madre si existe
+    if (animal.cod_finca_madre && animal.cod_madre) {
+      this.animalsService.getAnimalById$(animal.cod_finca_madre!.toString(), animal.cod_madre).subscribe({
+        next: (madre: AnimalDto) => {
+          if (madre) {
+            this.animalForm.patchValue({
+              nombre_madre: madre.nomb_animal
+            });
+          }
+        },
+        error: (error: any) => {
+          console.warn('No se pudo cargar el nombre de la madre:', error);
+        }
+      });
+    }
   }
 }

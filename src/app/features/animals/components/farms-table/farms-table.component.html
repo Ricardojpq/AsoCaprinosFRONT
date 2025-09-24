@@ -17,17 +17,17 @@
           <input
             pInputText
             type="text"
-            placeholder="Buscar finca..."
+            placeholder="Buscar finca"
             class="w-64"
             [value]="globalFilterValue"
-            (input)="onGlobalFilter(dt, $event)"
+            (input)="onGlobalFilter($event)"
           />
           <p-button
             icon="pi pi-filter-slash"
             label="Limpiar"
             severity="secondary"
             size="small"
-            (onClick)="clear(dt)"
+            (onClick)="clear()"
           />
         </div>
       </ng-template>
@@ -50,14 +50,18 @@
         (onRowUnselect)="onRowUnselect($event)"
         [scrollable]="true"
         scrollHeight="400px"
-        styleClass="p-datatable-sm"
+        class="p-datatable-sm"
         [tableStyle]="{ 'min-width': '50rem' }"
         [paginator]="true"
-        [rows]="10"
+        [lazy]="true"
+        [rows]="rows"
+        [first]="first"
         [rowsPerPageOptions]="[10, 25, 50]"
         [showCurrentPageReport]="true"
         currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} fincas"
         [totalRecords]="totalRecords"
+        (onLazyLoad)="onTableLazyLoad($event)"
+        [loading]="loading"
       >
         <ng-template pTemplate="header">
           <tr>
@@ -175,4 +179,7 @@
       />
     </div>
   </div>
+  
+  <!-- Toast Messages -->
+  <p-toast></p-toast>
 </p-dialog>
