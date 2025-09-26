@@ -20,7 +20,7 @@ export interface MemberQueryParams {
   is_active?: boolean;
   global_search?: string;
   per_page?: 10 | 25 | 50 | 100;
-  sort_by?: 'ced_socio' | 'cod_finca' | 'estatus_socio' | 'fec_ingreso' | 'created_at';
+  sort_by?: 'ced_socio' | 'cod_finca' | 'estatus_socio' | 'fec_ingreso' | 'created_at' | 'nom_persona' | 'ape_persona' | 'tel_persona' | 'email_persona';
   sort_dir?: 'asc' | 'desc';
   page?: number;
   [key: string]: any;
@@ -220,6 +220,21 @@ export class MembersService {
       console.error('Error deleting member', e);
       return throwError(() => new Error('Error al eliminar socio'));
     }
+  }
+
+  /**
+   * Busca socios por texto (cédula, nombre, apellido, email)
+   */
+  searchMembers(searchTerm: string, perPage: number = 25): Observable<LaravelPaginationResponse<MemberDto>> {
+    const params = new HttpParams()
+      .set('q', searchTerm)
+      .set('per_page', perPage.toString());
+
+    return this.httpClient.get<LaravelApiResponse<MemberDto>>(`${this.membersURL}/search`, { params })
+      .pipe(
+        map(response => response.data),
+        catchError(this.handleError)
+      );
   }
 
   /**

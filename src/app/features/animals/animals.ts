@@ -1,20 +1,19 @@
 import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { firstValueFrom, BehaviorSubject, Subject } from 'rxjs';
-import {
-  takeUntil,
-  debounceTime,
-  distinctUntilChanged,
-  filter,
-} from 'rxjs/operators';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { AnimalsService, AnimalQueryParams } from './services/animals-service';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { firstValueFrom, BehaviorSubject, Subject, takeUntil, debounceTime, distinctUntilChanged, filter } from 'rxjs';
 import { AnimalDto } from './models/DTOs/animal';
 import { AnimalCreateDto } from './models/DTOs/animal-create';
 import { AnimalUpdateDto } from './models/DTOs/animal-update';
-import { LaravelPaginationResponse } from '../../core/models/DTOs';
+import { AnimalsService, AnimalQueryParams } from './services/animals-service';
 import { CatalogsService } from './catalogs/services/catalogs-service';
-import { CatalogSelectOption } from '../../core/models/DTOs';
+
+// Interfaz temporal para CatalogSelectOption
+interface CatalogSelectOption {
+  label: string;
+  value: any;
+}
+
 import {
   ANIMAL_SEARCH_CONFIG,
   isValidSearchTerm,
@@ -47,7 +46,7 @@ import { DatePipe } from '@angular/common';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { TooltipModule } from 'primeng/tooltip';
-import { AnimalSelectionTable } from "./components/animal-selection-table/animal-selection-table";
+import { AnimalSelectionTable } from './components/animal-selection-table/animal-selection-table';
 
 @Component({
   selector: 'app-animals',
@@ -129,6 +128,9 @@ export class Animals implements OnInit, OnDestroy {
   infoOrejasOptions: any[] = [];
   infoCuernosOptions: any[] = [];
   tipoRegistroOptions: any[] = [];
+  
+  // Animal original para edición
+  originalAnimal: AnimalDto | null = null;
 
   // Farms selection
   showCriadorFarmsDialog = false;
@@ -217,8 +219,8 @@ export class Animals implements OnInit, OnDestroy {
       
       // Campos de composición racial
       codigo_aso: [''],
-      comp_racial: [0, [Validators.min(0)]],
-      porc_racial: [0, [Validators.min(0), Validators.max(100)]],
+      p_sangre: [''],
+      porcen_sangre: [{value: 0, disabled: true}, [Validators.min(0), Validators.max(100)]],
       
       // Campos adicionales
       observac: [''],
@@ -297,8 +299,8 @@ export class Animals implements OnInit, OnDestroy {
       { field: 'origen', header: 'Origen' },
       { field: 'tipo_concepcion', header: 'Tipo Concepción' },
       { field: 'tipo_parto', header: 'Tipo Parto' },
-      { field: 'comp_racial', header: 'C. Racial' },
-      { field: 'porc_racial', header: '% Racial' },
+      { field: 'p_sangre', header: 'C. Racial' },
+      { field: 'porcen_sangre', header: '% Racial' },
       { field: 'criador.nomb_finca', header: 'Criador' },
       { field: 'propietario.nomb_finca', header: 'Propietario' },
     ];
@@ -485,8 +487,8 @@ export class Animals implements OnInit, OnDestroy {
       tatuaje_oreja_izq: '',
       tatuaje_oreja_der: '',
       tatuaje_cola: '',
-      comp_racial: 0,
-      porc_racial: 0,
+      p_sangre: '',
+      porcen_sangre: 0,
       precio_con_igv: 0,
       stock_minimo: 0,
       imagen: '',
@@ -521,6 +523,7 @@ export class Animals implements OnInit, OnDestroy {
     this.selectedPropietarioFinca = null;
     this.selectedPadre = null;
     this.selectedMadre = null;
+    this.originalAnimal = null; // Limpiar animal original
     
     this.isEditMode = false;
     this.animalDialog = true;
@@ -528,7 +531,9 @@ export class Animals implements OnInit, OnDestroy {
   }
 
   editAnimal(animal: AnimalDto) {
-    console.log('Animal a editar:', animal);
+    // Almacenar el animal original para usar en el update
+    this.originalAnimal = animal;
+    
     this.animalForm.patchValue({
       cod_finca: animal.cod_finca,
       cod_animal: animal.cod_animal,
@@ -546,15 +551,15 @@ export class Animals implements OnInit, OnDestroy {
       protocolo_importacion: animal.protocolo_imp,
       peso_actual: animal.peso_actual,
       peso_al_nacer: animal.peso_al_nacer,
-      peso_al_destete: animal.peso_al_destete,
+      peso_al_destete: animal.peso_destete,
       fec_destete: this.formatDateForInput(animal.fec_destete),
       tatuaje: animal.tatuaje,
       tatuaje_oreja_izq: animal.tatuaje_oreja_izq,
       tatuaje_oreja_der: animal.tatuaje_oreja_der,
       tatuaje_cola: animal.tatuaje_cola,
-      codigo_aso: animal.codigo_aso,
-      comp_racial: animal.comp_racial,
-      porc_racial: animal.porc_racial,
+      codigo_aso: animal.cod_asociacion,
+      p_sangre: animal.p_sangre,
+      porcen_sangre: animal.porcen_sangre,
       observac: animal.observac,
       imagen: animal.imagen,
       precio_con_igv: animal.precio_con_igv,
@@ -761,7 +766,15 @@ export class Animals implements OnInit, OnDestroy {
         tipo_material_gen: formValue.material_genetico,
         protocolo_imp: formValue.protocolo_importacion,
         tatuaje: formValue.tatuaje,
+        tatuaje_oreja_der: formValue.tatuaje_oreja_der,
+        tatuaje_cola: formValue.tatuaje_cola,
+        cod_asociacion: formValue.codigo_aso,
+        p_sangre: formValue.p_sangre,
+        porcen_sangre: formValue.porcen_sangre,
         observac: formValue.observac,
+        
+        // Campos de finca (solo propietario - criador no se puede modificar)
+        cod_finca_actual: formValue.cod_finca_actual, // Finca propietaria actual
         
         // Nuevos campos añadidos
         info_orejas: formValue.info_orejas,
@@ -771,10 +784,14 @@ export class Animals implements OnInit, OnDestroy {
         reg_intl: formValue.reg_intl,
       };
 
+      // Usar los valores originales del animal para la URL, no los del formulario
+      const originalCodFinca = this.originalAnimal?.cod_finca?.toString() || formValue.cod_finca.toString();
+      const originalCodAnimal = this.originalAnimal?.cod_animal || formValue.cod_animal;
+      
       this.animalsService
         .updateAnimal$(
-          formValue.cod_finca.toString(),
-          formValue.cod_animal,
+          originalCodFinca,
+          originalCodAnimal,
           updateData
         )
         .subscribe({
@@ -868,7 +885,8 @@ export class Animals implements OnInit, OnDestroy {
         
         // Campos de asociación y composición racial
         cod_asociacion: formValue.codigo_aso || undefined,
-        porcen_sangre: formValue.porc_racial || undefined,
+        p_sangre: formValue.p_sangre || undefined,
+        porcen_sangre: formValue.porcen_sangre || undefined,
         
         // Campos adicionales
         observac: formValue.observac || undefined,
@@ -1121,6 +1139,70 @@ export class Animals implements OnInit, OnDestroy {
           console.warn('No se pudo cargar el nombre de la madre:', error);
         }
       });
+    }
+  }
+
+  // Métodos para mapear valores de enums
+  getOrigenLabel(origen: string): string {
+    switch (origen) {
+      case 'N': return 'Nacido en Finca';
+      case 'E': return 'Extranjero';
+      case 'S': return 'Compra Socio';
+      case 'I': return 'Compra Independiente';
+      case 'C': return 'Comprado';
+      default: return origen || 'N/A';
+    }
+  }
+
+  getTipoConcepcionLabel(tipo: string): string {
+    switch (tipo) {
+      case 'M': return 'Monta Natural';
+      case 'F': return 'TE Fresco';
+      case 'C': return 'TE Congelado';
+      case 'I': return 'Inseminación Artificial';
+      default: return tipo || 'N/A';
+    }
+  }
+
+  getTipoPartoLabel(tipo: string): string {
+    switch (tipo) {
+      case 'S': return 'Simple';
+      case 'D': return 'Doble';
+      case 'T': return 'Triple';
+      case 'C': return 'Cuádruple';
+      case 'Q': return 'Quíntuple';
+      default: return tipo || 'N/A';
+    }
+  }
+
+  getPurezaSangreLabel(pureza: string): string {
+    switch (pureza) {
+      case 'O': return 'PO';
+      case 'C': return 'PCOC';
+      case 'T': return 'PR';
+      case 'B': return 'BASE';
+      case '1': return 'G1';
+      case '2': return 'G2';
+      case '3': return 'G3';
+      case '4': return 'G4';
+      default: return pureza || 'N/A';
+    }
+  }
+
+  getSexoLabel(sexo: string): string {
+    switch (sexo) {
+      case 'M': return 'Macho';
+      case 'H': return 'Hembra';
+      default: return sexo || 'N/A';
+    }
+  }
+
+  getEstatusLabel(estatus: string): string {
+    switch (estatus) {
+      case 'A': return 'Activo';
+      case 'R': return 'Referencia';
+      case 'I': return 'Inactivo';
+      default: return estatus || 'N/A';
     }
   }
 }

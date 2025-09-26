@@ -59,7 +59,7 @@ export interface AnimalCreateDto {
   peso_destete_150?: number;
   tipo_concepcion?: string;
   cod_finca_actual?: number;
-  p_sangre?: number;
+  p_sangre?: string;
   estatus_ubicacion?: string;
   estatus_condicion?: string;
   tatuaje_oreja_izq?: string;

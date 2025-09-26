@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Subject, takeUntil, debounceTime, distinctUntilChanged, filter } from 'rxjs';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
@@ -52,7 +53,9 @@ interface Column {
   styleUrl: './classifiers.css',
   providers: [MessageService, ConfirmationService]
 })
-export class Classifiers implements OnInit {
+export class Classifiers implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+  private searchSubject = new Subject<string>();
   // Icons
   plusIcon = Plus;
   searchIcon = Search;
@@ -63,7 +66,6 @@ export class Classifiers implements OnInit {
 
   // Data
   clasificadores: any[] = [];
-  selectedClasificadores: any[] = [];
   
   // Forms
   clasificadorForm!: FormGroup;
@@ -106,7 +108,24 @@ export class Classifiers implements OnInit {
 
   ngOnInit() {
     this.initializeColumns();
+    this.setupSearchDebounce();
     this.loadClasificadores();
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private setupSearchDebounce() {
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      filter(searchTerm => searchTerm === '' || searchTerm.length >= 1), // Permitir búsqueda con 1+ caracteres o vacío
+      takeUntil(this.destroy$)
+    ).subscribe(searchTerm => {
+      this.performSearch(searchTerm);
+    });
   }
 
   private initializeForm() {
@@ -142,13 +161,13 @@ export class Classifiers implements OnInit {
     this.cols = [
       { field: 'ced_clasificador', header: 'Cédula', sortable: true },
       { field: 'cod_clasificador', header: 'Código', sortable: true },
-      { field: 'persona.nom_persona', header: 'Nombre', sortable: false },
-      { field: 'persona.ape_persona', header: 'Apellido', sortable: false },
+      { field: 'nom_persona', header: 'Nombre', sortable: true },
+      { field: 'ape_persona', header: 'Apellido', sortable: true },
       { field: 'persona.email_persona', header: 'Email', sortable: false },
       { field: 'fec_inicio_clasif', header: 'Fecha Inicio', sortable: true },
       { field: 'nro_visitas', header: 'Visitas', sortable: true },
-      { field: 'stat_clasificador', header: 'Estado', sortable: true },
-      { field: 'is_active', header: 'Activo', sortable: true }
+      { field: 'stat_clasificador', header: 'Estado', sortable: false },
+      { field: 'is_active', header: 'Activo', sortable: false }
     ];
   }
 
@@ -181,19 +200,38 @@ export class Classifiers implements OnInit {
   }
 
   onTableLazyLoad(event: any) {
-    this.currentPage = Math.floor(event.first / event.rows) + 1;
-    this.perPage = event.rows;
-    this.sortField = event.sortField || 'cod_clasificador';
-    this.sortOrder = event.sortOrder === 1 ? 'asc' : 'desc';
+    // Evitar llamadas duplicadas
+    const newPage = Math.floor(event.first / event.rows) + 1;
+    const newPerPage = event.rows;
+    const newSortField = event.sortField || 'cod_clasificador';
+    const newSortOrder = event.sortOrder === 1 ? 'asc' : 'desc';
     
-    this.loadClasificadores();
+    // Solo cargar si algo cambió realmente
+    if (this.currentPage !== newPage || 
+        this.perPage !== newPerPage || 
+        this.sortField !== newSortField || 
+        this.sortOrder !== newSortOrder) {
+      
+      this.currentPage = newPage;
+      this.perPage = newPerPage;
+      this.sortField = newSortField;
+      this.sortOrder = newSortOrder;
+      
+      this.loadClasificadores();
+    }
   }
 
   onGlobalFilter(event: any) {
     this.globalFilterValue = event.target.value;
-    if (this.globalFilterValue.length >= 3) {
+    this.currentPage = 1;
+    // Usar el subject para debounce
+    this.searchSubject.next(this.globalFilterValue);
+  }
+
+  private performSearch(searchTerm: string) {
+    if (searchTerm.trim()) {
       this.searchClasificadores();
-    } else if (this.globalFilterValue.length === 0) {
+    } else {
       this.loadClasificadores();
     }
   }
@@ -223,7 +261,8 @@ export class Classifiers implements OnInit {
 
   clearSearch() {
     this.globalFilterValue = '';
-    this.loadClasificadores();
+    this.currentPage = 1;
+    this.searchSubject.next(''); // Usar el subject para consistencia
   }
 
   openNew() {
@@ -319,39 +358,7 @@ export class Classifiers implements OnInit {
     });
   }
 
-  deleteSelectedClasificadores() {
-    if (this.selectedClasificadores && this.selectedClasificadores.length > 0) {
-      this.confirmationService.confirm({
-        message: `¿Está seguro de eliminar ${this.selectedClasificadores.length} clasificadores seleccionados?`,
-        header: 'Confirmar Eliminación',
-        icon: 'pi pi-exclamation-triangle',
-        accept: () => {
-          const deletePromises = this.selectedClasificadores.map(clasificador =>
-            this.clasificadoresService.deleteClasificador(clasificador.ced_clasificador).toPromise()
-          );
-
-          Promise.all(deletePromises)
-            .then(() => {
-              this.messageService.add({
-                severity: 'success',
-                summary: 'Éxito',
-                detail: 'Clasificadores eliminados correctamente'
-              });
-              this.selectedClasificadores = [];
-              this.loadClasificadores();
-            })
-            .catch((error) => {
-              console.error('Error deleting clasificadores:', error);
-              this.messageService.add({
-                severity: 'error',
-                summary: 'Error',
-                detail: 'Error al eliminar clasificadores'
-              });
-            });
-        }
-      });
-    }
-  }
+  // Método eliminado - ya no se usa bulk delete
 
   hideDialog() {
     this.clasificadorDialog = false;

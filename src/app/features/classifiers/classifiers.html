@@ -1,8 +1,5 @@
 <div class="card">
-  <p-toast></p-toast>
-  <p-confirmDialog></p-confirmDialog>
-  
-  <!-- Toolbar -->
+  <p-toast />
   <p-toolbar class="mb-6">
     <ng-template #start>
       <div class="flex gap-1">
@@ -13,40 +10,31 @@
         >
           <lucide-icon [img]="plusIcon" size="16"></lucide-icon>
         </p-button>
-        <p-button
-          styleClass="btn btn-danger btn-sm"
-          severity="danger"
-          label="Eliminar"
-          outlined
-          (onClick)="deleteSelectedClasificadores()"
-          [disabled]="!selectedClasificadores || !selectedClasificadores.length"
-        >
-          <lucide-icon [img]="trashIcon" size="16"></lucide-icon>
-        </p-button>
       </div>
     </ng-template>
     <ng-template #end> </ng-template>
   </p-toolbar>
 
-  <!-- Data Table -->
-  <p-table 
+  <p-table
     #dt
-    [value]="clasificadores" 
-    [columns]="cols"
+    [value]="clasificadores"
     [rows]="perPage"
-    [totalRecords]="totalRecords"
-    [loading]="loading"
-    [lazy]="true"
-    (onLazyLoad)="onTableLazyLoad($event)"
-    [paginator]="true" 
-    [rowsPerPageOptions]="[10, 25, 50, 100]"
-    [showCurrentPageReport]="true" 
-    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
-    [(selection)]="selectedClasificadores" 
-    selectionMode="multiple"
-    [rowHover]="true" 
+    [columns]="cols"
+    [paginator]="true"
+    [globalFilterFields]="['ced_clasificador', 'cod_clasificador', 'persona.nom_persona', 'persona.ape_persona']"
+    [tableStyle]="{ 'min-width': '75rem' }"
+    [rowHover]="true"
     dataKey="ced_clasificador"
-    styleClass="p-datatable-gridlines">
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} clasificadores"
+    [showCurrentPageReport]="true"
+    [totalRecords]="totalRecords"
+    [lazy]="true"
+    [loading]="loading"
+    (onLazyLoad)="onTableLazyLoad($event)"
+    [sortField]="sortField"
+    [sortOrder]="sortOrder === 'asc' ? 1 : -1"
+    [filterDelay]="300"
+  >
     
     <ng-template #caption>
       <div class="flex items-center justify-between">
@@ -76,9 +64,6 @@
     
     <ng-template #header>
       <tr>
-        <th style="width: 3rem">
-          <p-tableHeaderCheckbox />
-        </th>
         <th pSortableColumn="ced_clasificador" style="min-width: 12rem">
           <div class="flex items-center gap-2">
             Cédula
@@ -91,8 +76,18 @@
             <p-sortIcon field="cod_clasificador" />
           </div>
         </th>
-        <th style="min-width: 12rem">Nombre</th>
-        <th style="min-width: 12rem">Apellido</th>
+        <th pSortableColumn="nom_persona" style="min-width: 12rem">
+          <div class="flex items-center gap-2">
+            Nombre
+            <p-sortIcon field="nom_persona" />
+          </div>
+        </th>
+        <th pSortableColumn="ape_persona" style="min-width: 12rem">
+          <div class="flex items-center gap-2">
+            Apellido
+            <p-sortIcon field="ape_persona" />
+          </div>
+        </th>
         <th style="min-width: 15rem">Email</th>
         <th pSortableColumn="fec_inicio_clasif" style="min-width: 10rem">
           <div class="flex items-center gap-2">
@@ -106,27 +101,14 @@
             <p-sortIcon field="nro_visitas" />
           </div>
         </th>
-        <th pSortableColumn="stat_clasificador" style="min-width: 8rem">
-          <div class="flex items-center gap-2">
-            Estado
-            <p-sortIcon field="stat_clasificador" />
-          </div>
-        </th>
-        <th pSortableColumn="is_active" style="min-width: 8rem">
-          <div class="flex items-center gap-2">
-            Activo
-            <p-sortIcon field="is_active" />
-          </div>
-        </th>
+        <th style="min-width: 8rem">Estado</th>
+        <th style="min-width: 8rem">Activo</th>
         <th style="min-width: 8rem">Acciones</th>
       </tr>
     </ng-template>
     
     <ng-template #body let-clasificador>
       <tr>
-        <td style="width: 3rem">
-          <p-tableCheckbox [value]="clasificador" />
-        </td>
         <td>{{ clasificador.ced_clasificador }}</td>
         <td>{{ clasificador.cod_clasificador }}</td>
         <td>{{ clasificador.persona?.nom_persona || 'N/A' }}</td>
@@ -169,11 +151,6 @@
       </tr>
     </ng-template>
     
-    <ng-template #emptymessage>
-      <tr>
-        <td colspan="9">No se encontraron clasificadores.</td>
-      </tr>
-    </ng-template>
   </p-table>
 </div>
 
@@ -198,14 +175,18 @@
       <div class="field mb-4">
         <label for="ced_clasificador" class="block text-sm font-medium mb-2">
           <i class="pi pi-id-card"></i> Cédula *
+          
         </label>
         <input 
           type="text" 
           pInputText 
           id="ced_clasificador" 
           formControlName="ced_clasificador"
-          placeholder="Ingrese la cédula del clasificador"
+          [placeholder]="isEditMode ? 'Cédula' : 'Ingrese la cédula del clasificador'"
           class="w-full"
+          [class]="isEditMode ? 'bg-gray-100' : ''"
+          [readonly]="isEditMode"
+          [disabled]="isEditMode"
           [class.ng-invalid]="isFieldInvalid('ced_clasificador')"
           [class.ng-dirty]="isFieldInvalid('ced_clasificador')" />
         @if (isFieldInvalid('ced_clasificador')) {
@@ -213,6 +194,7 @@
             {{ getFieldError('ced_clasificador') }}
           </small>
         }
+       
       </div>
 
       <div class="field mb-4">

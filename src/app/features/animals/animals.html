@@ -111,7 +111,7 @@
         <td>{{ animal.fec_nacim | date : "dd/MM/yyyy" }}</td>
         <td>
           <p-tag
-            [value]="animal.sexo_animal === 'H' ? 'H' : 'M'"
+            [value]="getSexoLabel(animal.sexo_animal)"
             [severity]="animal.sexo_animal === 'H' ? 'danger' : 'primary'"
           ></p-tag>
         </td>
@@ -125,15 +125,15 @@
         <td>{{ animal.raza_info?.nomb_raza || 'N/A' }}</td>
         <td>
           <p-tag
-            [value]="animal.estatus"
+            [value]="getEstatusLabel(animal.estatus)"
             [severity]="getStatusClass(animal.estatus)"
           ></p-tag>
         </td>
-        <td>{{ animal.origen || 'N/A' }}</td>
-        <td>{{ animal.tipo_concepcion || 'N/A' }}</td>
-        <td>{{ animal.tipo_parto || 'N/A' }}</td>
-        <td>{{ animal.comp_racial || '0.00' }}</td>
-        <td>{{ animal.porc_racial || '0.00' }}</td>
+        <td>{{ getOrigenLabel(animal.origen) }}</td>
+        <td>{{ getTipoConcepcionLabel(animal.tipo_concepcion) }}</td>
+        <td>{{ getTipoPartoLabel(animal.tipo_parto) }}</td>
+        <td>{{ getPurezaSangreLabel(animal.p_sangre) }}</td>
+        <td>{{ animal.porcen_sangre || '0.00' }}</td>
         <td>{{ animal.criador?.nomb_finca || 'N/A' }}</td>
         <td>{{ animal.propietario?.nomb_finca || 'N/A' }}</td>
         <td>
@@ -554,9 +554,10 @@
                   <p-inputgroup>
                     <p-button 
                       (onClick)="openCriadorFarmsDialog()"
-                      pTooltip="Buscar criador"
+                      [pTooltip]="isEditMode ? 'El criador no se puede modificar' : 'Buscar criador'"
                       size="small"
                       styleClass="rounded-e-none"
+                      [disabled]="isEditMode"
                     >
                       <lucide-angular [img]="searchIcon" size="16"></lucide-angular>
                     </p-button>
@@ -565,14 +566,19 @@
                       pInputText
                       id="siglas_criador"
                       formControlName="siglas_criador"
-                      placeholder="Seleccione criador..."
+                      [placeholder]="isEditMode ? 'Criador (no editable)' : 'Seleccione criador...'"
                       readonly
+                      [disabled]="isEditMode"
                       [class.border-red-500]="isFieldInvalid('cod_finca')"
                     />
                   </p-inputgroup>
                   @if (isFieldInvalid('cod_finca')) {
-                    <small class="text-red-600">
-                      Debe seleccionar una finca criadora
+                    <small [class]="isEditMode ? 'text-gray-500' : 'text-red-600'">
+                      @if (isEditMode) {
+                        El criador se establece al crear el animal y no se puede modificar
+                      } @else {
+                        Debe seleccionar una finca criadora
+                      }
                     </small>
                   }
                 </div>
@@ -588,8 +594,9 @@
                     id="nombre_criador"
                     formControlName="nombre_criador"
                     readonly
+                    [disabled]="isEditMode"
                     class="w-full bg-gray-100"
-                    placeholder="Nombre de la finca criadora seleccionada"
+                    [placeholder]="isEditMode ? 'Nombre de la finca criadora (no editable)' : 'Nombre de la finca criadora seleccionada'"
                   />
                 </div>
               </div>
@@ -749,7 +756,7 @@
                       pTooltip="Buscar madre"
                       size="small"
                       styleClass="rounded-e-none"
-                      severity="success"
+                      severity="danger"
                     >
                       <lucide-angular [img]="searchIcon" size="16"></lucide-angular>
                     </p-button>
@@ -823,12 +830,12 @@
 
             <!-- Composición Racial -->
             <div>
-              <label for="comp_racial" class="block text-sm font-medium mb-2 text-gray-700">
+              <label for="p_sangre" class="block text-sm font-medium mb-2 text-gray-700">
                 <i class="pi pi-percentage text-teal-600"></i> Composición Racial
               </label>
               <p-select
-                id="comp_racial"
-                formControlName="comp_racial"
+                id="p_sangre"
+                formControlName="p_sangre"
                 [options]="compRacialOptions"
                 optionLabel="label"
                 optionValue="value"
@@ -839,14 +846,14 @@
 
             <!-- Porcentaje Racial -->
             <div>
-              <label for="porc_racial" class="block text-sm font-medium mb-2 text-gray-700">
+              <label for="porcen_sangre" class="block text-sm font-medium mb-2 text-gray-700">
                 <i class="pi pi-percentage text-teal-600"></i> % Racial
               </label>
               <input
                 type="number"
                 pInputText
-                id="porc_racial"
-                formControlName="porc_racial"
+                id="porcen_sangre"
+                formControlName="porcen_sangre"
                 placeholder="0"
                 min="0"
                 max="100"

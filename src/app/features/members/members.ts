@@ -8,6 +8,7 @@ import {
 } from 'rxjs/operators';
 import { MembersService, MemberQueryParams } from './services/members-service';
 import { MemberDto, MemberCreateDto, MemberUpdateDto, PaginatedMembersDto } from './models/DTOs';
+import { LaravelPaginationResponse } from '../../shared/models/base-catalog-entity.interface';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { Table, TableModule } from 'primeng/table';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -67,17 +68,11 @@ export class Members implements OnInit, OnDestroy {
   readonly searchIcon = Search;
   readonly xIcon = X;
 
-  // BehaviorSubject para el término de búsqueda
-  private searchSubject$ = new BehaviorSubject<string>('');
   private destroy$ = new Subject<void>();
-
-  // Configuración de búsqueda
-  readonly SEARCH_MIN_LENGTH = 2;
-  private readonly SEARCH_DEBOUNCE_TIME = 500;
+  private searchSubject = new Subject<string>();
 
   // Data
   members: MemberDto[] = [];
-  selectedMembers: MemberDto[] = [];
   
   // Forms
   memberForm!: FormGroup;
@@ -128,16 +123,17 @@ export class Members implements OnInit, OnDestroy {
   ngOnInit() {
     this.cols = [
       { field: 'ced_socio', header: 'Cédula' },
-      { field: 'persona.nom_persona', header: 'Nombre' },
-      { field: 'persona.ape_persona', header: 'Apellido' },
-      { field: 'persona.tlf_persona', header: 'Teléfono' },
-      { field: 'persona.dir_persona', header: 'Dirección' },
-      { field: 'persona.email_persona', header: 'Email' },
+      { field: 'nom_persona', header: 'Nombre' },
+      { field: 'ape_persona', header: 'Apellido' },
+      { field: 'tel_persona', header: 'Teléfono' },
+      { field: 'dir_persona', header: 'Dirección' },
+      { field: 'email_persona', header: 'Email' },
       { field: 'estatus_socio', header: 'Estado' },
     ];
 
-    // Configurar el pipe de búsqueda
-    this.setupSearchPipe();
+    // Configurar el debounce de búsqueda
+    this.setupSearchDebounce();
+    this.loadMembers();
   }
 
   private initializeForm() {
@@ -173,44 +169,52 @@ export class Members implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  /**
-   * Configura el pipe de búsqueda con debounce y filtro de longitud mínima
-   */
-  private setupSearchPipe() {
-    this.searchSubject$
-      .pipe(
-        takeUntil(this.destroy$),
-        debounceTime(this.SEARCH_DEBOUNCE_TIME),
-        distinctUntilChanged(),
-        filter((searchTerm) => searchTerm.length === 0 || searchTerm.length >= this.SEARCH_MIN_LENGTH)
-      )
-      .subscribe((searchTerm) => {
-        // Limpiar filtros anteriores
-        this.filters.ced_socio = undefined;
-        this.filters['nom_persona'] = undefined;
-        this.filters['ape_persona'] = undefined;
-        this.filters['global_search'] = undefined;
-        
-        if (searchTerm) {
-          // Usar búsqueda global en lugar de filtros individuales
-          this.filters['global_search'] = searchTerm;
-        }
-        
-        this.loadMembers();
-      });
+  private setupSearchDebounce() {
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      filter(searchTerm => searchTerm === '' || searchTerm.length >= 1),
+      takeUntil(this.destroy$)
+    ).subscribe(searchTerm => {
+      this.performSearch(searchTerm);
+    });
   }
 
-  /**
-   * Limpia la búsqueda y recarga los datos
-   */
+  private performSearch(searchTerm: string) {
+    if (searchTerm.trim()) {
+      this.searchMembers();
+    } else {
+      this.loadMembers();
+    }
+  }
+
+  searchMembers() {
+    if (this.globalFilterValue.trim()) {
+      this.loading = true;
+      this.membersService.searchMembers(this.globalFilterValue, this.perPage)
+        .subscribe({
+          next: (response: LaravelPaginationResponse<MemberDto>) => {
+            this.members = response.data;
+            this.totalRecords = response.total;
+            this.loading = false;
+          },
+          error: (error: any) => {
+            console.error('Error searching members:', error);
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'Error en la búsqueda'
+            });
+            this.loading = false;
+          }
+        });
+    }
+  }
+
   clearSearch() {
     this.globalFilterValue = '';
-    this.searchSubject$.next('');
-    this.filters.ced_socio = undefined;
-    this.filters['nom_persona'] = undefined;
-    this.filters['ape_persona'] = undefined;
-    this.filters['global_search'] = undefined;
-    this.loadMembers();
+    this.page = 1;
+    this.searchSubject.next('');
   }
 
   loadMembers(event?: any) {
@@ -234,7 +238,7 @@ export class Members implements OnInit, OnDestroy {
     }
     const query: MemberQueryParams = {
       per_page: this.perPage as 10 | 25 | 50 | 100,
-      sort_by: this.sortField as 'ced_socio' | 'cod_finca' | 'estatus_socio' | 'fec_ingreso' | 'created_at',
+      sort_by: this.sortField as 'ced_socio' | 'cod_finca' | 'estatus_socio' | 'fec_ingreso' | 'created_at' | 'nom_persona' | 'ape_persona' | 'tel_persona' | 'email_persona',
       sort_dir: this.sortOrder,
       ...this.filters,
     };
@@ -264,9 +268,9 @@ export class Members implements OnInit, OnDestroy {
   }
 
   onGlobalFilter(event: any) {
-    const searchTerm = event.target.value;
-    this.globalFilterValue = searchTerm;
-    this.searchSubject$.next(searchTerm);
+    this.globalFilterValue = event.target.value;
+    this.page = 1;
+    this.searchSubject.next(this.globalFilterValue);
   }
 
   openNew() {
@@ -297,11 +301,16 @@ export class Members implements OnInit, OnDestroy {
   editMember(member: MemberDto) {
     console.log('Editing member:', member);
     this.currentMember = member;
+    
+    // Convertir fechas de string a Date para PrimeNG DatePicker
+    const fecIngreso = member.fec_ingreso ? new Date(member.fec_ingreso) : null;
+    const fecNacim = member.persona?.fnac_persona ? new Date(member.persona.fnac_persona) : null;
+    
     this.memberForm.patchValue({
       ced_socio: member.ced_socio,
       cod_finca: member.cod_finca || '',
       estatus_socio: member.estatus_socio || 'A',
-      fec_ingreso: member.fec_ingreso || '',
+      fec_ingreso: fecIngreso,
       observaciones: member.observaciones || '',
       nom_persona: member.persona?.nom_persona || '',
       ape_persona: member.persona?.ape_persona || '',
@@ -309,7 +318,7 @@ export class Members implements OnInit, OnDestroy {
       email_persona: member.persona?.email_persona || '',
       dir_persona: member.persona?.dir_persona || '',
       sexo_persona: member.persona?.sexo_persona || '',
-      fec_nacim: member.persona?.fnac_persona || '',
+      fec_nacim: fecNacim,
       cod_pais: null,
       cod_estado: null,
       cod_municipio: null,
@@ -355,41 +364,7 @@ export class Members implements OnInit, OnDestroy {
     });
   }
 
-  deleteSelectedMembers() {
-    this.confirmationService.confirm({
-      message: '¿Seguro que deseas eliminar los socios seleccionados?',
-      header: 'Confirmar',
-      icon: 'pi pi-exclamation-triangle',
-      accept: () => {
-        this.loading = true;
-        const deletes = this.selectedMembers.map((m) =>
-          this.membersService.deleteMember$(m.ced_socio)
-        );
-        Promise.all(deletes.map((obs) => firstValueFrom(obs)))
-          .then(() => {
-            this.loadMembers();
-            this.selectedMembers = [];
-            this.loading = false;
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Eliminados',
-              detail: 'Socios eliminados',
-              life: 3000,
-            });
-          })
-          .catch((error) => {
-            console.error('Error deleting members:', error);
-            this.loading = false;
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Error',
-              detail: 'Error al eliminar los socios',
-              life: 3000,
-            });
-          });
-      },
-    });
-  }
+  // Método eliminado - ya no se usa bulk delete
 
   hideDialog() {
     this.memberDialog = false;
