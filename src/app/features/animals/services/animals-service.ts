@@ -291,4 +291,11 @@ export class AnimalsService {
       { label: 'G4', value: PurezaSangreEnum.G4 }
     ];
   }
-} 
+
+  getAnimalStats$(): Observable<any> {
+    return this.httpClient.get<any>(`${this.animalsURL}/api/v1/animals/stats`)
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+}

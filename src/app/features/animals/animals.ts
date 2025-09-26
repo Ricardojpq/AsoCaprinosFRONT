@@ -275,7 +275,7 @@ export class Animals implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    // Inicializar opciones de los selects usando enums
+    // Inicializar opciones de los selects usando enums (sin llamadas HTTP)
     this.sexoOptions = this.animalsService.getSexoOptions();
     this.statusOptions = this.animalsService.getEstatusOptions();
     this.origenOptions = this.animalsService.getOrigenOptions();
@@ -309,8 +309,8 @@ export class Animals implements OnInit, OnDestroy {
     // Configurar el pipe de búsqueda
     this.setupSearchPipe();
     
-    // Cargar catálogos dinámicos
-    this.loadCatalogs();
+    // ✅ OPTIMIZACIÓN: No cargar catálogos hasta que sea necesario
+    // this.loadCatalogs(); // Movido a cuando se abra el modal de crear/editar
   }
 
   ngOnDestroy() {
@@ -525,6 +525,9 @@ export class Animals implements OnInit, OnDestroy {
     this.selectedMadre = null;
     this.originalAnimal = null; // Limpiar animal original
     
+    // ✅ OPTIMIZACIÓN: Cargar catálogos solo cuando se necesiten
+    this.loadCatalogs();
+    
     this.isEditMode = false;
     this.animalDialog = true;
     this.submitted = false;
@@ -607,6 +610,9 @@ export class Animals implements OnInit, OnDestroy {
     this.selectedPropietarioFinca = null;
     this.selectedPadre = null;
     this.selectedMadre = null;
+    
+    // ✅ OPTIMIZACIÓN: Cargar catálogos solo cuando se necesiten
+    this.loadCatalogs();
     
     this.isEditMode = true;
     this.animalDialog = true;

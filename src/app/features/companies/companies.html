@@ -11,15 +11,6 @@
           (onClick)="openNew()">
           <lucide-icon [img]="plusIcon" size="16"></lucide-icon>
         </p-button>
-        <p-button
-          styleClass="btn btn-danger btn-sm"
-          severity="danger"
-          label="Eliminar"
-          outlined
-          (onClick)="deleteSelectedEmpresas()"
-          [disabled]="!selectedEmpresas || !selectedEmpresas.length">
-          <lucide-icon [img]="trashIcon" size="16"></lucide-icon>
-        </p-button>
       </div>
     </ng-template>
     <ng-template #end> </ng-template>
@@ -31,9 +22,8 @@
     [rows]="perPage"
     [columns]="cols"
     [paginator]="true"
-    [globalFilterFields]="['cod_empresa', 'nom_empresa', 'rif_empresa']"
+    [globalFilterFields]="['cod_empresa', 'nom_empresa', 'rif_empresa', 'email']"
     [tableStyle]="{ 'min-width': '75rem' }"
-    [(selection)]="selectedEmpresas"
     [rowHover]="true"
     dataKey="cod_empresa"
     currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} empresas"
@@ -74,9 +64,6 @@
     
     <ng-template #header>
       <tr>
-        <th style="width: 3rem">
-          <p-tableHeaderCheckbox />
-        </th>
         <th pSortableColumn="cod_empresa" style="min-width: 8rem">
           <div class="flex items-center gap-2">
             Código
@@ -102,6 +89,7 @@
             <p-sortIcon field="email" />
           </div>
         </th>
+        <th style="min-width: 10rem">País</th>
         <th style="min-width: 12rem">Estado</th>
         <th style="min-width: 12rem">Municipio</th>
         <th style="min-width: 15rem">Presidente</th>
@@ -117,14 +105,12 @@
     
     <ng-template #body let-empresa>
       <tr>
-        <td style="width: 3rem">
-          <p-tableCheckbox [value]="empresa" />
-        </td>
         <td>{{ empresa.cod_empresa }}</td>
         <td>{{ empresa.nom_empresa }}</td>
         <td>{{ empresa.rif_empresa }}</td>
         <td>{{ empresa.tlf_empresa || 'N/A' }}</td>
         <td>{{ empresa.email || 'N/A' }}</td>
+        <td>{{ empresa.pais?.nom_pais || 'N/A' }}</td>
         <td>{{ empresa.estado?.nom_estado || 'N/A' }}</td>
         <td>{{ empresa.municipio?.nom_municipio || 'N/A' }}</td>
         <td>{{ getPresidenteNombre(empresa.presidente) || 'N/A' }}</td>
@@ -305,6 +291,33 @@
       </div>
 
       <div class="field mb-4">
+        <label for="cod_pais" class="block text-sm font-medium mb-2">
+          <i class="pi pi-globe"></i> País *
+        </label>
+        <p-select 
+          id="cod_pais" 
+          formControlName="cod_pais"
+          [options]="paises" 
+          optionLabel="label" 
+          optionValue="value"
+          placeholder="Seleccione un país"
+          [loading]="loadingPaises"
+          (onChange)="onPaisChange($event.value)"
+          class="w-full"
+          [class.ng-invalid]="isFieldInvalid('cod_pais')"
+          [class.ng-dirty]="isFieldInvalid('cod_pais')">
+          <ng-template #loadingicon>
+            <app-loading-spinner [size]="16" color="text-primary"></app-loading-spinner>
+          </ng-template>
+        </p-select>
+        @if (isFieldInvalid('cod_pais')) {
+          <small class="text-red-500">
+            {{ getFieldError('cod_pais') }}
+          </small>
+        }
+      </div>
+
+      <div class="field mb-4">
         <label for="cod_estado" class="block text-sm font-medium mb-2">
           <i class="pi pi-flag"></i> Estado *
         </label>
@@ -312,14 +325,17 @@
           id="cod_estado" 
           formControlName="cod_estado"
           [options]="estados" 
-          optionLabel="nomb_estado" 
-          optionValue="cod_estado"
+          optionLabel="label" 
+          optionValue="value"
           placeholder="Seleccione un estado"
           [loading]="loadingEstados"
           (onChange)="onEstadoChange($event.value)"
           class="w-full"
           [class.ng-invalid]="isFieldInvalid('cod_estado')"
           [class.ng-dirty]="isFieldInvalid('cod_estado')">
+          <ng-template #loadingicon>
+            <app-loading-spinner [size]="16" color="text-primary"></app-loading-spinner>
+          </ng-template>
         </p-select>
         @if (isFieldInvalid('cod_estado')) {
           <small class="text-red-500">
@@ -336,15 +352,17 @@
           id="cod_municipio" 
           formControlName="cod_municipio"
           [options]="municipios" 
-          optionLabel="nomb_municipio" 
-          optionValue="cod_municipio"
+          optionLabel="label" 
+          optionValue="value"
           placeholder="Seleccione un municipio"
           [loading]="loadingMunicipios"
-          [disabled]="!f['cod_estado'].value || loadingMunicipios"
           (onChange)="onMunicipioChange($event.value)"
           class="w-full"
           [class.ng-invalid]="isFieldInvalid('cod_municipio')"
           [class.ng-dirty]="isFieldInvalid('cod_municipio')">
+          <ng-template #loadingicon>
+            <app-loading-spinner [size]="16" color="text-primary"></app-loading-spinner>
+          </ng-template>
         </p-select>
         @if (isFieldInvalid('cod_municipio')) {
           <small class="text-red-500">
@@ -361,20 +379,29 @@
           id="cod_ciudad" 
           formControlName="cod_ciudad"
           [options]="ciudades" 
-          optionLabel="nomb_ciudad" 
-          optionValue="cod_ciudad"
+          optionLabel="label" 
+          optionValue="value"
           placeholder="Seleccione una ciudad"
           [loading]="loadingCiudades"
-          [disabled]="!f['cod_municipio'].value || loadingCiudades"
           class="w-full"
           [class.ng-invalid]="isFieldInvalid('cod_ciudad')"
           [class.ng-dirty]="isFieldInvalid('cod_ciudad')">
+          <ng-template #loadingicon>
+            <app-loading-spinner [size]="16" color="text-primary"></app-loading-spinner>
+          </ng-template>
         </p-select>
         @if (isFieldInvalid('cod_ciudad')) {
           <small class="text-red-500">
             {{ getFieldError('cod_ciudad') }}
           </small>
         }
+      </div>
+
+      <!-- Información Adicional -->
+      <div class="col-span-2 mt-4">
+        <h5 class="text-lg font-semibold mb-3 text-primary border-b pb-2">
+          <i class="pi pi-info-circle mr-2"></i>Información Adicional
+        </h5>
       </div>
 
       <div class="field mb-4">
@@ -431,7 +458,7 @@
         severity="success"
         type="submit"
         (onClick)="saveEmpresa()"
-        [disabled]="empresaForm.invalid && submitted">
+        [class.p-disabled]="isSaveButtonDisabled">
         <lucide-icon [img]="saveIcon" size="16" class="mr-2"></lucide-icon>
       </p-button>
     </div>

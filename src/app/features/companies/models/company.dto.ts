@@ -2,6 +2,7 @@ import { BaseEntity } from '../../../core/models/DTOs';
 
 export interface EmpresaDto extends BaseEntity {
   cod_empresa: number;
+  cod_pais: number;
   cod_estado: number;
   cod_municipio: number;
   cod_ciudad: number;
@@ -14,6 +15,18 @@ export interface EmpresaDto extends BaseEntity {
   ced_presidente?: string;
   
   // Relaciones
+  pais?: {
+    cod_pais: number;
+    nom_pais: string;
+    siglas_pais?: string;
+    is_active: boolean;
+    created_by?: number;
+    updated_by?: number;
+    is_deleted: boolean;
+    created_at: string;
+    updated_at?: string;
+    deleted_at?: string;
+  };
   estado?: {
     cod_estado: number;
     nom_estado: string;
@@ -90,6 +103,7 @@ export interface EmpresaDto extends BaseEntity {
 }
 
 export interface CreateEmpresaDto {
+  cod_pais: number;
   cod_estado: number;
   cod_municipio: number;
   cod_ciudad: number;
@@ -104,6 +118,7 @@ export interface CreateEmpresaDto {
 }
 
 export interface UpdateEmpresaDto {
+  cod_pais?: number;
   cod_estado?: number;
   cod_municipio?: number;
   cod_ciudad?: number;
@@ -118,14 +133,17 @@ export interface UpdateEmpresaDto {
 }
 
 export interface EmpresaFilters {
+  cod_empresa?: number;
   nom_empresa?: string;
   rif_empresa?: string;
+  cod_pais?: number;
   cod_estado?: number;
   cod_municipio?: number;
   cod_ciudad?: number;
   email?: string;
   nombre_presidente?: string;
   is_active?: boolean;
+  search?: string;
   sort_by?: string;
   sort_dir?: 'asc' | 'desc';
 }

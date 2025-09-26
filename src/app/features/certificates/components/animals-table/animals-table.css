@@ -1,0 +1,31 @@
+/* Estilos personalizados para la tabla de selección de animales */
+.p-datatable .p-datatable-tbody > tr.p-selectable-row:hover {
+  background-color: #f3f4f6;
+  cursor: pointer;
+}
+
+.p-datatable .p-datatable-tbody > tr.p-highlight {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.p-datatable .p-datatable-tbody > tr.p-highlight:hover {
+  background-color: #bfdbfe;
+}
+
+/* Estilos para los badges de sexo */
+.bg-blue-100 {
+  background-color: #dbeafe;
+}
+
+.text-blue-800 {
+  color: #1e40af;
+}
+
+.bg-pink-100 {
+  background-color: #fce7f3;
+}
+
+.text-pink-800 {
+  color: #be185d;
+}

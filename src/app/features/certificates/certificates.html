@@ -199,7 +199,7 @@
 
   <p-dialog
     [(visible)]="certificateDialog"
-    [style]="{ width: '600px' }"
+    [style]="{ width: '900px', maxWidth: '95vw' }"
     [header]="isEditMode ? 'Editar Certificado' : 'Crear Nuevo Certificado'"
     [modal]="true"
   >
@@ -209,42 +209,101 @@
         @if (!isEditMode) {
         <div class="grid grid-cols-12 gap-4">
           <div class="col-span-6">
-            <label for="codAnimal" class="block font-bold mb-3"
-              >Código del Animal *</label
-            >
-            <input
-              type="text"
-              pInputText
-              id="codAnimal"
-              [(ngModel)]="certificate.cod_animal"
-              required
-              autofocus
-              fluid
-              placeholder="Ingrese código del animal"
-            />
+            <label for="codAnimal" class="block font-bold mb-3">
+              <lucide-icon [img]="searchIcon" size="16" class="mr-2"></lucide-icon>Animal *
+            </label>
+            <div class="flex gap-2">
+              <p-inputgroup class="flex-1">
+                <p-button 
+                  (onClick)="openAnimalsDialog()"
+                  pTooltip="Buscar animal"
+                  size="small"
+                  styleClass="rounded-e-none"
+                >
+                  <lucide-icon [img]="searchIcon" size="16"></lucide-icon>
+                </p-button>
+                <input
+                  type="text"
+                  pInputText
+                  id="codAnimal"
+                  [value]="selectedAnimalData ? selectedAnimalData.nomb_animal + ' (' + selectedAnimalData.cod_animal + ')' : ''"
+                  placeholder="Seleccione un animal..."
+                  readonly
+                  fluid
+                />
+              </p-inputgroup>
+              @if (selectedAnimalData) {
+                <p-button
+                  severity="danger"
+                  size="small"
+                  (onClick)="clearAnimalSelection()"
+                  pTooltip="Limpiar selección"
+                >
+                  <lucide-icon [img]="xIcon" size="16"></lucide-icon>
+                </p-button>
+              }
+            </div>
             @if (submitted && !certificate.cod_animal) {
-            <small class="text-red-500"
-              >El código del animal es requerido.</small
-            >
+            <small class="text-red-500">
+              Debe seleccionar un animal.
+            </small>
+            }
+            @if (selectedAnimalData) {
+            <div class="mt-2 p-2 bg-blue-50 rounded text-sm">
+              <div><strong>Raza:</strong> {{ selectedAnimalData.raza_info?.nomb_raza || 'N/A' }}</div>
+              <div><strong>Sexo:</strong> {{ selectedAnimalData.sexo_animal === 'M' ? 'Macho' : 'Hembra' }}</div>
+              <div><strong>Propietario:</strong> {{ selectedAnimalData.propietario?.nomb_finca || 'N/A' }}</div>
+            </div>
             }
           </div>
+          
+          <!-- Selección de Clasificador -->
           <div class="col-span-6">
-            <label for="cedClasificador" class="block font-bold mb-3"
-              >Cédula del Clasificador *</label
-            >
-            <input
-              type="text"
-              pInputText
-              id="cedClasificador"
-              [(ngModel)]="certificate.ced_clasificador"
-              required
-              fluid
-              placeholder="Ingrese cédula del clasificador"
-            />
+            <label for="cedClasificador" class="block font-bold mb-3">
+              <lucide-icon [img]="userIcon" size="16" class="mr-2"></lucide-icon>Clasificador *
+            </label>
+            <div class="flex gap-2">
+              <p-inputgroup class="flex-1">
+                <p-button 
+                  (onClick)="openClasificadoresDialog()"
+                  pTooltip="Buscar clasificador"
+                  size="small"
+                  styleClass="rounded-e-none"
+                >
+                  <lucide-icon [img]="searchIcon" size="16"></lucide-icon>
+                </p-button>
+                <input
+                  type="text"
+                  pInputText
+                  id="cedClasificador"
+                  [value]="selectedClasificadorData ? selectedClasificadorData.nom_persona + ' ' + selectedClasificadorData.ape_persona + ' (' + selectedClasificadorData.ced_clasificador + ')' : ''"
+                  placeholder="Seleccione un clasificador..."
+                  readonly
+                  fluid
+                />
+              </p-inputgroup>
+              @if (selectedClasificadorData) {
+                <p-button
+                  severity="danger"
+                  size="small"
+                  (onClick)="clearClasificadorSelection()"
+                  pTooltip="Limpiar selección"
+                >
+                  <lucide-icon [img]="xIcon" size="16"></lucide-icon>
+                </p-button>
+              }
+            </div>
             @if (submitted && !certificate.ced_clasificador) {
-            <small class="text-red-500"
-              >La cédula del clasificador es requerida.</small
-            >
+            <small class="text-red-500">
+              Debe seleccionar un clasificador.
+            </small>
+            }
+            @if (selectedClasificadorData) {
+            <div class="mt-2 p-2 bg-green-50 rounded text-sm">
+              <div><strong>Código:</strong> {{ selectedClasificadorData.cod_clasificador || 'N/A' }}</div>
+              <div><strong>Teléfono:</strong> {{ selectedClasificadorData.tel_persona || 'N/A' }}</div>
+              <div><strong>Email:</strong> {{ selectedClasificadorData.email_persona || 'N/A' }}</div>
+            </div>
             }
           </div>
         </div>
@@ -267,7 +326,7 @@
 
         <div class="bg-blue-50 p-4 rounded-lg">
           <p class="text-sm text-blue-700">
-            <i class="pi pi-info-circle mr-2"></i>
+            <lucide-icon [img]="infoIcon" size="16" class="mr-2"></lucide-icon>
             La información de la finca, criador y propietario se obtendrá automáticamente 
             del registro del animal. La fecha de emisión será la fecha actual.
           </p>
@@ -473,6 +532,19 @@
   </p-dialog>
 
   <p-confirmDialog [style]="{ width: '450px' }" />
+
+  <!-- Modals de Selección -->
+  <app-animals-table
+    [(visible)]="showAnimalsDialog"
+    title="Seleccionar Animal para Certificado"
+    (animalSelected)="onAnimalSelected($event)"
+  ></app-animals-table>
+
+  <app-clasificadores-table
+    [(visible)]="showClasificadoresDialog"
+    title="Seleccionar Clasificador"
+    (clasificadorSelected)="onClasificadorSelected($event)"
+  ></app-clasificadores-table>
 </div>
 
   <!-- Elementos ocultos para generación de PDF -->

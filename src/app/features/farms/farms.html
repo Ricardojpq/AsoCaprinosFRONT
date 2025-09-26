@@ -104,22 +104,24 @@
           }
         </td>
         <td>
-          <div class="flex gap-1">
-            <p-button
-              class="p-button-rounded p-button-text p-button-sm"
-              (onClick)="editFinca(finca)"
-              pTooltip="Editar"
-            >
-              <lucide-icon [img]="pencilIcon" size="16"></lucide-icon>
-            </p-button>
-            <p-button
-              class="p-button-rounded p-button-text p-button-sm p-button-danger"
-              (onClick)="deleteFinca(finca)"
-              pTooltip="Eliminar"
-            >
-              <lucide-icon [img]="trashIcon" size="16"></lucide-icon>
-            </p-button>
-          </div>
+          <p-button
+            class="mr-2"
+            [rounded]="true"
+            [outlined]="true"
+            (click)="editFinca(finca)"
+            styleClass="p-button-sm"
+          >
+            <lucide-icon [img]="pencilIcon" size="18"></lucide-icon>
+          </p-button>
+          <p-button
+            severity="danger"
+            [rounded]="true"
+            [outlined]="true"
+            (click)="deleteFinca(finca)"
+            styleClass="p-button-sm"
+          >
+            <lucide-icon [img]="trashIcon" size="18"></lucide-icon>
+          </p-button>
         </td>
       </tr>
     </ng-template>
@@ -193,16 +195,20 @@
             optionLabel="label"
             optionValue="value"
             placeholder="Seleccione un país"
+            [loading]="loadingPaises"
             class="w-full"
             (onChange)="onPaisChange($event)"
             [class.ng-invalid]="isFieldInvalid('cod_pais')"
-            [class.ng-dirty]="fincaForm.get('cod_pais')?.dirty"
-          ></p-select>
+            [class.ng-dirty]="fincaForm.get('cod_pais')?.dirty">
+            <ng-template #loadingicon>
+              <app-loading-spinner [size]="16" color="text-primary"></app-loading-spinner>
+            </ng-template>
+          </p-select>
           @if (isFieldInvalid('cod_pais')) {
             <small class="text-red-600">{{ getFieldError('cod_pais') }}</small>
           }
         </div>
-
+     
         <!-- Estado -->
         <div class="col-span-1">
           <label for="cod_estado" class="block font-bold mb-2">
@@ -214,12 +220,16 @@
             optionLabel="label"
             optionValue="value"
             placeholder="Seleccione un estado"
+            [loading]="loadingEstados"
             class="w-full"
             (onChange)="onEstadoChange($event)"
-            [disabled]="!fincaForm.get('cod_pais')?.value"
             [class.ng-invalid]="isFieldInvalid('cod_estado')"
-            [class.ng-dirty]="fincaForm.get('cod_estado')?.dirty"
-          ></p-select>
+            [class.ng-dirty]="fincaForm.get('cod_estado')?.dirty">
+            
+            <ng-template #loadingicon>
+              <app-loading-spinner [size]="16" color="text-primary"></app-loading-spinner>
+            </ng-template>
+          </p-select>
           @if (isFieldInvalid('cod_estado')) {
             <small class="text-red-600">{{ getFieldError('cod_estado') }}</small>
           }
@@ -236,12 +246,16 @@
             optionLabel="label"
             optionValue="value"
             placeholder="Seleccione un municipio"
+            [loading]="loadingMunicipios"
             class="w-full"
             (onChange)="onMunicipioChange($event)"
-            [disabled]="!fincaForm.get('cod_estado')?.value"
             [class.ng-invalid]="isFieldInvalid('cod_municipio')"
-            [class.ng-dirty]="fincaForm.get('cod_municipio')?.dirty"
-          ></p-select>
+            [class.ng-dirty]="fincaForm.get('cod_municipio')?.dirty">
+            
+            <ng-template #loadingicon>
+              <app-loading-spinner [size]="16" color="text-primary"></app-loading-spinner>
+            </ng-template>
+          </p-select>
           @if (isFieldInvalid('cod_municipio')) {
             <small class="text-red-600">{{ getFieldError('cod_municipio') }}</small>
           }
@@ -258,11 +272,15 @@
             optionLabel="label"
             optionValue="value"
             placeholder="Seleccione una ciudad"
+            [loading]="loadingCiudades"
             class="w-full"
-            [disabled]="!fincaForm.get('cod_municipio')?.value"
             [class.ng-invalid]="isFieldInvalid('cod_ciudad')"
-            [class.ng-dirty]="fincaForm.get('cod_ciudad')?.dirty"
-          ></p-select>
+            [class.ng-dirty]="fincaForm.get('cod_ciudad')?.dirty">
+            
+            <ng-template #loadingicon>
+              <app-loading-spinner [size]="16" color="text-primary"></app-loading-spinner>
+            </ng-template>
+          </p-select>
           @if (isFieldInvalid('cod_ciudad')) {
             <small class="text-red-600">{{ getFieldError('cod_ciudad') }}</small>
           }
@@ -499,7 +517,6 @@
           label="Cancelar"
           severity="secondary"
           (onClick)="hideDialog()"
-          [disabled]="submitting"
         >
         </p-button>
         
@@ -507,7 +524,6 @@
           type="submit"
           [label]="isEditing ? 'Actualizar' : 'Crear'"
           [loading]="submitting"
-          [disabled]="fincaForm.invalid || submitting"
         >
         </p-button>
       </div>

@@ -20,6 +20,7 @@ import { TagModule } from 'primeng/tag';
 import { FormsModule } from '@angular/forms';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
+import { InputGroupModule } from 'primeng/inputgroup';
 import { Table } from 'primeng/table';
 import { GalleriaModule } from 'primeng/galleria';
 import {
@@ -30,6 +31,9 @@ import {
   Upload,
   Search,
   Eye,
+  X,
+  User,
+  Info,
 } from 'lucide-angular';
 import { CertificatesService } from './services/certificates-service';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
@@ -44,6 +48,8 @@ import {
 import { CertificatePage1 } from './components/certificate-page1/certificate-page1';
 import { CertificatePage2 } from './components/certificate-page2/certificate-page2';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { AnimalsTable, AnimalSelectionDto } from './components/animals-table/animals-table';
+import { ClasificadoresTable, ClasificadorSelectionDto } from './components/clasificadores-table/clasificadores-table';
 interface Column {
   field: string;
   header: string;
@@ -69,6 +75,7 @@ interface ExportColumn {
     TagModule,
     IconFieldModule,
     InputIconModule,
+    InputGroupModule,
     ToolbarModule,
     ToastModule,
     InputTextModule,
@@ -78,6 +85,8 @@ interface ExportColumn {
     CertificateViewer,
     CertificatePage1,
     CertificatePage2,
+    AnimalsTable,
+    ClasificadoresTable,
   ],
   templateUrl: './certificates.html',
   styleUrl: './certificates.css',
@@ -90,6 +99,9 @@ export class Certificates implements OnInit {
   readonly uploadIcon = Upload;
   readonly searchIcon = Search;
   readonly eyeIcon = Eye;
+  readonly xIcon = X;
+  readonly userIcon = User;
+  readonly infoIcon = Info;
 
   @ViewChild('certificatePage1', { read: ElementRef }) page1Ref!: ElementRef;
   @ViewChild('certificatePage2', { read: ElementRef }) page2Ref!: ElementRef;
@@ -139,6 +151,14 @@ export class Certificates implements OnInit {
   pdfViewerDialog: boolean = false;
 
   certificateData!: CertificateDto;
+
+  // Modals para selección
+  showAnimalsDialog: boolean = false;
+  showClasificadoresDialog: boolean = false;
+
+  // Datos seleccionados
+  selectedAnimalData: AnimalSelectionDto | null = null;
+  selectedClasificadorData: ClasificadorSelectionDto | null = null;
 
   constructor(
     private messageService: MessageService,
@@ -209,6 +229,8 @@ export class Certificates implements OnInit {
     this.certificate = this.getEmptyCreateCertificate();
     this.isEditMode = false;
     this.submitted = false;
+    this.selectedAnimalData = null;
+    this.selectedClasificadorData = null;
     this.certificateDialog = true;
   }
 
@@ -368,6 +390,8 @@ export class Certificates implements OnInit {
   hideDialog() {
     this.certificateDialog = false;
     this.submitted = false;
+    this.selectedAnimalData = null;
+    this.selectedClasificadorData = null;
   }
 
   deleteCertificate(certificate: CertificateTableData) {
@@ -723,5 +747,51 @@ export class Certificates implements OnInit {
     } finally {
       this.downloadLoading = false;
     }
+  }
+
+  // Métodos para manejo de selección de animales
+  openAnimalsDialog() {
+    this.showAnimalsDialog = true;
+  }
+
+  onAnimalSelected(animal: AnimalSelectionDto) {
+    this.selectedAnimalData = animal;
+    this.certificate.cod_animal = animal.cod_animal;
+    this.showAnimalsDialog = false;
+    
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Animal Seleccionado',
+      detail: `Animal: ${animal.nomb_animal} (${animal.cod_animal})`,
+      life: 3000
+    });
+  }
+
+  clearAnimalSelection() {
+    this.selectedAnimalData = null;
+    this.certificate.cod_animal = '';
+  }
+
+  // Métodos para manejo de selección de clasificadores
+  openClasificadoresDialog() {
+    this.showClasificadoresDialog = true;
+  }
+
+  onClasificadorSelected(clasificador: ClasificadorSelectionDto) {
+    this.selectedClasificadorData = clasificador;
+    this.certificate.ced_clasificador = clasificador.ced_clasificador;
+    this.showClasificadoresDialog = false;
+    
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Clasificador Seleccionado',
+      detail: `Clasificador: ${clasificador.nom_persona} ${clasificador.ape_persona}`,
+      life: 3000
+    });
+  }
+
+  clearClasificadorSelection() {
+    this.selectedClasificadorData = null;
+    this.certificate.ced_clasificador = '';
   }
 }

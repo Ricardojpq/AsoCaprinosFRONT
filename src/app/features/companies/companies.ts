@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { BehaviorSubject, Subject, debounceTime, distinctUntilChanged, filter, takeUntil } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MessageService, ConfirmationService } from 'primeng/api';
@@ -14,13 +15,14 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { TagModule } from 'primeng/tag';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
-import { LucideAngularModule, Plus, Search, Pencil, Trash, X, Save } from 'lucide-angular';
+import { LucideAngularModule, Plus, Search, Pencil, Trash2, X, Save } from 'lucide-angular';
 
 import { EmpresaDto, CreateEmpresaDto, UpdateEmpresaDto, EmpresaFilters } from './models/company.dto';
 import { CompaniesService } from './Services/companies-service';
 import { LaravelPaginationResponse } from '../../shared/models/base-catalog-entity.interface';
 import { PoliticalDivisionService } from '../political-division/Services/political-division-service';
-import { EstadoDto, MunicipioDto, CiudadDto } from '../political-division/models/political-division.dto';
+import { EstadoDto, MunicipioDto, CiudadDto, PoliticalDivisionSelectOption } from '../political-division/models/political-division.dto';
+import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner';
 
 interface Column {
   field: string;
@@ -46,24 +48,32 @@ interface Column {
     TagModule,
     IconFieldModule,
     InputIconModule,
-    LucideAngularModule
+    LucideAngularModule,
+    LoadingSpinnerComponent
   ],
   templateUrl: './companies.html',
   styleUrl: './companies.css',
   providers: [MessageService, ConfirmationService]
 })
-export class Companies implements OnInit {
+export class Companies implements OnInit, OnDestroy {
   // Icons
   plusIcon = Plus;
   searchIcon = Search;
   pencilIcon = Pencil;
-  trashIcon = Trash;
+  trashIcon = Trash2;
   xIcon = X;
   saveIcon = Save;
 
+  // BehaviorSubject para el término de búsqueda
+  private searchSubject$ = new BehaviorSubject<string>('');
+  private destroy$ = new Subject<void>();
+
+  // Configuración de búsqueda
+  readonly SEARCH_MIN_LENGTH = 3;
+  private readonly SEARCH_DEBOUNCE_TIME = 300;
+
   // Data
   empresas: EmpresaDto[] = [];
-  selectedEmpresas: EmpresaDto[] = [];
   
   // Forms
   empresaForm!: FormGroup;
@@ -84,9 +94,11 @@ export class Companies implements OnInit {
   globalFilterValue = '';
 
   // Geographic data
-  estados: EstadoDto[] = [];
-  municipios: MunicipioDto[] = [];
-  ciudades: CiudadDto[] = [];
+  paises: PoliticalDivisionSelectOption[] = [];
+  estados: PoliticalDivisionSelectOption[] = [];
+  municipios: PoliticalDivisionSelectOption[] = [];
+  ciudades: PoliticalDivisionSelectOption[] = [];
+  loadingPaises = false;
   loadingEstados = false;
   loadingMunicipios = false;
   loadingCiudades = false;
@@ -103,13 +115,41 @@ export class Companies implements OnInit {
 
   ngOnInit() {
     this.initializeColumns();
+    this.setupSearchPipe();
     this.loadEmpresas();
-    this.loadEstadosData();
+    // ✅ OPTIMIZACIÓN: No cargar datos geográficos hasta que sea necesario
+    // this.loadGeographicData(); // Movido a openNew() y editEmpresa()
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private setupSearchPipe() {
+    this.searchSubject$
+      .pipe(
+        takeUntil(this.destroy$),
+        debounceTime(this.SEARCH_DEBOUNCE_TIME),
+        distinctUntilChanged(),
+        filter(
+          (searchTerm) =>
+            searchTerm.length === 0 || searchTerm.length >= this.SEARCH_MIN_LENGTH
+        )
+      )
+      .subscribe((searchTerm) => {
+        const filters: EmpresaFilters = {};
+        if (searchTerm) {
+          filters.search = searchTerm;
+        }
+        this.loadEmpresas(filters);
+      });
   }
 
   private initializeForm() {
     this.empresaForm = this.fb.group({
       // Campos requeridos según backend
+      cod_pais: [0, [Validators.required, Validators.min(1)]],
       cod_estado: [0, [Validators.required, Validators.min(1)]],
       cod_municipio: [0, [Validators.required, Validators.min(1)]],
       cod_ciudad: [0, [Validators.required, Validators.min(1)]],
@@ -124,6 +164,11 @@ export class Companies implements OnInit {
       ced_presidente: ['', [Validators.maxLength(20)]],
       is_active: [true]
     });
+    
+    // Deshabilitar selectores geográficos inicialmente excepto país
+    this.empresaForm.get('cod_estado')?.disable();
+    this.empresaForm.get('cod_municipio')?.disable();
+    this.empresaForm.get('cod_ciudad')?.disable();
   }
 
   initializeColumns() {
@@ -133,8 +178,9 @@ export class Companies implements OnInit {
       { field: 'rif_empresa', header: 'RIF', sortable: true },
       { field: 'tlf_empresa', header: 'Teléfono', sortable: false },
       { field: 'email', header: 'Email', sortable: true },
-      { field: 'estado.nomb_estado', header: 'Estado', sortable: false },
-      { field: 'municipio.nomb_municipio', header: 'Municipio', sortable: false },
+      { field: 'pais.nom_pais', header: 'País', sortable: false },
+      { field: 'estado.nom_estado', header: 'Estado', sortable: false },
+      { field: 'municipio.nom_municipio', header: 'Municipio', sortable: false },
       { field: 'presidente.nombre_completo', header: 'Presidente', sortable: false },
       { field: 'is_active', header: 'Activo', sortable: true }
     ];
@@ -178,31 +224,20 @@ export class Companies implements OnInit {
   }
 
   onGlobalFilter(event: any) {
-    this.globalFilterValue = event.target.value;
-    if (this.globalFilterValue.length >= 3) {
-      this.searchEmpresas();
-    } else if (this.globalFilterValue.length === 0) {
-      this.loadEmpresas();
-    }
-  }
-
-  searchEmpresas() {
-    if (this.globalFilterValue.trim()) {
-      const filters: EmpresaFilters = {
-        nom_empresa: this.globalFilterValue
-      };
-      this.loadEmpresas(filters);
-    }
+    const searchTerm = event.target.value;
+    this.globalFilterValue = searchTerm;
+    this.searchSubject$.next(searchTerm);
   }
 
   clearSearch() {
     this.globalFilterValue = '';
-    this.loadEmpresas();
+    this.searchSubject$.next('');
   }
 
   openNew() {
     this.isEditMode = false;
     this.empresaForm.reset({
+      cod_pais: 0,
       cod_estado: 0,
       cod_municipio: 0,
       cod_ciudad: 0,
@@ -217,8 +252,17 @@ export class Companies implements OnInit {
     });
     
     // Clear geographic data
+    this.estados = [];
     this.municipios = [];
     this.ciudades = [];
+    
+    // Deshabilitar selectores geográficos excepto país
+    this.empresaForm.get('cod_estado')?.disable();
+    this.empresaForm.get('cod_municipio')?.disable();
+    this.empresaForm.get('cod_ciudad')?.disable();
+    
+    // ✅ OPTIMIZACIÓN: Cargar datos geográficos solo cuando se necesiten
+    this.loadGeographicData();
     
     this.submitted = false;
     this.empresaDialog = true;
@@ -228,6 +272,7 @@ export class Companies implements OnInit {
     this.isEditMode = true;
     this.currentEmpresaId = empresa.cod_empresa; // Store the ID for update
     this.empresaForm.patchValue({
+      cod_pais: empresa.cod_pais,
       cod_estado: empresa.cod_estado,
       cod_municipio: empresa.cod_municipio,
       cod_ciudad: empresa.cod_ciudad,
@@ -273,39 +318,6 @@ export class Companies implements OnInit {
     });
   }
 
-  deleteSelectedEmpresas() {
-    if (this.selectedEmpresas && this.selectedEmpresas.length > 0) {
-      this.confirmationService.confirm({
-        message: `¿Está seguro de eliminar ${this.selectedEmpresas.length} empresas seleccionadas?`,
-        header: 'Confirmar Eliminación',
-        icon: 'pi pi-exclamation-triangle',
-        accept: () => {
-          const deletePromises = this.selectedEmpresas.map(empresa =>
-            this.empresasService.deleteEmpresa(empresa.cod_empresa).toPromise()
-          );
-
-          Promise.all(deletePromises)
-            .then(() => {
-              this.messageService.add({
-                severity: 'success',
-                summary: 'Éxito',
-                detail: 'Empresas eliminadas correctamente'
-              });
-              this.selectedEmpresas = [];
-              this.loadEmpresas();
-            })
-            .catch((error) => {
-              console.error('Error deleting empresas:', error);
-              this.messageService.add({
-                severity: 'error',
-                summary: 'Error',
-                detail: 'Error al eliminar empresas'
-              });
-            });
-        }
-      });
-    }
-  }
 
   hideDialog() {
     this.empresaDialog = false;
@@ -321,6 +333,7 @@ export class Companies implements OnInit {
       if (this.isEditMode) {
         // Update
         const updateData: UpdateEmpresaDto = {
+          cod_pais: formValue.cod_pais,
           cod_estado: formValue.cod_estado,
           cod_municipio: formValue.cod_municipio,
           cod_ciudad: formValue.cod_ciudad,
@@ -355,6 +368,7 @@ export class Companies implements OnInit {
       } else {
         // Create
         const createData: CreateEmpresaDto = {
+          cod_pais: formValue.cod_pais,
           cod_estado: formValue.cod_estado,
           cod_municipio: formValue.cod_municipio,
           cod_ciudad: formValue.cod_ciudad,
@@ -454,6 +468,7 @@ export class Companies implements OnInit {
 
   private getFieldLabel(fieldName: string): string {
     const labels: { [key: string]: string } = {
+      'cod_pais': 'El país',
       'cod_estado': 'El estado',
       'cod_municipio': 'El municipio',
       'cod_ciudad': 'La ciudad',
@@ -475,107 +490,265 @@ export class Companies implements OnInit {
 
   // ==================== GEOGRAPHIC DATA METHODS ====================
 
-  loadEstadosData() {
-    this.loadingEstados = true;
-    this.politicalDivisionService.getAllActiveEstados()
+  /**
+   * Carga los datos geográficos iniciales (países)
+   */
+  loadGeographicData() {
+    this.loadingPaises = true;
+    this.politicalDivisionService.getAllPaises()
       .subscribe({
-        next: (estados) => {
-          this.estados = estados;
-          this.loadingEstados = false;
+        next: (paises: PoliticalDivisionSelectOption[]) => {
+          this.paises = paises;
+          this.loadingPaises = false;
         },
         error: (error) => {
-          console.error('Error loading estados:', error);
+          console.error('Error loading países:', error);
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'Error al cargar estados'
+            detail: 'Error al cargar países'
           });
-          this.loadingEstados = false;
+          this.loadingPaises = false;
         }
       });
   }
 
+  /**
+   * Maneja el cambio de país
+   */
+  onPaisChange(codPais: number) {
+    if (codPais) {
+      // Limpiar y deshabilitar niveles inferiores
+      this.estados = [];
+      this.municipios = [];
+      this.ciudades = [];
+      
+      this.empresaForm.patchValue({
+        cod_estado: 0,
+        cod_municipio: 0,
+        cod_ciudad: 0
+      });
+      
+      // Deshabilitar selectores inferiores
+      this.empresaForm.get('cod_municipio')?.disable();
+      this.empresaForm.get('cod_ciudad')?.disable();
+      
+      // Cargar estados del país seleccionado
+      this.loadingEstados = true;
+      this.politicalDivisionService.getEstadosByPais(codPais)
+        .subscribe({
+          next: (estados: PoliticalDivisionSelectOption[]) => {
+            this.estados = estados;
+            this.empresaForm.get('cod_estado')?.enable();
+            this.loadingEstados = false;
+          },
+          error: (error) => {
+            console.error('Error loading estados:', error);
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'Error al cargar estados'
+            });
+            this.loadingEstados = false;
+          }
+        });
+    } else {
+      // Si no hay país seleccionado, limpiar todo
+      this.estados = [];
+      this.municipios = [];
+      this.ciudades = [];
+      this.empresaForm.get('cod_estado')?.disable();
+      this.empresaForm.get('cod_municipio')?.disable();
+      this.empresaForm.get('cod_ciudad')?.disable();
+    }
+  }
+
+  /**
+   * Maneja el cambio de estado
+   */
   onEstadoChange(codEstado: number) {
     if (codEstado) {
-      this.loadMunicipiosByEstado(codEstado);
-      // Reset municipio and ciudad when estado changes
+      // Limpiar y deshabilitar niveles inferiores
+      this.municipios = [];
+      this.ciudades = [];
+      
       this.empresaForm.patchValue({
         cod_municipio: 0,
         cod_ciudad: 0
       });
-      this.municipios = [];
-      this.ciudades = [];
+      
+      // Deshabilitar selector de ciudad
+      this.empresaForm.get('cod_ciudad')?.disable();
+      
+      // Cargar municipios del estado seleccionado
+      this.loadingMunicipios = true;
+      this.politicalDivisionService.getMunicipiosByEstado(codEstado)
+        .subscribe({
+          next: (municipios: PoliticalDivisionSelectOption[]) => {
+            this.municipios = municipios;
+            this.empresaForm.get('cod_municipio')?.enable();
+            this.loadingMunicipios = false;
+          },
+          error: (error) => {
+            console.error('Error loading municipios:', error);
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'Error al cargar municipios'
+            });
+            this.loadingMunicipios = false;
+          }
+        });
     } else {
+      // Si no hay estado seleccionado, limpiar niveles inferiores
       this.municipios = [];
       this.ciudades = [];
+      this.empresaForm.get('cod_municipio')?.disable();
+      this.empresaForm.get('cod_ciudad')?.disable();
     }
   }
 
-  loadMunicipiosByEstado(codEstado: number) {
-    this.loadingMunicipios = true;
-    this.politicalDivisionService.getMunicipiosFullByEstado(codEstado)
-      .subscribe({
-        next: (municipios) => {
-          this.municipios = municipios;
-          this.loadingMunicipios = false;
-        },
-        error: (error) => {
-          console.error('Error loading municipios:', error);
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: 'Error al cargar municipios'
-          });
-          this.loadingMunicipios = false;
-        }
-      });
-  }
-
+  /**
+   * Maneja el cambio de municipio
+   */
   onMunicipioChange(codMunicipio: number) {
     if (codMunicipio) {
-      let nomMunicipio = this.municipios.find(m => m.cod_municipio === codMunicipio)?.nom_municipio || '';
-      this.loadCiudadesByMunicipio(nomMunicipio);
-      // Reset ciudad when municipio changes
-      this.empresaForm.patchValue({
-        cod_ciudad: 0
-      });
+      // Limpiar ciudades
       this.ciudades = [];
-    } else {
-      this.ciudades = [];
-    }
-  }
-
-  loadCiudadesByMunicipio(nomMunicipio: string) {
-    this.loadingCiudades = true;
-    this.politicalDivisionService.getCiudadesByMunicipio(nomMunicipio)
-      .subscribe({
-        next: (ciudades) => {
-          this.ciudades = ciudades;
-          this.loadingCiudades = false;
-        },
-        error: (error) => {
-          console.error('Error loading ciudades:', error);
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: 'Error al cargar ciudades'
-          });
-          this.loadingCiudades = false;
-        }
-      });
-  }
-
-  // Load geographic data when editing an existing empresa
-  loadGeographicDataForEdit() {
-    const codEstado = this.empresaForm.get('cod_estado')?.value;
-    const codMunicipio = this.empresaForm.get('cod_municipio')?.value;
-    
-    if (codEstado) {
-      this.loadMunicipiosByEstado(codEstado);
+      this.empresaForm.patchValue({ cod_ciudad: 0 });
       
-      if (codMunicipio) {
-        this.loadCiudadesByMunicipio(codMunicipio);
+      // Obtener el nombre del municipio seleccionado
+      const municipioSeleccionado = this.municipios.find(m => m.value === codMunicipio);
+      const nomMunicipio = municipioSeleccionado?.label;
+      
+      if (nomMunicipio) {
+        // Cargar ciudades del municipio seleccionado usando el nombre
+        this.loadingCiudades = true;
+        this.politicalDivisionService.getCiudadesByMunicipio(nomMunicipio)
+          .subscribe({
+            next: (data: any[]) => {
+              this.ciudades = data.map(ciudad => ({
+                label: ciudad.nom_ciudad,
+                value: ciudad.cod_ciudad
+              }));
+              this.empresaForm.get('cod_ciudad')?.enable();
+              this.loadingCiudades = false;
+            },
+            error: (error) => {
+              console.error('Error loading ciudades:', error);
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'Error al cargar ciudades'
+              });
+              this.loadingCiudades = false;
+            }
+          });
       }
+    } else {
+      // Si no hay municipio seleccionado, limpiar ciudades
+      this.ciudades = [];
+      this.empresaForm.get('cod_ciudad')?.disable();
     }
+  }
+
+  /**
+   * Carga datos geográficos para edición - Siguiendo el patrón de farms
+   */
+  loadGeographicDataForEdit() {
+    const formValues = this.empresaForm.value;
+    
+    // Verificar si los países están cargados
+    if (this.paises.length === 0) {
+      this.loadingPaises = true;
+      this.politicalDivisionService.getAllPaises()
+        .subscribe({
+          next: (paises: PoliticalDivisionSelectOption[]) => {
+            this.paises = paises;
+            this.loadingPaises = false;
+            this.loadGeographicHierarchyForEdit(formValues);
+          },
+          error: (error) => {
+            console.error('Error loading países:', error);
+            this.loadingPaises = false;
+          }
+        });
+    } else {
+      this.loadGeographicHierarchyForEdit(formValues);
+    }
+  }
+
+  /**
+   * Carga la jerarquía geográfica completa para edición
+   */
+  private loadGeographicHierarchyForEdit(formValues: any) {
+    if (formValues.cod_pais) {
+      this.loadingEstados = true;
+      
+      this.politicalDivisionService.getEstadosByPais(formValues.cod_pais)
+        .subscribe({
+          next: (estados: PoliticalDivisionSelectOption[]) => {
+            this.estados = estados;
+            this.empresaForm.get('cod_estado')?.enable();
+            this.loadingEstados = false;
+            
+            // Si hay estado seleccionado, cargar municipios
+            if (formValues.cod_estado) {
+              this.loadingMunicipios = true;
+              
+              this.politicalDivisionService.getMunicipiosByEstado(formValues.cod_estado)
+                .subscribe({
+                  next: (municipios: PoliticalDivisionSelectOption[]) => {
+                    this.municipios = municipios;
+                    this.empresaForm.get('cod_municipio')?.enable();
+                    this.loadingMunicipios = false;
+                    
+                    // Si hay municipio seleccionado, cargar ciudades
+                    if (formValues.cod_municipio) {
+                      const municipioSeleccionado = this.municipios.find(m => m.value === formValues.cod_municipio);
+                      const nomMunicipio = municipioSeleccionado?.label;
+                      
+                      if (nomMunicipio) {
+                        this.loadingCiudades = true;
+                        
+                        this.politicalDivisionService.getCiudadesByMunicipio(nomMunicipio)
+                          .subscribe({
+                            next: (data: any[]) => {
+                              this.ciudades = data.map(ciudad => ({
+                                label: ciudad.nom_ciudad,
+                                value: ciudad.cod_ciudad
+                              }));
+                              this.empresaForm.get('cod_ciudad')?.enable();
+                              this.loadingCiudades = false;
+                            },
+                            error: (error) => {
+                              console.error('Error loading ciudades for edit:', error);
+                              this.loadingCiudades = false;
+                            }
+                          });
+                      }
+                    }
+                  },
+                  error: (error) => {
+                    console.error('Error loading municipios for edit:', error);
+                    this.loadingMunicipios = false;
+                  }
+                });
+            }
+          },
+          error: (error) => {
+            console.error('Error loading estados for edit:', error);
+            this.loadingEstados = false;
+          }
+        });
+    }
+  }
+
+
+  /**
+   * Getter para determinar si el botón guardar debe estar deshabilitado
+   */
+  get isSaveButtonDisabled(): boolean {
+    return this.empresaForm.invalid || this.submitted;
   }
 }

@@ -1,0 +1,149 @@
+<p-dialog
+  [(visible)]="visible"
+  [header]="title"
+  [modal]="true"
+  [style]="{ width: '95vw', maxWidth: '1400px' }"
+  [closable]="true"
+  [maximizable]="true"
+  (onHide)="hideDialog()"
+>
+  <div class="space-y-4">
+    <!-- Toolbar -->
+    <p-toolbar class="mb-4 gap-2 bg-gray-50">
+      <ng-template pTemplate="start">
+        <div class="flex items-center gap-2">
+          <lucide-icon [img]="searchIcon" size="16" class="text-gray-600"></lucide-icon>
+          <span class="text-sm font-medium text-gray-700">Buscar:</span>
+          <input
+            pInputText
+            type="text"
+            placeholder="Buscar animal por código, nombre..."
+            class="w-64"
+            [value]="globalFilterValue"
+            (input)="onGlobalFilter($event)"
+          />
+          <p-button
+            label="Limpiar"
+            severity="secondary"
+            size="small"
+            (onClick)="clearSearch()"
+          >
+            <lucide-icon [img]="xIcon" size="16"></lucide-icon>
+          </p-button>
+        </div>
+      </ng-template>
+      
+      <ng-template pTemplate="end">
+        <div class="text-sm text-gray-600">
+          Total: {{ totalRecords }} animales
+        </div>
+      </ng-template>
+    </p-toolbar>
+
+    <!-- Table Container -->
+    <p-table
+      #dt
+      [value]="animals"
+      [globalFilterFields]="['cod_animal', 'nomb_animal', 'raza_info.nomb_raza']"
+      selectionMode="single"
+      [(selection)]="selectedAnimal"
+      (onRowSelect)="onRowSelect($event)"
+      (onRowUnselect)="onRowUnselect($event)"
+      [paginator]="true"
+      [rows]="perPage"
+      [rowsPerPageOptions]="[10, 25, 50]"
+      [showCurrentPageReport]="true"
+      [totalRecords]="totalRecords"
+      [lazy]="true"
+      [loading]="loading"
+      (onLazyLoad)="onTableLazyLoad($event)"
+      currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} animales"
+      [tableStyle]="{ 'min-width': '60rem' }"
+      styleClass="p-datatable-gridlines p-datatable-striped"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th pSortableColumn="cod_animal" style="min-width: 12rem">
+            Código Animal
+          </th>
+          <th pSortableColumn="nomb_animal" style="min-width: 16rem">
+            Nombre
+            <p-sortIcon field="nomb_animal"></p-sortIcon>
+          </th>
+          <th class="w-24">
+            <div class="flex items-center gap-2">
+              Sexo
+            </div>
+          </th>
+          <th style="min-width: 12rem">Raza</th>
+          <th style="min-width: 12rem">Fecha Nacimiento</th>
+          <th style="min-width: 16rem">Criador</th>
+          <th style="min-width: 16rem">Propietario</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-animal let-rowIndex="rowIndex">
+        <tr [pSelectableRow]="animal" [pSelectableRowIndex]="rowIndex">
+          <td>
+            <span class="font-medium text-blue-600">{{ animal.cod_animal }}</span>
+          </td>
+          <td>
+            <span class="font-medium">{{ animal.nomb_animal }}</span>
+          </td>
+          <td>
+            <span class="px-2 py-1 rounded-full text-xs font-medium"
+                  [class]="animal.sexo_animal === 'M' ? 'bg-blue-100 text-blue-800' : 'bg-pink-100 text-pink-800'">
+              {{ animal.sexo_animal === 'M' ? 'Macho' : 'Hembra' }}
+            </span>
+          </td>
+          <td>
+            <span class="text-sm text-gray-700">{{ animal.raza_info?.nomb_raza || 'N/A' }}</span>
+          </td>
+          <td>
+            <span class="text-sm text-gray-600">{{ formatDate(animal.fec_nacim) }}</span>
+          </td>
+          <td>
+            <div class="text-sm">
+              <div class="font-medium text-gray-900">{{ animal.criador?.nomb_finca || 'N/A' }}</div>
+              <div class="text-gray-500">{{ getOwnerName(animal.criador) }}</div>
+            </div>
+          </td>
+          <td>
+            <div class="text-sm">
+              <div class="font-medium text-gray-900">{{ animal.propietario?.nomb_finca || 'N/A' }}</div>
+              <div class="text-gray-500">{{ getOwnerName(animal.propietario) }}</div>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+      
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="7" class="text-center py-8">
+            <div class="flex flex-col items-center gap-2">
+              <lucide-icon [img]="searchIcon" size="48" class="text-gray-400"></lucide-icon>
+              <span class="text-gray-500">No se encontraron animales</span>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <!-- Dialog Footer -->
+  <ng-template pTemplate="footer">
+    <div class="flex justify-between items-center">
+      <div class="flex gap-2">
+        <p-button
+          label="Cancelar"
+          severity="secondary"
+          (onClick)="hideDialog()"
+        />
+        <p-button
+          label="Seleccionar"
+          [disabled]="!selectedAnimal"
+          (onClick)="selectAnimal()"
+        />
+      </div>
+    </div>
+  </ng-template>
+</p-dialog>

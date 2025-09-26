@@ -12,6 +12,7 @@ import {
   FormGroup,
   Validators,
   ReactiveFormsModule,
+  FormsModule,
 } from '@angular/forms';
 import { FarmsService } from './Services/farms-service';
 import {
@@ -20,13 +21,9 @@ import {
   UpdateFincaDto,
   FincaQueryParams,
 } from './models/finca.dto';
-import { LaravelPaginationResponse } from '../../core/models/DTOs/laravel-response';
 import { PoliticalDivisionService } from '../political-division/Services/political-division-service';
 import { PoliticalDivisionSelectOption } from '../political-division/models/political-division.dto';
-import {
-  MembersTable,
-  SocioSelectionDto,
-} from './components/members-table/members-table';
+import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { Table, TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
@@ -48,11 +45,14 @@ import {
   X,
 } from 'lucide-angular';
 import { TextareaModule } from 'primeng/textarea';
+import { TipoGanaderiaFincaEnum } from '../../core/enums/tipo-ganaderia-finca';
+import { TipoSistemaFincaEnum } from '../../core/enums/tipo-sistema-finca.enum';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { TooltipModule } from 'primeng/tooltip';
 import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
+import { MembersTable, SocioSelectionDto } from './components/members-table/members-table';
 
 @Component({
   selector: 'app-farms',
@@ -83,7 +83,9 @@ import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
     InputGroupAddonModule,
     DatePickerModule,
     MembersTable,
-  ],
+    FormsModule,
+    LoadingSpinnerComponent
+],
 })
 export class Farms implements OnInit, OnDestroy {
   // Iconos Lucide
@@ -135,18 +137,25 @@ export class Farms implements OnInit, OnDestroy {
   municipios: any[] = [];
   ciudades: any[] = [];
   estatusOptions: any[] = [];
+
+  // Loading states for geographic selectors
+  loadingPaises = false;
+  loadingEstados = false;
+  loadingMunicipios = false;
+  loadingCiudades = false;
   tipoGanaderiaOptions = [
-    { label: 'Caprino', value: 'c' },
-    { label: 'Bovino', value: 'b' },
-    { label: 'Mixto', value: 'm' },
+    { label: 'Carne y Leche', value: TipoGanaderiaFincaEnum.CARNE_LECHE },
+    { label: 'Leche', value: TipoGanaderiaFincaEnum.LECHE },
+    { label: 'Cría y Carne', value: TipoGanaderiaFincaEnum.CRIA_CARNE },
+    { label: 'Carne', value: TipoGanaderiaFincaEnum.CARNE },
+    { label: 'Cría', value: TipoGanaderiaFincaEnum.CRIA },
   ];
   municipioOptions: any[] = [];
   ciudadOptions: any[] = [];
   tipoSistemaOptions = [
-    { label: 'Extensivo', value: 'e' },
-    { label: 'Semi-intensivo', value: 's' },
-    { label: 'Intensivo', value: 'i' },
-    { label: 'Confinamiento', value: 'c' },
+    { label: 'Intensivo', value: TipoSistemaFincaEnum.Intensivo },
+    { label: 'Semi-Intensivo', value: TipoSistemaFincaEnum.SemiIntensivo },
+    { label: 'Estabulado', value: TipoSistemaFincaEnum.ESTABULADO },
   ];
   tipoCriadorOptions: any[] = [];
 
@@ -253,8 +262,8 @@ export class Farms implements OnInit, OnDestroy {
     // Configurar el pipe de búsqueda
     this.setupSearchPipe();
 
-    // Cargar datos geográficos
-    this.loadGeographicData();
+    // ✅ OPTIMIZACIÓN: No cargar datos geográficos hasta que sea necesario
+    // this.loadGeographicData(); // Movido a openNew() y editFinca()
 
     // No llamar loadFarms() aquí - se maneja con lazy loading
   }
@@ -269,12 +278,15 @@ export class Farms implements OnInit, OnDestroy {
    */
   private loadGeographicData() {
     // Solo cargar países inicialmente
+    this.loadingPaises = true;
     this.politicalDivisionService.getAllPaises().subscribe({
       next: (paises: PoliticalDivisionSelectOption[]) => {
         this.paises = paises;
+        this.loadingPaises = false;
       },
       error: (error: any) => {
         console.error('Error loading países:', error);
+        this.loadingPaises = false;
       },
     });
 
@@ -402,6 +414,15 @@ export class Farms implements OnInit, OnDestroy {
       imagen: '',
       estatus_finca: 'A',
     });
+
+    // Set initial disabled state for geographic selectors
+    this.fincaForm.get('cod_estado')?.disable();
+    this.fincaForm.get('cod_municipio')?.disable();
+    this.fincaForm.get('cod_ciudad')?.disable();
+
+    // ✅ OPTIMIZACIÓN: Cargar datos geográficos solo cuando se necesiten
+    this.loadGeographicData();
+
     this.isEditMode = false;
     this.fincaDialog = true;
     this.submitted = false;
@@ -450,20 +471,8 @@ export class Farms implements OnInit, OnDestroy {
       estatus_finca: farm.estatus_finca,
     });
 
-    // Cargar datos geográficos para edición
-    if (farm.cod_pais) {
-      this.onPaisChange({ value: farm.cod_pais });
-      setTimeout(() => {
-        if (farm.cod_estado) {
-          this.onEstadoChange({ value: farm.cod_estado });
-          setTimeout(() => {
-            if (farm.cod_municipio) {
-              this.onMunicipioChange({ value: farm.cod_municipio });
-            }
-          }, 100);
-        }
-      }, 100);
-    }
+    // Load geographic data for editing
+    this.loadGeographicDataForEditFinca(farm);
 
     this.isEditMode = true;
     this.fincaDialog = true;
@@ -706,15 +715,31 @@ export class Farms implements OnInit, OnDestroy {
         cod_ciudad: null,
       });
 
+      // Habilitar estado y deshabilitar municipio/ciudad
+      this.fincaForm.get('cod_estado')?.enable();
+      this.fincaForm.get('cod_municipio')?.disable();
+      this.fincaForm.get('cod_ciudad')?.disable();
+
       // Cargar estados del país seleccionado usando el método correcto
+      this.loadingEstados = true;
       this.politicalDivisionService.getEstadosByPais(cod_pais).subscribe({
         next: (estados: PoliticalDivisionSelectOption[]) => {
           this.estados = estados;
+          this.loadingEstados = false;
         },
         error: (error: any) => {
           console.error('Error loading estados:', error);
+          this.loadingEstados = false;
         },
       });
+    } else {
+      this.estados = [];
+      this.municipios = [];
+      this.ciudades = [];
+      // Deshabilitar todos los selectores dependientes
+      this.fincaForm.get('cod_estado')?.disable();
+      this.fincaForm.get('cod_municipio')?.disable();
+      this.fincaForm.get('cod_ciudad')?.disable();
     }
   }
 
@@ -731,17 +756,29 @@ export class Farms implements OnInit, OnDestroy {
         cod_ciudad: null,
       });
 
+      // Habilitar municipio y deshabilitar ciudad
+      this.fincaForm.get('cod_municipio')?.enable();
+      this.fincaForm.get('cod_ciudad')?.disable();
+
       // Cargar municipios del estado seleccionado
+      this.loadingMunicipios = true;
       this.politicalDivisionService
         .getMunicipiosByEstado(cod_estado)
         .subscribe({
           next: (municipios: PoliticalDivisionSelectOption[]) => {
             this.municipios = municipios;
+            this.loadingMunicipios = false;
           },
           error: (error: any) => {
             console.error('Error loading municipios:', error);
+            this.loadingMunicipios = false;
           },
         });
+    } else {
+      this.municipios = [];
+      this.ciudades = [];
+      this.fincaForm.get('cod_municipio')?.disable();
+      this.fincaForm.get('cod_ciudad')?.disable();
     }
   }
 
@@ -755,6 +792,10 @@ export class Farms implements OnInit, OnDestroy {
       this.fincaForm.patchValue({
         cod_ciudad: null,
       });
+
+      // Habilitar ciudad
+      this.fincaForm.get('cod_ciudad')?.enable();
+
       // Obtener el nombre del municipio seleccionado
       const municipioSeleccionado: any = this.municipios.find(
         (m) => m.value === cod_municipio
@@ -763,6 +804,7 @@ export class Farms implements OnInit, OnDestroy {
 
       if (nom_municipio) {
         // Cargar ciudades del municipio seleccionado y filtrar por nom_municipio
+        this.loadingCiudades = true;
         this.politicalDivisionService
           .getCiudadesByMunicipio(nom_municipio)
           .subscribe({
@@ -772,12 +814,17 @@ export class Farms implements OnInit, OnDestroy {
                   label: ciudad.nom_ciudad,
                   value: ciudad.cod_ciudad,
                 }));
+              this.loadingCiudades = false;
             },
             error: (error: any) => {
               console.error('Error loading ciudades:', error);
+              this.loadingCiudades = false;
             },
           });
       }
+    } else {
+      this.ciudades = [];
+      this.fincaForm.get('cod_ciudad')?.disable();
     }
   }
 
@@ -831,5 +878,72 @@ export class Farms implements OnInit, OnDestroy {
       nombre_propietario: `${socio.nom_persona} ${socio.ape_persona}`,
     });
     this.showMembersDialog = false;
+  }
+
+  /**
+   * Load geographic data when editing an existing finca
+   */
+  loadGeographicDataForEditFinca(finca: FincaDto) {
+    if (finca.cod_pais) {
+      // Cargar estados del país
+      this.loadingEstados = true;
+      this.politicalDivisionService.getEstadosByPais(finca.cod_pais)
+        .subscribe({
+          next: (estados: PoliticalDivisionSelectOption[]) => {
+            this.estados = estados;
+            this.loadingEstados = false;
+            // Habilitar estado
+            this.fincaForm.get('cod_estado')?.enable();
+            
+            // Si tiene estado, cargar municipios
+            if (finca.cod_estado) {
+              this.loadingMunicipios = true;
+              this.politicalDivisionService.getMunicipiosByEstado(finca.cod_estado)
+                .subscribe({
+                  next: (municipios: PoliticalDivisionSelectOption[]) => {
+                    this.municipios = municipios;
+                    this.loadingMunicipios = false;
+                    // Habilitar municipio
+                    this.fincaForm.get('cod_municipio')?.enable();
+                    
+                    // Si tiene municipio, cargar ciudades
+                    if (finca.cod_municipio) {
+                      const municipioSeleccionado = this.municipios.find(m => m.value === finca.cod_municipio);
+                      const nomMunicipio = municipioSeleccionado?.label || '';
+                      
+                      if (nomMunicipio) {
+                        this.loadingCiudades = true;
+                        this.politicalDivisionService.getCiudadesByMunicipio(nomMunicipio)
+                          .subscribe({
+                            next: (data: any[]) => {
+                              this.ciudades = data.map((ciudad) => ({
+                                label: ciudad.nom_ciudad,
+                                value: ciudad.cod_ciudad,
+                              }));
+                              this.loadingCiudades = false;
+                              // Habilitar ciudad
+                              this.fincaForm.get('cod_ciudad')?.enable();
+                            },
+                            error: (error) => {
+                              console.error('Error loading ciudades for edit finca:', error);
+                              this.loadingCiudades = false;
+                            }
+                          });
+                      }
+                    }
+                  },
+                  error: (error) => {
+                    console.error('Error loading municipios for edit finca:', error);
+                    this.loadingMunicipios = false;
+                  }
+                });
+            }
+          },
+          error: (error) => {
+            console.error('Error loading estados for edit finca:', error);
+            this.loadingEstados = false;
+          }
+        });
+    }
   }
 }

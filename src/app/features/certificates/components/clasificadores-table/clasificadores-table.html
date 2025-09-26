@@ -1,0 +1,141 @@
+<p-dialog
+  [(visible)]="visible"
+  [header]="title"
+  [modal]="true"
+  [style]="{ width: '95vw', maxWidth: '1200px' }"
+  [closable]="true"
+  [maximizable]="true"
+  (onHide)="hideDialog()"
+>
+  <div class="space-y-4">
+    <!-- Toolbar -->
+    <p-toolbar class="mb-4 gap-2 bg-gray-50">
+      <ng-template pTemplate="start">
+        <div class="flex items-center gap-2">
+          <lucide-icon [img]="searchIcon" size="16" class="text-gray-600"></lucide-icon>
+          <span class="text-sm font-medium text-gray-700">Buscar:</span>
+          <input
+            pInputText
+            type="text"
+            placeholder="Buscar clasificador por cédula, nombre..."
+            class="w-64"
+            [value]="globalFilterValue"
+            (input)="onGlobalFilter($event)"
+          />
+          <p-button
+            label="Limpiar"
+            severity="secondary"
+            size="small"
+            (onClick)="clearSearch()"
+          >
+            <lucide-icon [img]="xIcon" size="16"></lucide-icon>
+          </p-button>
+        </div>
+      </ng-template>
+      
+      <ng-template pTemplate="end">
+        <div class="text-sm text-gray-600">
+          Total: {{ totalRecords }} clasificadores
+        </div>
+      </ng-template>
+    </p-toolbar>
+
+    <!-- Table Container -->
+    <p-table
+      #dt
+      [value]="clasificadores"
+      [globalFilterFields]="['ced_clasificador', 'cod_clasificador', 'nom_persona', 'ape_persona', 'email_persona']"
+      selectionMode="single"
+      [(selection)]="selectedClasificador"
+      (onRowSelect)="onRowSelect($event)"
+      (onRowUnselect)="onRowUnselect($event)"
+      [paginator]="true"
+      [rows]="perPage"
+      [rowsPerPageOptions]="[10, 25, 50]"
+      [showCurrentPageReport]="true"
+      [totalRecords]="totalRecords"
+      [lazy]="true"
+      [loading]="loading"
+      (onLazyLoad)="onTableLazyLoad($event)"
+      currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} clasificadores"
+      [tableStyle]="{ 'min-width': '50rem' }"
+      styleClass="p-datatable-gridlines p-datatable-striped"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th pSortableColumn="ced_clasificador" style="min-width: 12rem">
+            Cédula
+            <p-sortIcon field="ced_clasificador"></p-sortIcon>
+          </th>
+          <th pSortableColumn="cod_clasificador" style="min-width: 12rem">
+            Código
+            <p-sortIcon field="cod_clasificador"></p-sortIcon>
+          </th>
+          <th style="min-width: 20rem">
+            Nombre Completo
+          </th>
+          <th style="min-width: 18rem">
+            Email
+          </th>
+          <th style="min-width: 10rem">
+            Activo
+          </th>
+        </tr>
+      </ng-template>
+      
+      <ng-template pTemplate="body" let-clasificador let-rowIndex="rowIndex">
+        <tr [pSelectableRow]="clasificador" [pSelectableRowIndex]="rowIndex">
+          <td>
+            <span class="font-medium text-blue-600">{{ clasificador.ced_clasificador }}</span>
+          </td>
+          <td>
+            <span class="font-medium text-gray-700">{{ clasificador.cod_clasificador }}</span>
+          </td>
+          <td>
+            <div class="font-medium text-gray-900">
+              {{ getFullName(clasificador) }}
+            </div>
+          </td>
+          <td>
+            <span class="text-sm text-gray-600">{{ clasificador.email_persona || 'N/A' }}</span>
+          </td>
+          <td>
+            <span class="px-2 py-1 rounded-full text-xs font-medium"
+                  [class]="getStatusBadgeClass(clasificador.stat_clasificador)">
+              {{ getStatusLabel(clasificador.stat_clasificador) }}
+            </span>
+          </td>
+        </tr>
+      </ng-template>
+      
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="5" class="text-center py-8">
+            <div class="flex flex-col items-center gap-2">
+              <lucide-icon [img]="userIcon" size="48" class="text-gray-400"></lucide-icon>
+              <span class="text-gray-500">No se encontraron clasificadores</span>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <!-- Dialog Footer -->
+  <ng-template pTemplate="footer">
+    <div class="flex justify-between items-center">
+      <div class="flex gap-2">
+        <p-button
+          label="Cancelar"
+          severity="secondary"
+          (onClick)="hideDialog()"
+        />
+        <p-button
+          label="Seleccionar"
+          [disabled]="!selectedClasificador"
+          (onClick)="selectClasificador()"
+        />
+      </div>
+    </div>
+  </ng-template>
+</p-dialog>
