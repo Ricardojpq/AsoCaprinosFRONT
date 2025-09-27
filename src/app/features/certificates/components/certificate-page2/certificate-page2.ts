@@ -17,6 +17,7 @@ export class CertificatePage2 implements OnChanges, AfterViewInit {
   ngAfterViewInit(): void {
     this.isViewInit = true;
     this.checkAndEmitDataLoaded();
+    
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -24,6 +25,7 @@ export class CertificatePage2 implements OnChanges, AfterViewInit {
       if (this.certificateData && Object.keys(this.certificateData).length > 0) {
         this.hasData = true;
         this.checkAndEmitDataLoaded();
+        console.log(this.certificateData);
       } else {
         // Resetear cuando se limpian los datos
         this.hasData = false;

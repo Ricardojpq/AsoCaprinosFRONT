@@ -104,6 +104,7 @@ export interface AnimalCreateDto {
   tipo_registro?: string;
   aretes?: string;
   reg_intl?: string;
+  puntuacion?: number;
   
   // Base entity fields
   is_active?: boolean;

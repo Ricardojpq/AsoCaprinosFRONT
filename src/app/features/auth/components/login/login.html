@@ -21,7 +21,7 @@
           <img
             src="assets/logos/logo.png"
             alt="ASOCABRA Logo"
-            class="size-[200px] object-cover rounded-[50%] bg-golden-50"
+            class="size-[200px] object-cover rounded-[50%] bg-golden-50 dark:bg-golden-900/20"
           />
           <div
             class="text-surface-900 dark:text-surface-0 text-3xl font-medium text-center"
@@ -107,10 +107,10 @@
 <!-- Loading overlay para el login -->
 @if (loading()) {
   <div class="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
-    <div class="bg-white/90 backdrop-blur-md rounded-xl p-8 flex flex-col items-center shadow-2xl">
+    <div class="bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-xl p-8 flex flex-col items-center shadow-2xl">
       <img src="assets/logos/logo.png" alt="ASOCABRA Logo" class="w-16 h-16 mb-4" />
       <p-progressSpinner class="w-8 h-8" strokeWidth="4" fill="var(--surface-ground)" animationDuration=".5s"></p-progressSpinner>
-      <p class="mt-4 text-gray-700 font-medium">Iniciando sesión...</p>
+      <p class="mt-4 text-gray-700 dark:text-gray-300 font-medium">Iniciando sesión...</p>
     </div>
   </div>
 }

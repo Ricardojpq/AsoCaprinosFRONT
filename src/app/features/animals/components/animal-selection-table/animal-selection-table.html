@@ -9,7 +9,7 @@
   (onHide)="hideDialog()">
   
   <!-- Toolbar con filtros y búsqueda -->
-  <p-toolbar class="mb-4 gap-2">
+  <p-toolbar class="mb-4 gap-2 bg-gray-50! dark:bg-cloud-700! dark:border-gray-700!">
     <ng-template pTemplate="start">
       <div class="flex flex-wrap gap-2 align-items-center">
         <!-- Búsqueda global -->
@@ -56,6 +56,7 @@
           label="Limpiar" 
           severity="secondary" 
           size="small"
+          styleClass="dark:bg-cloud-600"
           (onClick)="clearFilters()"
         />
       </div>
@@ -63,11 +64,11 @@
 
     <ng-template pTemplate="end">
       <div class="flex flex-column align-items-end gap-1">
-        <span class="text-sm text-gray-600">
+        <span class="text-sm text-gray-600 dark:text-gray-300">
           Total: {{ totalRecords }} animales
         </span>
         @if (globalFilterValue) {
-          <small class="text-xs text-gray-500">
+          <small class="text-xs text-gray-500 dark:text-gray-400">
             Buscando en: Código Finca, Código Animal, Nombre, Fecha Nac., Fecha Ingreso
           </small>
         }
@@ -128,7 +129,7 @@
           <span class="font-medium">{{ animal.cod_finca }}</span>
         </td>
         <td>
-          <span class="font-medium text-blue-600">{{ animal.cod_animal }}</span>
+          <span class="font-medium text-blue-600 dark:text-blue-400">{{ animal.cod_animal }}</span>
         </td>
         <td>
           <span class="font-semibold">{{ animal.nomb_animal }}</span>
@@ -158,9 +159,9 @@
       <tr>
         <td colspan="9" class="text-center p-4">
           <div class="flex flex-column align-items-center gap-2">
-            <i class="pi pi-search text-4xl text-gray-400"></i>
-            <span class="text-gray-500">No se encontraron animales</span>
-            <small class="text-gray-400">Intenta ajustar los filtros de búsqueda</small>
+            <i class="pi pi-search text-4xl text-gray-400 dark:text-gray-500"></i>
+            <span class="text-gray-500 dark:text-gray-400">No se encontraron animales</span>
+            <small class="text-gray-400 dark:text-gray-500">Intenta ajustar los filtros de búsqueda</small>
           </div>
         </td>
       </tr>

@@ -35,3 +35,260 @@
 .certificate-page-2 .bg-white {
   background-color: rgba(255, 255, 255, 0.9) !important;
 }
+
+/* =================================================================
+   ESTILOS DE IMPRESIÓN OPTIMIZADOS PARA CERTIFICADO PÁGINA 2
+   ================================================================= */
+
+@media print {
+  /* Configuración de página para la segunda página */
+  .certificate-page-2 {
+    width: 100% !important;
+    height: 100vh !important;
+    max-width: none !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 15mm !important;
+    box-sizing: border-box !important;
+    page-break-before: always;
+    background-color: white !important;
+    font-family: Arial, sans-serif !important;
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+    color: black !important;
+    position: relative !important;
+    overflow: visible !important;
+    
+    /* Forzar colores en Impresión */
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  /* Ocultar imagen de fondo en Impresión para mejorar legibilidad */
+  .certificate-page-2::before {
+    display: none !important;
+  }
+  
+  /* Asegurar que todo el texto sea negro y visible */
+  .certificate-page-2 *,
+  .certificate-page-2 {
+    color: black !important;
+    font-family: Arial, sans-serif !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
+  /* Grid fallbacks para Impresión */
+  .grid {
+    display: table !important;
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+  
+  .grid-cols-2 > * {
+    display: table-cell !important;
+    width: 50% !important;
+    vertical-align: top !important;
+    padding: 4px !important;
+  }
+  
+  .grid-cols-3 > * {
+    display: table-cell !important;
+    width: 33.333% !important;
+    vertical-align: top !important;
+    padding: 4px !important;
+  }
+  
+  /* Flexbox fallbacks para Impresión */
+  .flex {
+    display: table !important;
+    width: 100% !important;
+  }
+  
+  .flex > * {
+    display: table-cell !important;
+    vertical-align: middle !important;
+  }
+  
+  .justify-between > *:first-child {
+    text-align: left !important;
+  }
+  
+  .justify-between > *:last-child {
+    text-align: right !important;
+  }
+  
+  .justify-evenly > * {
+    text-align: center !important;
+    width: 50% !important;
+  }
+  
+  /* Bordes visibles en Impresión */
+  .border {
+    border: 1px solid black !important;
+  }
+  
+  .border-black {
+    border-color: #000000 !important;
+  }
+  
+  .border-yellow-500 {
+    border-color: #EAB308 !important; /* yellow-500 */
+  }
+  
+  .border-\[3px\] {
+    border-width: 3px !important;
+  }
+  
+  .border-r {
+    border-right: 1px solid black !important;
+  }
+  
+  .border-t {
+    border-top: 1px solid black !important;
+  }
+  
+  .border-4 {
+    border-width: 4px !important;
+  }
+  
+  /* Backgrounds para Impresión */
+  .bg-yellow-300 {
+    background-color: #FDE047 !important; /* yellow-300 */
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  .bg-white {
+    background-color: white !important;
+  }
+  
+  /* Espaciado en Impresión */
+  .gap-2 > * { margin-right: 8px !important; }
+  .gap-4 > * { margin-right: 16px !important; }
+  .gap-8 > * { margin-right: 32px !important; }
+  .gap-\[20px\] > * { margin-right: 20px !important; }
+  
+  .mb-1 { margin-bottom: 4px !important; }
+  .mb-2 { margin-bottom: 8px !important; }
+  .mb-4 { margin-bottom: 16px !important; }
+  .mb-8 { margin-bottom: 32px !important; }
+  .mt-2 { margin-top: 8px !important; }
+  .mt-8 { margin-top: 32px !important; }
+  
+  .p-1 { padding: 4px !important; }
+  .p-2 { padding: 8px !important; }
+  .p-3 { padding: 12px !important; }
+  .p-8 { padding: 32px !important; }
+  .pt-\[40px\] { padding-top: 40px !important; }
+  
+  /* Tamaños específicos */
+  .h-12 { height: 48px !important; }
+  .h-\[150px\] { height: 150px !important; }
+  
+  /* Texto y fuentes */
+  .font-bold { font-weight: bold !important; }
+  .font-extrabold { font-weight: 900 !important; }
+  .text-xs { font-size: 10px !important; }
+  .text-sm { font-size: 11px !important; }
+  .text-3xl { font-size: 24px !important; }
+  
+  .text-center { text-align: center !important; }
+  .text-justify { text-align: justify !important; }
+  
+  .leading-tight { line-height: 1.1 !important; }
+  
+  /* Posicionamiento y z-index */
+  .z-999 {
+    z-index: 999 !important;
+    position: relative !important;
+  }
+  
+  /* Bordes redondeados (simplificar para Impresión) */
+  .rounded-lg {
+    border-radius: 4px !important;
+  }
+  
+  /* Elementos específicos de la página 2 */
+  
+  /* Título principal */
+  .certificate-page-2 h1 {
+    font-size: 24px !important;
+    font-weight: bold !important;
+    text-align: center !important;
+    margin-bottom: 16px !important;
+    color: black !important;
+  }
+  
+  /* Secciones informativas */
+  .certificate-page-2 .border-yellow-500 {
+    border: 3px solid #EAB308 !important;
+    padding: 8px !important;
+    margin-bottom: 8px !important;
+  }
+  
+  /* Tabla de transferencia */
+  .certificate-page-2 .bg-yellow-300 {
+    background-color: #FDE047 !important;
+    font-weight: 900 !important;
+    text-align: center !important;
+    padding: 8px !important;
+  }
+  
+  /* Filas de la tabla */
+  .certificate-page-2 .grid-cols-3 .border-r:not(.bg-yellow-300) {
+    border-right: 1px solid black !important;
+    border-top: 1px solid black !important;
+    height: 48px !important;
+    padding: 8px !important;
+  }
+  
+  /* Advertencia */
+  .certificate-page-2 .border-4 {
+    border: 4px solid black !important;
+    border-radius: 4px !important;
+    padding: 12px !important;
+    margin-bottom: 16px !important;
+  }
+  
+  /* Información de contacto */
+  .certificate-page-2 .text-xs p {
+    margin-bottom: 4px !important;
+    line-height: 1.2 !important;
+  }
+  
+  /* Tabla de acta */
+  .certificate-page-2 .bg-yellow-300 .border-r {
+    border-right: 1px solid black !important;
+  }
+  
+  /* Asegurar que los elementos flex se comporten como tabla */
+  .certificate-page-2 .flex.items-center {
+    display: table-row !important;
+  }
+  
+  .certificate-page-2 .flex.items-center > * {
+    display: table-cell !important;
+    vertical-align: middle !important;
+  }
+  
+  /* Márgenes específicos */
+  .ml-45 {
+    margin-left: 45px !important;
+  }
+  
+  /* Ocultar elementos no necesarios */
+  .no-print {
+    display: none !important;
+    visibility: hidden !important;
+  }
+}
+
+/* Estilos adicionales para mejorar compatibilidad de Impresión en página 2 */
+@media print and (orientation: landscape) {
+  .certificate-page-2 {
+    width: 100% !important;
+    height: 100vh !important;
+    transform: none !important;
+  }
+}

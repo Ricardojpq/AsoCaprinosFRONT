@@ -113,7 +113,6 @@ export class ClasificadoresTable implements OnInit, OnDestroy, OnChanges {
     // Usar el método de búsqueda del servicio
     this.classifiersService.searchClasificadores(this.globalFilterValue, this.perPage).subscribe({
       next: (response: any) => {
-        console.log('Search clasificadores response:', response);
         this.handleClasificadoresResponse(response);
       },
       error: (error: any) => {
@@ -133,11 +132,8 @@ export class ClasificadoresTable implements OnInit, OnDestroy, OnChanges {
       sort_dir: this.sortOrder as 'asc' | 'desc'
     };
 
-    console.log('Loading clasificadores with filters:', filters, 'page:', this.page, 'perPage:', this.perPage);
-
     this.classifiersService.getClasificadores(filters, this.page, this.perPage).subscribe({
       next: (response: any) => {
-        console.log('Clasificadores response:', response);
         this.handleClasificadoresResponse(response);
       },
       error: (error: any) => {
@@ -151,7 +147,6 @@ export class ClasificadoresTable implements OnInit, OnDestroy, OnChanges {
   private loadAllActiveClasificadores() {
     this.classifiersService.getAllActiveClasificadores().subscribe({
       next: (clasificadores: any) => {
-        console.log('All active clasificadores response:', clasificadores);
         
         let filteredData = clasificadores || [];
         
@@ -208,8 +203,6 @@ export class ClasificadoresTable implements OnInit, OnDestroy, OnChanges {
     this.clasificadores = this.mapClasificadores(data);
     this.totalRecords = total;
     this.loading = false;
-    
-    console.log('Mapped clasificadores:', this.clasificadores);
   }
 
   private mapClasificadores(clasificadores: any[]): ClasificadorSelectionDto[] {
@@ -219,7 +212,6 @@ export class ClasificadoresTable implements OnInit, OnDestroy, OnChanges {
     }
     
     return clasificadores.map(clasificador => {
-      console.log('Mapping clasificador:', clasificador);
       
       return {
         ced_clasificador: clasificador.ced_clasificador || '',

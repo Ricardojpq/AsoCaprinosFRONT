@@ -1,4 +1,4 @@
-<div class="p-6 min-h-screen bg-slate-100 dark:bg-slate-900">
+<div class="card">
   <!-- Header -->
   <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
     <div class="flex items-center gap-4 mb-4 sm:mb-0">
@@ -21,21 +21,24 @@
   </div>
 
   <!-- Error Message -->
-  <div *ngIf="error" class="mb-6">
-    <p-message 
-      severity="error" 
-      [text]="error"
-      styleClass="w-full">
-      <ng-template pTemplate="icon">
-        <lucide-icon [img]="alertIcon" size="20"></lucide-icon>
-      </ng-template>
-    </p-message>
-  </div>
+  @if (error) {
+    <div class="mb-6">
+      <p-message 
+        severity="error" 
+        [text]="error"
+        styleClass="w-full">
+        <ng-template pTemplate="icon">
+          <lucide-icon [img]="alertIcon" size="20"></lucide-icon>
+        </ng-template>
+      </p-message>
+    </div>
+  }
 
   <!-- Summary Cards -->
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8" *ngIf="dashboardStats && !loading">
+  @if (dashboardStats && !loading) {
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
     <!-- Total Animals Card -->
-    <div class="relative bg-white dark:bg-slate-800 rounded-xl p-6 shadow-lg border border-slate-200 dark:border-slate-700 summary-card-border summary-card-hover transition-all duration-300">
+    <div class="relative bg-white dark:bg-slate-900 rounded-xl p-6 shadow-lg border border-slate-200 dark:border-slate-700 summary-card-border summary-card-hover transition-all duration-300">
       <div class="flex items-center gap-4">
         <div class="w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-lg summary-icon-gradient-1">
           <lucide-icon [img]="barChartIcon" size="24"></lucide-icon>
@@ -47,7 +50,7 @@
       </div>
     </div>
     <!-- Breed Diversity Card -->
-    <div class="relative bg-white dark:bg-slate-800 rounded-xl p-6 shadow-lg border border-slate-200 dark:border-slate-700 summary-card-border summary-card-hover transition-all duration-300">
+    <div class="relative bg-white dark:bg-slate-900 rounded-xl p-6 shadow-lg border border-slate-200 dark:border-slate-700 summary-card-border summary-card-hover transition-all duration-300">
       <div class="flex items-center gap-4">
         <div class="w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-lg summary-icon-gradient-3">
           <lucide-icon [img]="barChartIcon" size="24"></lucide-icon>
@@ -60,7 +63,7 @@
     </div>
     
     <!-- Purity Categories Card -->
-    <div class="relative bg-white dark:bg-slate-800 rounded-xl p-6 shadow-lg border border-slate-200 dark:border-slate-700 summary-card-border summary-card-hover transition-all duration-300">
+    <div class="relative bg-white dark:bg-slate-900 rounded-xl p-6 shadow-lg border border-slate-200 dark:border-slate-700 summary-card-border summary-card-hover transition-all duration-300">
       <div class="flex items-center gap-4">
         <div class="w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-lg summary-icon-gradient-4">
           <lucide-icon [img]="barChartIcon" size="24"></lucide-icon>
@@ -71,14 +74,19 @@
         </div>
       </div>
     </div>
-  </div>
+    </div>
+  }
 
   <!-- Loading Summary Cards -->
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8" *ngIf="loading">
-    <div *ngFor="let i of [1,2,3,4]" class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-lg border border-slate-200 dark:border-slate-700">
-      <p-skeleton width="100%" height="80px" borderRadius="8px"></p-skeleton>
+  @if (loading) {
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      @for (i of [1,2,3,4]; track $index) {
+        <div class="bg-white dark:bg-slate-900 rounded-xl p-6 shadow-lg border border-slate-200 dark:border-slate-700">
+          <p-skeleton width="100%" height="80px" borderRadius="8px"></p-skeleton>
+        </div>
+      }
     </div>
-  </div>
+  }
 
   <!-- Statistics Components -->
   <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">

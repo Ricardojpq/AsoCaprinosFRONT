@@ -25,7 +25,6 @@ export class ThemeService {
     this.updateTheme();
   }
   updateTheme() {
-    console.log("this.isDarkMode()",this.isDarkMode());
     const root = window.document.documentElement;
     if (this.isDarkMode()) {
       root.classList.add('dark');

@@ -56,21 +56,22 @@
           <li>
             <div class="label-small dark:text-surface-400 flex gap-2 py-2 px-2.5 rounded-lg items-center">
               <lucide-icon [img]="userIcon" size="14"></lucide-icon>
-              <span>{{ currentUser?.nombre_completo || 'Usuario'}}</span>
+              <span>{{ currentUser?.name || 'Usuario'}}</span>
             </div>
           </li>
           <li>
             <div class="label-small dark:text-surface-400 flex gap-2 py-2 px-2.5 rounded-lg items-center">
               <lucide-icon [img]="userIcon" size="14"></lucide-icon>
-              <span>{{ currentUser?.email || 'usuario@ejemplo.com' }}</span>
+              <span>{{ currentUser?.email || 'usuario@asocabra.com' }}</span>
             </div>
           </li>
           <li>
             <a
+              routerLink="Account"
               class="label-small dark:text-surface-400 flex gap-2 py-2 px-2.5 rounded-lg items-center hover:bg-emphasis transition-colors duration-150 cursor-pointer"
             >
               <lucide-icon [img]="settingsIcon" size="14"></lucide-icon>
-              <span>Configuración</span>
+              <span>Cuenta</span>
             </a>
           </li>
           <li>

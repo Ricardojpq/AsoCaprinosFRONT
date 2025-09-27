@@ -157,7 +157,6 @@ export interface AnimalDto {
   pigmen_ojos?: boolean;
   pigmen_orejas?: boolean;
   pigmen_area_perianal?: boolean;
-  pigmen_vulva?: boolean;
   nro_raf?: number;
   codigo_raf?: string;
   protocolo_imp?: string;
@@ -168,7 +167,6 @@ export interface AnimalDto {
   madre_aso?: string;
   pru_aso_padre?: string;
   pru_aso_madre?: string;
-  pigmen_total?: boolean;
   imagen?: string;
   
   info_orejas?: string;
@@ -176,13 +174,13 @@ export interface AnimalDto {
   tipo_registro?: string;
   aretes?: string;
   reg_intl?: string;
+  puntuacion?: number;
   
   // Base Entity Fields
   is_active?: boolean;
   created_by?: number;
   updated_by?: number;
   is_deleted?: boolean;
-  created_at?: string;
   updated_at?: string;
 }
 

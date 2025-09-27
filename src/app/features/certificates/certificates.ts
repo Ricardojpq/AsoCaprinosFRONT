@@ -118,7 +118,6 @@ export class Certificates implements OnInit {
   isEditMode: boolean = false;
   editCertificate: CertificateFormData = this.getEmptyCertificate();
 
-  selectedCertificates: CertificateTableData[] | null = null;
 
   submitted: boolean = false;
 
@@ -323,68 +322,8 @@ export class Certificates implements OnInit {
         });
     } catch (error) {
       console.error(error);
-      this.waitingForDataLoad = false;
       this.isDownloadMode = false;
     }
-  }
-
-  deleteSelectedCertificates() {
-    if (!this.selectedCertificates || this.selectedCertificates.length === 0)
-      return;
-
-    this.confirmationService.confirm({
-      message:
-        '¿Está seguro de que desea eliminar los certificados seleccionados?',
-      header: 'Confirmar',
-      icon: 'pi pi-exclamation-triangle',
-      rejectButtonProps: {
-        label: 'No',
-        severity: 'secondary',
-        variant: 'text',
-      },
-      acceptButtonProps: {
-        severity: 'danger',
-        label: 'Sí',
-      },
-      accept: () => {
-        // Eliminar certificados uno por uno
-        let deletedCount = 0;
-        let totalToDelete = this.selectedCertificates!.filter(cert => cert.id).length;
-        
-        if (totalToDelete === 0) return;
-
-        this.selectedCertificates!.forEach((cert) => {
-          if (cert.id) {
-            this.certificatesService.deleteCertificate(cert.id).subscribe({
-              next: (response: any) => {
-                if (response.status === 'success') {
-                  deletedCount++;
-                  if (deletedCount === totalToDelete) {
-                    // Todos los certificados han sido eliminados
-                    this.loadCertificatesData();
-                    this.selectedCertificates = null;
-                    this.messageService.add({
-                      severity: 'success',
-                      summary: 'Exitoso',
-                      detail: 'Certificados eliminados correctamente',
-                      life: 3000,
-                    });
-                  }
-                }
-              },
-              error: (error) => {
-                console.error('Error deleting certificate:', error);
-                this.messageService.add({
-                  severity: 'error',
-                  summary: 'Error',
-                  detail: 'Error al eliminar algunos certificados',
-                });
-              }
-            });
-          }
-        });
-      },
-    });
   }
 
   hideDialog() {
@@ -626,7 +565,6 @@ export class Certificates implements OnInit {
    */
   async onAllDataLoaded() {
     if (this.waitingForDataLoad) {
-      console.log('Todos los datos han sido cargados, procesando...');
       this.waitingForDataLoad = false;
       
       try {
@@ -637,7 +575,6 @@ export class Certificates implements OnInit {
           this.isDownloadMode = false;
         } else {
           // Modo visualización
-          console.log('Generando PDF para visualización...');
           let success = await this.generatePDFForViewing();
           if (success) {
             this.isLoading = false;

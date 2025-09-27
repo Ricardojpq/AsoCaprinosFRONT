@@ -41,6 +41,7 @@ export class Navbar {
     return this.authService.isAuthenticated();
   }
 
+ 
   menuItems:any = [
     { name: 'Dashboard', path: 'Dashboard', icon: this.homeIcon },
     { name: 'Certificados', path: 'Certificates', icon: this.awardIcon },

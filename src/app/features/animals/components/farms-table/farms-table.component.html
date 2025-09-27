@@ -9,11 +9,11 @@
 >
   <div class="space-y-4">
     <!-- Toolbar -->
-    <p-toolbar class="mb-4 gap-2 bg-gray-50">
+    <p-toolbar class="mb-4 gap-2 bg-gray-50 dark:bg-cloud-700">
       <ng-template pTemplate="start">
         <div class="flex items-center gap-2">
-          <i class="pi pi-search text-gray-600"></i>
-          <span class="text-sm font-medium text-gray-700">Buscar:</span>
+          <i class="pi pi-search text-gray-600 dark:text-gray-300"></i>
+          <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Buscar:</span>
           <input
             pInputText
             type="text"
@@ -23,17 +23,17 @@
             (input)="onGlobalFilter($event)"
           />
           <p-button
-            icon="pi pi-filter-slash"
             label="Limpiar"
             severity="secondary"
             size="small"
             (onClick)="clear()"
+            styleClass="dark:bg-cloud-600"
           />
         </div>
       </ng-template>
       
       <ng-template pTemplate="end">
-        <div class="text-sm text-gray-600">
+        <div class="text-sm text-gray-600 dark:text-gray-300">
           Total: {{ totalRecords }} fincas
         </div>
       </ng-template>
@@ -119,30 +119,30 @@
               @if (selectedFarm?.cod_finca === farm.cod_finca) {
                 <i class="pi pi-check-circle text-green-600 text-lg"></i>
               } @else {
-                <i class="pi pi-circle text-gray-300"></i>
+                <i class="pi pi-circle text-gray-300 dark:text-gray-600"></i>
               }
             </td>
             <td>
-              <span class="font-semibold text-blue-700 bg-blue-50 px-2 py-1 rounded text-sm">
+              <span class="font-semibold text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded text-sm">
                 {{ farm.ide_finca }}
               </span>
             </td>
             <td>
-              <div class="font-medium text-gray-900">{{ farm.nomb_finca }}</div>
+              <div class="font-medium text-gray-900 dark:text-gray-100">{{ farm.nomb_finca }}</div>
             </td>
             <td>
-              <span class="text-gray-700">{{ farm.estado }}</span>
+              <span class="text-gray-700 dark:text-gray-300">{{ farm.estado }}</span>
             </td>
             <td>
-              <span class="text-gray-700">{{ farm.municipio }}</span>
+              <span class="text-gray-700 dark:text-gray-300">{{ farm.municipio }}</span>
             </td>
             <td>
-              <span class="text-gray-700">{{ farm.ciudad }}</span>
+              <span class="text-gray-700 dark:text-gray-300">{{ farm.ciudad }}</span>
             </td>
             <td>
               <div class="flex items-center gap-2">
-                <i class="pi pi-user text-gray-500"></i>
-                <span class="text-gray-700">{{ farm.propietario }}</span>
+                <i class="pi pi-user text-gray-500 dark:text-gray-400"></i>
+                <span class="text-gray-700 dark:text-gray-300">{{ farm.propietario }}</span>
               </div>
             </td>
           </tr>
@@ -152,9 +152,9 @@
           <tr>
             <td colspan="7" class="text-center py-8">
               <div class="flex flex-col items-center gap-3">
-                <i class="pi pi-search text-gray-400 text-4xl"></i>
-                <p class="text-gray-500 text-lg">No se encontraron fincas</p>
-                <p class="text-gray-400 text-sm">Intenta con otros términos de búsqueda</p>
+                <i class="pi pi-search text-gray-400 dark:text-gray-500 text-4xl"></i>
+                <p class="text-gray-500 dark:text-gray-400 text-lg">No se encontraron fincas</p>
+                <p class="text-gray-400 dark:text-gray-500 text-sm">Intenta con otros términos de búsqueda</p>
               </div>
             </td>
           </tr>

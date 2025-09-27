@@ -1,16 +1,14 @@
 export interface User {
-  id_usuario: number;
-  nombre_usuario: string;
-  apellido_usuario: string;
+  // Datos básicos del usuario
+  id: number;
+  name: string;
   email: string;
-  id_perfil_usuario: number;
+  perfil_id: number;
+  perfil_name?: string;
   cod_finca?: number | null;
-  is_active: boolean;
+  token_expires_at?: string;
   
-  // Computed properties
-  nombre_completo: string;
-  
-  // Relationships
+  // Relaciones
   perfil?: {
     id_perfil: number;
     descripcion: string;
@@ -19,4 +17,9 @@ export interface User {
     cod_finca: number;
     nomb_finca: string;
   };
+  
+  // Métodos de utilidad
+  hasRole?(role: string | number): boolean;
+  hasAnyRole?(roles: string[] | number[]): boolean;
+  isSuperAdmin?(): boolean;
 }

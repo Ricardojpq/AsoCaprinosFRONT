@@ -1,0 +1,61 @@
+/* Estilos personalizados para los tabs */
+.account-tabs {
+  @apply w-full;
+}
+
+/* Mejorar la apariencia de los tabs */
+:host ::ng-deep .account-tabs .p-tablist {
+  @apply border-b border-gray-200 dark:border-gray-700;
+}
+
+:host ::ng-deep .account-tabs .p-tab {
+  @apply px-4 py-3 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors duration-200;
+}
+
+:host ::ng-deep .account-tabs .p-tab[aria-selected="true"] {
+  @apply text-amber-600 dark:text-amber-400 border-b-2 border-amber-600 dark:border-amber-400;
+}
+
+:host ::ng-deep .account-tabs .p-tabpanel {
+  @apply p-0;
+}
+
+/* Mejorar inputs en modo oscuro */
+:host ::ng-deep .p-inputtext {
+  @apply bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white;
+}
+
+:host ::ng-deep .p-inputtext:enabled:focus {
+  @apply border-amber-500 dark:border-amber-400 shadow-sm;
+}
+
+:host ::ng-deep .p-inputtext:enabled:hover {
+  @apply border-gray-400 dark:border-gray-500;
+}
+
+/* Mejorar password inputs */
+:host ::ng-deep .p-password .p-inputtext {
+  @apply w-full;
+}
+
+:host ::ng-deep .p-password-toggle-mask {
+  @apply text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200;
+}
+
+/* Mejorar botones */
+:host ::ng-deep .p-button {
+  @apply transition-all duration-200;
+}
+
+:host ::ng-deep .p-button.p-button-primary {
+  @apply bg-amber-600 hover:bg-amber-700 border-amber-600 hover:border-amber-700;
+}
+
+:host ::ng-deep .p-button.p-button-secondary {
+  @apply bg-gray-600 hover:bg-gray-700 border-gray-600 hover:border-gray-700;
+}
+
+/* Animaciones suaves */
+.space-y-6 > * {
+  @apply transition-all duration-300 ease-in-out;
+}

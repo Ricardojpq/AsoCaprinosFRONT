@@ -9,11 +9,11 @@
 >
   <div class="space-y-4">
     <!-- Toolbar -->
-    <p-toolbar class="mb-4 gap-2 bg-gray-50">
+    <p-toolbar class="mb-4 gap-2 bg-gray-50 dark:bg-gray-700">
       <ng-template pTemplate="start">
         <div class="flex items-center gap-2">
-          <lucide-icon [img]="searchIcon" size="16" class="text-gray-600"></lucide-icon>
-          <span class="text-sm font-medium text-gray-700">Buscar:</span>
+          <lucide-icon [img]="searchIcon" size="16" class="text-gray-600 dark:text-gray-300"></lucide-icon>
+          <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Buscar:</span>
           <input
             pInputText
             type="text"
@@ -34,7 +34,7 @@
       </ng-template>
       
       <ng-template pTemplate="end">
-        <div class="text-sm text-gray-600">
+        <div class="text-sm text-gray-600 dark:text-gray-300">
           Total: {{ totalRecords }} clasificadores
         </div>
       </ng-template>
@@ -89,15 +89,15 @@
             <span class="font-medium text-blue-600">{{ clasificador.ced_clasificador }}</span>
           </td>
           <td>
-            <span class="font-medium text-gray-700">{{ clasificador.cod_clasificador }}</span>
+            <span class="font-medium text-gray-700 dark:text-gray-300">{{ clasificador.cod_clasificador }}</span>
           </td>
           <td>
-            <div class="font-medium text-gray-900">
+            <div class="font-medium text-gray-900 dark:text-gray-100">
               {{ getFullName(clasificador) }}
             </div>
           </td>
           <td>
-            <span class="text-sm text-gray-600">{{ clasificador.email_persona || 'N/A' }}</span>
+            <span class="text-sm text-gray-600 dark:text-gray-400">{{ clasificador.email_persona || 'N/A' }}</span>
           </td>
           <td>
             <span class="px-2 py-1 rounded-full text-xs font-medium"
@@ -112,8 +112,8 @@
         <tr>
           <td colspan="5" class="text-center py-8">
             <div class="flex flex-col items-center gap-2">
-              <lucide-icon [img]="userIcon" size="48" class="text-gray-400"></lucide-icon>
-              <span class="text-gray-500">No se encontraron clasificadores</span>
+              <lucide-icon [img]="userIcon" size="48" class="text-gray-400 dark:text-gray-500"></lucide-icon>
+              <span class="text-gray-500 dark:text-gray-400">No se encontraron clasificadores</span>
             </div>
           </td>
         </tr>

@@ -8,10 +8,10 @@
       <div class="flex items-center justify-center">
         <div class="text-center">
           <p class="text-base font-bold text-gray-900 dark:text-white !m-0">
-            Finca El Dorado
+            {{currentUser?.finca?.nomb_finca || 'Finca'}}
           </p>
           <p class="text-sm text-gray-600 dark:text-gray-400 !m-0">
-            Juan Pérez
+            {{currentUser?.name || 'Usuario'}}
           </p>
         </div>
       </div>

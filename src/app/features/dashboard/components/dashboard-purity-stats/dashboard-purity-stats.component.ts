@@ -5,7 +5,7 @@ import { ChartModule } from 'primeng/chart';
 import { SkeletonModule } from 'primeng/skeleton';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { LucideAngularModule, Dna, Star, TrendingUp } from 'lucide-angular';
-import { PurityStats } from '../../services/dashboard.service';
+import { PurityStats } from '../../services/dashboard-service';
 
 @Component({
   selector: 'app-dashboard-purity-stats',
@@ -30,7 +30,8 @@ import { PurityStats } from '../../services/dashboard.service';
         </div>
       </div>
       
-      <div class="p-6 space-y-6" *ngIf="!loading; else loadingTemplate">
+      @if (!loading) {
+        <div class="p-6 space-y-6">
         <!-- Chart -->
         <div class="flex justify-center mb-6">
           <div class="relative">
@@ -44,13 +45,14 @@ import { PurityStats } from '../../services/dashboard.service';
             <!-- Custom HTML Legend -->
             <div class="mt-4">
               <div class="grid grid-cols-2 gap-x-3 gap-y-2 text-xs">
-                <div *ngFor="let stat of purityStats; let i = index" 
-                     class="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-1 rounded transition-colors"
-                     (click)="toggleDataVisibility(i)">
-                  <div class="w-3 h-3 rounded-sm flex-shrink-0" [style.background-color]="stat.color"></div>
-                  <span class="font-semibold text-gray-900 dark:text-white truncate">{{ stat.label }}</span>
-                  <span class="text-amber-600 dark:text-amber-400 font-bold ml-auto">({{ stat.percentage }}%)</span>
-                </div>
+                @for (stat of purityStats; track $index; let i = $index) {
+                  <div class="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-1 rounded transition-colors"
+                       (click)="toggleDataVisibility(i)">
+                    <div class="w-3 h-3 rounded-sm flex-shrink-0" [style.background-color]="stat.color"></div>
+                    <span class="font-semibold text-gray-900 dark:text-white truncate">{{ stat.label }}</span>
+                    <span class="text-amber-600 dark:text-amber-400 font-bold ml-auto">({{ stat.percentage }}%)</span>
+                  </div>
+                }
               </div>
             </div>
           </div>
@@ -66,28 +68,30 @@ import { PurityStats } from '../../services/dashboard.service';
           </div>
           
           <div class="space-y-4">
-            <div *ngFor="let purity of purityStats" class="space-y-2">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                  <div 
-                    class="w-4 h-4 rounded"
-                    [style.background-color]="purity.color">
+            @for (purity of purityStats; track $index) {
+              <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <div 
+                      class="w-4 h-4 rounded"
+                      [style.background-color]="purity.color">
+                    </div>
+                    <span class="font-medium text-gray-900 dark:text-white text-sm">{{ purity.label }}</span>
                   </div>
-                  <span class="font-medium text-gray-900 dark:text-white text-sm">{{ purity.label }}</span>
+                  <div class="flex items-center gap-2">
+                    <span class="text-gray-600 dark:text-gray-300 text-sm">{{ purity.count }}</span>
+                    <span class="font-bold text-amber-600 dark:text-amber-400">{{ purity.percentage }}%</span>
+                  </div>
                 </div>
-                <div class="flex items-center gap-2">
-                  <span class="text-gray-600 dark:text-gray-300 text-sm">{{ purity.count }}</span>
-                  <span class="font-bold text-amber-600 dark:text-amber-400">{{ purity.percentage }}%</span>
+                <div class="w-full bg-slate-200 dark:bg-gray-600 rounded-full h-2">
+                  <div 
+                    class="h-2 rounded-full transition-all duration-300"
+                    [style.background-color]="purity.color"
+                    [style.width.%]="purity.percentage">
+                  </div>
                 </div>
               </div>
-              <div class="w-full bg-slate-200 dark:bg-gray-600 rounded-full h-2">
-                <div 
-                  class="h-2 rounded-full transition-all duration-300"
-                  [style.background-color]="purity.color"
-                  [style.width.%]="purity.percentage">
-                </div>
-              </div>
-            </div>
+            }
           </div>
         </div>
         
@@ -124,9 +128,8 @@ import { PurityStats } from '../../services/dashboard.service';
             <div class="text-gray-900 dark:text-white font-bold text-sm truncate">{{ topPurity?.label || 'N/A' }}</div>
           </div>
         </div>
-      </div>
-      
-      <ng-template #loadingTemplate>
+        </div>
+      } @else {
         <div class="p-6 space-y-6">
           <div class="flex justify-center">
             <p-skeleton width="320px" height="320px" shape="circle"></p-skeleton>
@@ -138,7 +141,7 @@ import { PurityStats } from '../../services/dashboard.service';
             <p-skeleton width="100%" height="80px" borderRadius="8px"></p-skeleton>
           </div>
         </div>
-      </ng-template>
+      }
     </div>
   `,
   styles: [`

@@ -3,12 +3,17 @@
   width: 100%;
   height: 100%;
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 /* PDF preview container */
 .pdf-preview-container {
   width: 100%;
   height: 100%;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 .pdf-toolbar {
@@ -16,13 +21,16 @@
   background-color: #f8f9fa;
   border-radius: 8px;
   border: 1px solid #e9ecef;
+  flex-shrink: 0;
 }
 
 .pdf-embed-container {
   width: 100%;
-  height: 600px;
+  height: 100%;
+  flex: 1;
   border-radius: 8px;
   overflow: hidden;
+  min-height: 0;
 }
 
 /* Offscreen positioning for PDF generation */
@@ -148,7 +156,8 @@
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  min-height: 400px;
+  height: 100%;
+  flex: 1;
 }
 
 /* Error states */
@@ -184,12 +193,132 @@
   }
 }
 
-/* Print styles */
+/* Print styles mejorados */
 @media print {
+  /* Configuración de página para impresión */
+  @page {
+    margin: 0;
+    size: A4 landscape;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  /* Ocultar el visor y mostrar solo el contenido del certificado */
+  .certificate-viewer-container {
+    display: none !important;
+  }
+  
+  .pdf-preview-container,
+  .pdf-toolbar,
+  .loading-container,
+  .error-container {
+    display: none !important;
+    visibility: hidden !important;
+  }
+  
+  /* Mostrar el contenido offscreen para impresión */
   .offscreen {
     position: static !important;
     left: auto !important;
     top: auto !important;
     visibility: visible !important;
+    width: 100% !important;
+    height: auto !important;
+    background-color: white !important;
+    overflow: visible !important;
+  }
+  
+  .offscreen app-certificate-page1,
+  .offscreen app-certificate-page2 {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    background-color: white !important;
+    overflow: visible !important;
+    position: static !important;
+    page-break-after: always;
+  }
+  
+  /* Asegurar que el contenido del certificado se vea correctamente */
+  .offscreen .container-certificate {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 100vh !important;
+    max-width: none !important;
+    max-height: none !important;
+    min-width: auto !important;
+    box-sizing: border-box !important;
+    display: block !important;
+    margin: 0 !important;
+    padding: 15mm !important;
+    border: 20px solid #FBCF24 !important;
+    background-color: white !important;
+    
+    /* Forzar colores en Impressión */
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
+  /* Forzar todos los elementos a ser visibles y con colores correctos */
+  .offscreen * {
+    visibility: visible !important;
+    color: black !important;
+    font-family: Arial, sans-serif !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
+  /* Bordes específicos para Impressión */
+  .offscreen .border-yellow-400 {
+    border-color: #FBCF24 !important;
+  }
+  
+  .offscreen .border-black,
+  .offscreen .border-dashed {
+    border-color: black !important;
+  }
+  
+  /* Backgrounds para Impressión */
+  .offscreen .bg-yellow-300 {
+    background-color: #FDE047 !important;
+  }
+  
+  .offscreen .bg-white {
+    background-color: white !important;
+  }
+  
+  /* Asegurar que las imágenes se impriman */
+  .offscreen img {
+    display: block !important;
+    max-width: 130px !important;
+    max-height: 130px !important;
+    opacity: 1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  /* Marca de agua para Impressión */
+  .offscreen .container-certificate::after {
+    content: "" !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background-image: url("/assets/logos/logo.png") !important;
+    background-size: 170px !important;
+    background-repeat: repeat !important;
+    background-position: 0 0, 200px 150px, 400px 0, 600px 150px !important;
+    opacity: 0.1 !important;
+    z-index: 0 !important;
+    pointer-events: none !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  /* Contenido por encima de la marca de agua */
+  .offscreen .container-certificate > * {
+    position: relative !important;
+    z-index: 1 !important;
   }
 }

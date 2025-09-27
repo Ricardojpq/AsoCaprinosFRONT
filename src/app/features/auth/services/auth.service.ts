@@ -21,7 +21,6 @@ export class AuthService implements OnDestroy {
   ) {
     this.initializeSession();
   }
-
   ngOnDestroy() {
     this.sessionCheckSubscription?.unsubscribe();
   }
@@ -33,16 +32,19 @@ export class AuthService implements OnDestroy {
       this.isAuthenticatedSignal.set(!!user);
     });
 
-    // Verificar sesión inicial sin hacer peticiones HTTP
-    const token = this.jwtAuthService.isAuthenticated();
-    if (token) {
+    // Verificar sesión inicial
+    const isAuth = this.jwtAuthService.isAuthenticated();
+    if (isAuth) {
       this.isAuthenticatedSignal.set(true);
+      // Cargar perfil del usuario si es necesario (sin causar dependencia circular)
+      setTimeout(() => {
+        this.jwtAuthService.loadUserProfileIfNeeded();
+      }, 100);
     }
   }
 
   login(email: string, password: string) {
     this.loadingService.show();
-    this.errorSignal.set(null);
     
     this.jwtAuthService.login(email, password).subscribe({
       next: (res: any) => {
@@ -57,7 +59,7 @@ export class AuthService implements OnDestroy {
         this.loadingService.hide();
       },
       error: (err: any) => {
-        console.error('❌ AuthService: Error de login', err);
+        console.error('AuthService: Error de login', err);
         let errorMessage = 'Error de conexión';
         if (err.error?.message) {
           errorMessage = err.error.message;
@@ -86,7 +88,8 @@ export class AuthService implements OnDestroy {
 
   checkAuthenticationStatus() {
     // Verificar si hay un token válido localmente
-    if (this.jwtAuthService.isAuthenticated()) {
+    const isAuth = this.jwtAuthService.isAuthenticated();
+    if (isAuth) {
       this.isAuthenticatedSignal.set(true);
     } else {
       this.clearSession();
@@ -133,7 +136,8 @@ export class AuthService implements OnDestroy {
         return;
       }
 
-      if (this.jwtAuthService.isAuthenticated()) {
+      const isAuth = this.jwtAuthService.isAuthenticated();
+      if (isAuth) {
         resolve(true);
       } else {
         this.clearSession();
@@ -142,4 +146,4 @@ export class AuthService implements OnDestroy {
     });
   }
 
-} 
+}

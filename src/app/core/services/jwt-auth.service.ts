@@ -9,8 +9,20 @@ export interface User {
   id: number;
   name: string;
   email: string;
-  role_id: number;
-  role_name: string;
+  perfil_id: number;
+  perfil_name?: string;
+  cod_finca?: number | null;
+  token_expires_at?: string;
+  
+  // Relaciones
+  perfil?: {
+    id_perfil: number;
+    descripcion: string;
+  };
+  finca?: {
+    cod_finca: number;
+    nomb_finca: string;
+  };
 }
 
 export interface AuthResponse {
@@ -19,7 +31,9 @@ export interface AuthResponse {
   data: {
     user: User;
     access_token: string;
+    token_type: string;
     expires_in: number;
+    expires_at: string;
   };
 }
 
@@ -41,14 +55,31 @@ export class JwtAuthService {
   }
 
   /**
-   * Verificar autenticación inicial
+   * Verificar autenticación inicial - Solo verifica token, no hace peticiones HTTP
    */
   private checkInitialAuth(): void {
     const token = this.getAccessToken();
     if (token && this.isTokenValid(token)) {
-      // No cargar perfil automáticamente para evitar bucles
-      // El perfil se cargará cuando sea necesario
       this.isAuthenticatedSubject.next(true);
+    } else {
+      this.isAuthenticatedSubject.next(false);
+    }
+  }
+
+  /**
+   * Cargar perfil del usuario - Método público para llamar cuando sea necesario
+   */
+  loadUserProfileIfNeeded(): void {
+    const token = this.getAccessToken();
+    if (token && this.isTokenValid(token) && !this.currentUserSubject.value) {
+      this.loadUserProfile().subscribe({
+        error: (error: any) => {
+          console.error('❌ Error al cargar perfil:', error);
+          // Si falla, limpiar la sesión
+          this.clearTokens();
+          this.isAuthenticatedSubject.next(false);
+        }
+      });
     }
   }
 
@@ -60,7 +91,7 @@ export class JwtAuthService {
       `${environment.apiUrl}${environment.apiPrefix}/${environment.apiVersion}/auth/login`,
       { email, password }
     ).pipe(
-      tap(response => {
+      tap((response: AuthResponse) => {
         if (response.status === 'success') {
           this.setAccessToken(response.data.access_token);
           this.currentUserSubject.next(response.data.user);
@@ -86,7 +117,7 @@ export class JwtAuthService {
         {},
         { headers: this.getAuthHeaders() }
       ).subscribe({
-        error: (error) => console.error('❌ Error en logout:', error)
+        error: (error: any) => console.error('❌ Error en logout:', error)
       });
     }
 
@@ -97,15 +128,15 @@ export class JwtAuthService {
   }
 
   /**
-   * Cargar perfil de usuario
+   * Cargar perfil completo de usuario desde /auth/me
    */
   loadUserProfile(): Observable<User> {
-    return this.http.get<{ status: string; data: User }>(
-      `${environment.apiUrl}${environment.apiPrefix}/${environment.apiVersion}/auth/user`,
+    return this.http.get<{ status: string; message: string; data: User }>(
+      `${environment.apiUrl}${environment.apiPrefix}/${environment.apiVersion}/auth/me`,
       { headers: this.getAuthHeaders() }
     ).pipe(
-      map(response => response.data),
-      tap(user => {
+      map((response: { status: string; message: string; data: User }) => response.data),
+      tap((user: User) => {
         this.currentUserSubject.next(user);
         this.isAuthenticatedSubject.next(true);
       }),

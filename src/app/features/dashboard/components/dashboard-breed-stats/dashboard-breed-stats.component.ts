@@ -5,7 +5,7 @@ import { ChartModule } from 'primeng/chart';
 import { SkeletonModule } from 'primeng/skeleton';
 import { BadgeModule } from 'primeng/badge';
 import { LucideAngularModule, Heart, Award, TrendingUp } from 'lucide-angular';
-import { BreedStats } from '../../services/dashboard.service';
+import { BreedStats } from '../../services/dashboard-service';
 
 @Component({
   selector: 'app-dashboard-breed-stats',
@@ -19,7 +19,7 @@ import { BreedStats } from '../../services/dashboard.service';
     LucideAngularModule
   ],
   template: `
-    <div class="h-full bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+    <div class="h-full bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
       <!-- Header -->
       <div class="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-700 dark:to-slate-600 p-4 border-b border-slate-200 dark:border-slate-600">
         <div class="flex items-center gap-3">
@@ -30,7 +30,8 @@ import { BreedStats } from '../../services/dashboard.service';
         </div>
       </div>
       
-      <div class="p-6 space-y-6" *ngIf="!loading; else loadingTemplate">
+      @if (!loading) {
+        <div class="p-6 space-y-6">
         <!-- Chart -->
         <div class="flex justify-center">
           <p-chart 
@@ -52,9 +53,8 @@ import { BreedStats } from '../../services/dashboard.service';
           </div>
           
           <div class="space-y-3">
-            <div 
-              class="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-lg hover:shadow-md transition-all duration-200 border border-slate-200 dark:border-slate-600"
-              *ngFor="let breed of topBreeds; let i = index">
+            @for (breed of topBreeds; track $index; let i = $index) {
+              <div class="flex items-center justify-between p-3 bg-white dark:bg-slate-900 rounded-lg hover:shadow-md transition-all duration-200 border border-slate-200 dark:border-slate-600">
               <div class="flex items-center gap-3">
                 <div class="flex items-center justify-center w-8 h-8 rounded-lg font-bold text-sm text-white"
                      [style.background-color]="breed.color">
@@ -72,7 +72,8 @@ import { BreedStats } from '../../services/dashboard.service';
                 </span>
                 <lucide-icon [img]="trendingUpIcon" size="14" class="text-green-600 dark:text-green-400"></lucide-icon>
               </div>
-            </div>
+              </div>
+            }
           </div>
         </div>
         
@@ -87,9 +88,8 @@ import { BreedStats } from '../../services/dashboard.service';
             <div class="text-gray-900 dark:text-white font-bold text-lg truncate">{{ topBreed?.label || 'N/A' }}</div>
           </div>
         </div>
-      </div>
-      
-      <ng-template #loadingTemplate>
+        </div>
+      } @else {
         <div class="p-6 space-y-6">
           <div class="flex justify-center">
             <p-skeleton width="400px" height="300px" borderRadius="8px"></p-skeleton>
@@ -100,7 +100,7 @@ import { BreedStats } from '../../services/dashboard.service';
             <p-skeleton width="100%" height="80px" borderRadius="8px"></p-skeleton>
           </div>
         </div>
-      </ng-template>
+      }
     </div>
   `,
   styles: [`

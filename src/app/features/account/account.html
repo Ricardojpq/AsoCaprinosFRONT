@@ -1,0 +1,52 @@
+<div class="card">
+  <div class="mb-6">
+    <div class="flex items-center gap-3 mb-4">
+      <div
+        class="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center"
+      >
+        <lucide-angular
+          [img]="userIcon"
+          size="24"
+          class="text-white"
+        ></lucide-angular>
+      </div>
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white m-0">
+        Mi Cuenta
+      </h1>
+    </div>
+    <p class="text-gray-600 dark:text-gray-400 m-0">
+      Gestiona tu información personal y configuración de seguridad
+    </p>
+  </div>
+
+  <p-tabs value="0" class="account-tabs">
+    <p-tablist>
+      <p-tab value="0">
+        <div class="flex items-center gap-2">
+          <lucide-angular [img]="userIcon" size="16"></lucide-angular>
+          <span>Información General</span>
+        </div>
+      </p-tab>
+      <p-tab value="1">
+        <div class="flex items-center gap-2">
+          <lucide-angular [img]="shieldIcon" size="16"></lucide-angular>
+          <span>Seguridad</span>
+        </div>
+      </p-tab>
+    </p-tablist>
+
+    <p-tabpanels>
+      <p-tabpanel value="0">
+        <div class="pt-4">
+          <app-account-general></app-account-general>
+        </div>
+      </p-tabpanel>
+
+      <p-tabpanel value="1">
+        <div class="pt-4">
+          <app-security></app-security>
+        </div>
+      </p-tabpanel>
+    </p-tabpanels>
+  </p-tabs>
+</div>

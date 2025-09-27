@@ -1,0 +1,204 @@
+/* =================================================================
+   SOPORTE ADICIONAL PARA IMPRESIÓN DE CERTIFICADOS - ASOCABRA
+   ================================================================= */
+
+/* Este archivo proporciona soporte adicional para impresión de certificados
+   Importar en los componentes que necesiten optimización de impresión */
+
+/* Configuración global de página para impresión */
+@media print {
+  /* Configuración de página */
+  @page {
+    margin: 0;
+    size: A4 landscape;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  /* Reset global para impresión */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
+  /* Ocultar elementos no necesarios globalmente */
+  .no-print,
+  .offscreen,
+  .pdf-toolbar,
+  .loading-container,
+  .error-container,
+  .pdf-preview-container,
+  .certificate-viewer-container .pdf-preview-container {
+    display: none !important;
+    visibility: hidden !important;
+  }
+  
+  /* Mostrar solo el contenido del certificado */
+  .certificate-content,
+  .container-certificate,
+  .certificate-page-2 {
+    display: block !important;
+    visibility: visible !important;
+    position: static !important;
+    left: auto !important;
+    top: auto !important;
+  }
+  
+  /* Fuentes seguras para impresión */
+  body, * {
+    font-family: Arial, sans-serif !important;
+    color: black !important;
+  }
+  
+  /* Asegurar que los colores se impriman */
+  .border-yellow-400,
+  .border-yellow-500,
+  .bg-yellow-300,
+  .bg-yellow-400 {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
+  /* Optimización para tablas en impresión */
+  table, .table-like {
+    border-collapse: collapse !important;
+    width: 100% !important;
+  }
+  
+  table td, table th, .table-cell {
+    border: 1px solid black !important;
+    padding: 4px !important;
+    vertical-align: top !important;
+  }
+  
+  /* Evitar saltos de página dentro de elementos importantes */
+  .container-certificate,
+  .certificate-page-2,
+  .cert-section {
+    page-break-inside: avoid;
+  }
+  
+  /* Asegurar que las imágenes se impriman correctamente */
+  img {
+    max-width: 100% !important;
+    height: auto !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  /* Optimización para bordes */
+  .border, .border-black, .border-dashed {
+    border-color: black !important;
+  }
+  
+  .border-yellow-400 {
+    border-color: #FBCF24 !important;
+  }
+  
+  .border-yellow-500 {
+    border-color: #EAB308 !important;
+  }
+  
+  /* Backgrounds para impresión */
+  .bg-yellow-300 {
+    background-color: #FDE047 !important;
+  }
+  
+  .bg-yellow-400 {
+    background-color: #FBCF24 !important;
+  }
+  
+  .bg-white {
+    background-color: white !important;
+  }
+}
+
+/* Clase de utilidad para forzar impresión de colores */
+.print-colors {
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
+/* Clase para elementos que deben ocultarse en impresión */
+.hide-on-print {
+  display: none !important;
+}
+
+@media print {
+  .hide-on-print {
+    display: none !important;
+    visibility: hidden !important;
+  }
+}
+
+/* Clase para elementos que solo se muestran en impresión */
+.show-on-print {
+  display: none;
+}
+
+@media print {
+  .show-on-print {
+    display: block !important;
+    visibility: visible !important;
+  }
+}
+
+/* Optimización específica para certificados */
+@media print {
+  /* Asegurar que el contenido del certificado ocupe toda la página */
+  .certificate-print-container {
+    width: 100% !important;
+    height: 100vh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* Optimización para texto pequeño */
+  .text-xs { font-size: 10px !important; }
+  .text-sm { font-size: 11px !important; }
+  .text-base { font-size: 12px !important; }
+  .text-lg { font-size: 14px !important; }
+  .text-xl { font-size: 16px !important; }
+  .text-2xl { font-size: 18px !important; }
+  .text-3xl { font-size: 24px !important; }
+  
+  /* Espaciado optimizado para impresión */
+  .print-tight { line-height: 1.1 !important; }
+  .print-normal { line-height: 1.2 !important; }
+  .print-relaxed { line-height: 1.4 !important; }
+  
+  /* Márgenes y padding optimizados */
+  .print-p-0 { padding: 0 !important; }
+  .print-p-1 { padding: 4px !important; }
+  .print-p-2 { padding: 8px !important; }
+  .print-p-3 { padding: 12px !important; }
+  .print-p-4 { padding: 16px !important; }
+  
+  .print-m-0 { margin: 0 !important; }
+  .print-m-1 { margin: 4px !important; }
+  .print-m-2 { margin: 8px !important; }
+  .print-m-3 { margin: 12px !important; }
+  .print-m-4 { margin: 16px !important; }
+}
+
+/* Soporte para navegadores antiguos */
+@media print and (-webkit-min-device-pixel-ratio: 1) {
+  .certificate-legacy-support {
+    -webkit-transform: scale(1) !important;
+    transform: scale(1) !important;
+  }
+}
+
+/* Optimización para impresoras específicas */
+@media print and (min-resolution: 150dpi) {
+  .high-dpi-print {
+    font-size: 110% !important;
+  }
+}
+
+@media print and (max-resolution: 149dpi) {
+  .low-dpi-print {
+    font-weight: bold !important;
+  }
+}

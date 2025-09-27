@@ -4,7 +4,7 @@ import { CardModule } from 'primeng/card';
 import { ChartModule } from 'primeng/chart';
 import { SkeletonModule } from 'primeng/skeleton';
 import { LucideAngularModule, Users, TrendingUp } from 'lucide-angular';
-import { SexStats } from '../../services/dashboard.service';
+import { SexStats } from '../../services/dashboard-service';
 
 @Component({
   selector: 'app-dashboard-sex-stats',
@@ -16,7 +16,7 @@ import { SexStats } from '../../services/dashboard.service';
     LucideAngularModule
   ],
   template: `
-    <div class="h-full bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+    <div class="h-full bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
       <!-- Header -->
       <div class="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-700 dark:to-slate-600 p-4 border-b border-slate-200 dark:border-slate-600">
         <div class="flex items-center gap-3">
@@ -26,7 +26,8 @@ import { SexStats } from '../../services/dashboard.service';
           <span class="font-semibold text-lg text-gray-900 dark:text-white">Distribución por Sexo</span>
       </div>
       
-      <div class="p-6" *ngIf="!loading; else loadingTemplate">
+      @if (!loading) {
+        <div class="p-6">
         <!-- Chart -->
         <div class="flex justify-center mb-6">
           <p-chart 
@@ -40,7 +41,8 @@ import { SexStats } from '../../services/dashboard.service';
         
         <!-- Stats Cards -->
         <div class="space-y-4">
-          <div *ngFor="let stat of sexStats" class="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 border border-slate-200 dark:border-slate-600 hover:shadow-md transition-all duration-200">
+          @for (stat of sexStats; track $index) {
+            <div class="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 border border-slate-200 dark:border-slate-600 hover:shadow-md transition-all duration-200">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-3">
                 <div 
@@ -62,20 +64,22 @@ import { SexStats } from '../../services/dashboard.service';
                 </div>
               </div>
             </div>
-          </div>
+            </div>
+          }
         </div>
-      </div>
-      
-      <ng-template #loadingTemplate>
+        </div>
+      } @else {
         <div class="p-6 space-y-6">
           <div class="flex justify-center">
             <p-skeleton width="280px" height="280px" shape="circle"></p-skeleton>
           </div>
           <div class="space-y-4">
-            <p-skeleton width="100%" height="80px" borderRadius="8px" *ngFor="let i of [1,2]"></p-skeleton>
+            @for (i of [1,2]; track $index) {
+              <p-skeleton width="100%" height="80px" borderRadius="8px"></p-skeleton>
+            }
           </div>
         </div>
-      </ng-template>
+      }
     </div>
   `,
   styles: [`

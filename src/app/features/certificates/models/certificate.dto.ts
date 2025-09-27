@@ -113,7 +113,7 @@ export interface AnimalInfoDto {
   tatuaje?: string;
   tat_oreja_izq?: string;
   tat_oreja_der?: string;
-  tat_cola_labio?: string;
+  tat_cola?: string;
   id_electronico?: string;
   origen?: string;
   porcen_sangre?: string;
@@ -128,6 +128,7 @@ export interface AnimalInfoDto {
   tipo_registro?: string;
   aretes?: string;
   reg_intl?: string;
+  puntuacion?: number;
 }
 
 export interface GenealogyDto {

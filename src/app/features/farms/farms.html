@@ -427,26 +427,6 @@
           }
         </div>
 
-        <!-- Estatus -->
-        <div class="col-span-1">
-          <label for="estatus_finca" class="block font-bold mb-2">
-            Estatus <span class="text-red-600">*</span>
-          </label>
-          <p-select
-            [options]="estatusOptions"
-            formControlName="estatus_finca"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="Seleccione estatus"
-            class="w-full"
-            [class.ng-invalid]="isFieldInvalid('estatus_finca')"
-            [class.ng-dirty]="fincaForm.get('estatus_finca')?.dirty"
-          ></p-select>
-          @if (isFieldInvalid('estatus_finca')) {
-            <small class="text-red-600">{{ getFieldError('estatus_finca') }}</small>
-          }
-        </div>
-
         <!-- Cod Propietario -->
         <div class="col-span-1">
           <label for="ced_propietario" class="block font-bold mb-2">
@@ -483,10 +463,30 @@
             id="nombre_propietario"
             formControlName="nombre_propietario"
             readonly
-            class="w-full bg-gray-300"
+            class="w-full bg-gray-300 dark:bg-[#3f3f46]"
             placeholder="Nombre del propietario seleccionado"
           />
         </div>
+
+                <!-- Estatus -->
+                <div class="col-span-1">
+                  <label for="estatus_finca" class="block font-bold mb-2">
+                    Estatus <span class="text-red-600">*</span>
+                  </label>
+                  <p-select
+                    [options]="estatusOptions"
+                    formControlName="estatus_finca"
+                    optionLabel="label"
+                    optionValue="value"
+                    placeholder="Seleccione estatus"
+                    class="w-full"
+                    [class.ng-invalid]="isFieldInvalid('estatus_finca')"
+                    [class.ng-dirty]="fincaForm.get('estatus_finca')?.dirty"
+                  ></p-select>
+                  @if (isFieldInvalid('estatus_finca')) {
+                    <small class="text-red-600">{{ getFieldError('estatus_finca') }}</small>
+                  }
+                </div>
 
         <!-- Imagen -->
         <div class="col-span-2">

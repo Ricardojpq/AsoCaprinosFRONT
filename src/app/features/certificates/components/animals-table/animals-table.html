@@ -9,11 +9,11 @@
 >
   <div class="space-y-4">
     <!-- Toolbar -->
-    <p-toolbar class="mb-4 gap-2 bg-gray-50">
+    <p-toolbar class="mb-4 gap-2 bg-gray-50 dark:bg-gray-700">
       <ng-template pTemplate="start">
         <div class="flex items-center gap-2">
-          <lucide-icon [img]="searchIcon" size="16" class="text-gray-600"></lucide-icon>
-          <span class="text-sm font-medium text-gray-700">Buscar:</span>
+          <lucide-icon [img]="searchIcon" size="16" class="text-gray-600 dark:text-gray-300"></lucide-icon>
+          <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Buscar:</span>
           <input
             pInputText
             type="text"
@@ -34,7 +34,7 @@
       </ng-template>
       
       <ng-template pTemplate="end">
-        <div class="text-sm text-gray-600">
+        <div class="text-sm text-gray-600 dark:text-gray-300">
           Total: {{ totalRecords }} animales
         </div>
       </ng-template>
@@ -96,21 +96,21 @@
             </span>
           </td>
           <td>
-            <span class="text-sm text-gray-700">{{ animal.raza_info?.nomb_raza || 'N/A' }}</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300">{{ animal.raza_info?.nomb_raza || 'N/A' }}</span>
           </td>
           <td>
-            <span class="text-sm text-gray-600">{{ formatDate(animal.fec_nacim) }}</span>
+            <span class="text-sm text-gray-600 dark:text-gray-400">{{ formatDate(animal.fec_nacim) }}</span>
           </td>
           <td>
             <div class="text-sm">
-              <div class="font-medium text-gray-900">{{ animal.criador?.nomb_finca || 'N/A' }}</div>
-              <div class="text-gray-500">{{ getOwnerName(animal.criador) }}</div>
+              <div class="font-medium text-gray-900 dark:text-gray-100">{{ animal.criador?.nomb_finca || 'N/A' }}</div>
+              <div class="text-gray-500 dark:text-gray-400">{{ getOwnerName(animal.criador) }}</div>
             </div>
           </td>
           <td>
             <div class="text-sm">
-              <div class="font-medium text-gray-900">{{ animal.propietario?.nomb_finca || 'N/A' }}</div>
-              <div class="text-gray-500">{{ getOwnerName(animal.propietario) }}</div>
+              <div class="font-medium text-gray-900 dark:text-gray-100">{{ animal.propietario?.nomb_finca || 'N/A' }}</div>
+              <div class="text-gray-500 dark:text-gray-400">{{ getOwnerName(animal.propietario) }}</div>
             </div>
           </td>
         </tr>
@@ -120,8 +120,8 @@
         <tr>
           <td colspan="7" class="text-center py-8">
             <div class="flex flex-col items-center gap-2">
-              <lucide-icon [img]="searchIcon" size="48" class="text-gray-400"></lucide-icon>
-              <span class="text-gray-500">No se encontraron animales</span>
+              <lucide-icon [img]="searchIcon" size="48" class="text-gray-400 dark:text-gray-500"></lucide-icon>
+              <span class="text-gray-500 dark:text-gray-400">No se encontraron animales</span>
             </div>
           </td>
         </tr>

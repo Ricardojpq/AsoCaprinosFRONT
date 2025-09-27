@@ -10,16 +10,6 @@
       >
         <lucide-icon [img]="plusIcon" size="16"></lucide-icon>
       </p-button>
-      <p-button
-        styleClass="gap-1 btn btn-danger btn-sm"
-        severity="danger"
-        label="Eliminar"
-        outlined
-        (onClick)="deleteSelectedCertificates()"
-        [disabled]="!selectedCertificates || !selectedCertificates.length"
-      >
-        <lucide-icon [img]="trashIcon" size="16"></lucide-icon>
-      </p-button>
     </ng-template>
 
     <ng-template #end>
@@ -60,7 +50,6 @@
       'nombre_clasificador'
     ]"
     [tableStyle]="{ 'min-width': '75rem' }"
-    [(selection)]="selectedCertificates"
     [rowHover]="true"
     dataKey="id"
     currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
@@ -90,11 +79,8 @@
     </ng-template>
     <ng-template #header>
       <tr>
-        <th style="width: 3rem">
-          <p-tableHeaderCheckbox />
-        </th>
         <th
-          class="hover:bg-white"
+          class="hover:bg-white dark:hover:bg-gray-700"
           pSortableColumn="numero_certificado"
           style="min-width: 14rem"
         >
@@ -104,7 +90,7 @@
           </div>
         </th>
         <th
-          class="hover:bg-white"
+          class="hover:bg-white dark:hover:bg-gray-700"
           pSortableColumn="nomb_animal"
           style="min-width: 16rem"
         >
@@ -114,7 +100,7 @@
           </div>
         </th>
         <th
-          class="hover:bg-white"
+          class="hover:bg-white dark:hover:bg-gray-700"
           pSortableColumn="cod_animal"
           style="min-width: 12rem"
         >
@@ -124,7 +110,7 @@
           </div>
         </th>
         <th
-          class="hover:bg-white"
+          class="hover:bg-white dark:hover:bg-gray-700"
           pSortableColumn="nombre_criador"
           style="min-width: 16rem"
         >
@@ -134,7 +120,7 @@
           </div>
         </th>
         <th
-          class="hover:bg-white"
+          class="hover:bg-white dark:hover:bg-gray-700"
           pSortableColumn="nombre_propietario"
           style="min-width: 16rem"
         >
@@ -144,7 +130,7 @@
           </div>
         </th>
         <th
-          class="hover:bg-white"
+          class="hover:bg-white dark:hover:bg-gray-700"
           pSortableColumn="nombre_clasificador"
           style="min-width: 16rem"
         >
@@ -154,7 +140,7 @@
           </div>
         </th>
         <th
-          class="hover:bg-white"
+          class="hover:bg-white dark:hover:bg-gray-700"
           pSortableColumn="fecha_emision"
           style="min-width: 12rem"
         >
@@ -168,9 +154,6 @@
     </ng-template>
     <ng-template #body let-certificate>
       <tr>
-        <td style="width: 3rem">
-          <p-tableCheckbox [value]="certificate" class="" />
-        </td>
         <td style="min-width: 14rem">{{ certificate.numero_certificado }}</td>
         <td style="min-width: 16rem">{{ certificate.nomb_animal }}</td>
         <td style="min-width: 12rem">{{ certificate.cod_animal }}</td>
@@ -178,7 +161,7 @@
         <td style="min-width: 16rem">{{ certificate.nombre_propietario }}</td>
         <td style="min-width: 16rem">{{ certificate.nombre_clasificador }}</td>
         <td style="min-width: 12rem">
-          {{ formatDate(certificate.fecha_emision || '') }}
+          {{ formatDate(certificate.fecha_emision || "") }}
         </td>
         <td class="text-center">
           <!-- Botón para visualizar PDF -->
@@ -191,6 +174,16 @@
             pTooltip="Ver certificado"
           >
             <lucide-icon [img]="eyeIcon" size="18"></lucide-icon>
+          </p-button>
+          <!-- Botón para eliminar certificado -->
+          <p-button
+            severity="danger"
+            [rounded]="true"
+            [outlined]="true"
+            (click)="deleteCertificate(certificate)"
+            styleClass="p-button-sm"
+          >
+            <lucide-icon [img]="trashIcon" size="18"></lucide-icon>
           </p-button>
         </td>
       </tr>
@@ -210,11 +203,16 @@
         <div class="grid grid-cols-12 gap-4">
           <div class="col-span-6">
             <label for="codAnimal" class="block font-bold mb-3">
-              <lucide-icon [img]="searchIcon" size="16" class="mr-2"></lucide-icon>Animal *
+              <lucide-icon
+                [img]="searchIcon"
+                size="16"
+                class="mr-2"
+              ></lucide-icon
+              >Animal *
             </label>
             <div class="flex gap-2">
               <p-inputgroup class="flex-1">
-                <p-button 
+                <p-button
                   (onClick)="openAnimalsDialog()"
                   pTooltip="Buscar animal"
                   size="small"
@@ -226,45 +224,61 @@
                   type="text"
                   pInputText
                   id="codAnimal"
-                  [value]="selectedAnimalData ? selectedAnimalData.nomb_animal + ' (' + selectedAnimalData.cod_animal + ')' : ''"
+                  [value]="
+                    selectedAnimalData
+                      ? selectedAnimalData.nomb_animal +
+                        ' (' +
+                        selectedAnimalData.cod_animal +
+                        ')'
+                      : ''
+                  "
                   placeholder="Seleccione un animal..."
                   readonly
                   fluid
                 />
               </p-inputgroup>
               @if (selectedAnimalData) {
-                <p-button
-                  severity="danger"
-                  size="small"
-                  (onClick)="clearAnimalSelection()"
-                  pTooltip="Limpiar selección"
-                >
-                  <lucide-icon [img]="xIcon" size="16"></lucide-icon>
-                </p-button>
+              <p-button
+                severity="danger"
+                size="small"
+                (onClick)="clearAnimalSelection()"
+                pTooltip="Limpiar selección"
+              >
+                <lucide-icon [img]="xIcon" size="16"></lucide-icon>
+              </p-button>
               }
             </div>
             @if (submitted && !certificate.cod_animal) {
-            <small class="text-red-500">
-              Debe seleccionar un animal.
-            </small>
-            }
-            @if (selectedAnimalData) {
-            <div class="mt-2 p-2 bg-blue-50 rounded text-sm">
-              <div><strong>Raza:</strong> {{ selectedAnimalData.raza_info?.nomb_raza || 'N/A' }}</div>
-              <div><strong>Sexo:</strong> {{ selectedAnimalData.sexo_animal === 'M' ? 'Macho' : 'Hembra' }}</div>
-              <div><strong>Propietario:</strong> {{ selectedAnimalData.propietario?.nomb_finca || 'N/A' }}</div>
+            <small class="text-red-500"> Debe seleccionar un animal. </small>
+            } @if (selectedAnimalData) {
+            <div class="mt-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded text-sm">
+              <div>
+                <strong>Raza:</strong>
+                {{ selectedAnimalData.raza_info?.nomb_raza || "N/A" }}
+              </div>
+              <div>
+                <strong>Sexo:</strong>
+                {{
+                  selectedAnimalData.sexo_animal === "M" ? "Macho" : "Hembra"
+                }}
+              </div>
+              <div>
+                <strong>Propietario:</strong>
+                {{ selectedAnimalData.propietario?.nomb_finca || "N/A" }}
+              </div>
             </div>
             }
           </div>
-          
+
           <!-- Selección de Clasificador -->
           <div class="col-span-6">
             <label for="cedClasificador" class="block font-bold mb-3">
-              <lucide-icon [img]="userIcon" size="16" class="mr-2"></lucide-icon>Clasificador *
+              <lucide-icon [img]="userIcon" size="16" class="mr-2"></lucide-icon
+              >Clasificador *
             </label>
             <div class="flex gap-2">
               <p-inputgroup class="flex-1">
-                <p-button 
+                <p-button
                   (onClick)="openClasificadoresDialog()"
                   pTooltip="Buscar clasificador"
                   size="small"
@@ -276,33 +290,50 @@
                   type="text"
                   pInputText
                   id="cedClasificador"
-                  [value]="selectedClasificadorData ? selectedClasificadorData.nom_persona + ' ' + selectedClasificadorData.ape_persona + ' (' + selectedClasificadorData.ced_clasificador + ')' : ''"
+                  [value]="
+                    selectedClasificadorData
+                      ? selectedClasificadorData.nom_persona +
+                        ' ' +
+                        selectedClasificadorData.ape_persona +
+                        ' (' +
+                        selectedClasificadorData.ced_clasificador +
+                        ')'
+                      : ''
+                  "
                   placeholder="Seleccione un clasificador..."
                   readonly
                   fluid
                 />
               </p-inputgroup>
               @if (selectedClasificadorData) {
-                <p-button
-                  severity="danger"
-                  size="small"
-                  (onClick)="clearClasificadorSelection()"
-                  pTooltip="Limpiar selección"
-                >
-                  <lucide-icon [img]="xIcon" size="16"></lucide-icon>
-                </p-button>
+              <p-button
+                severity="danger"
+                size="small"
+                (onClick)="clearClasificadorSelection()"
+                pTooltip="Limpiar selección"
+              >
+                <lucide-icon [img]="xIcon" size="16"></lucide-icon>
+              </p-button>
               }
             </div>
             @if (submitted && !certificate.ced_clasificador) {
             <small class="text-red-500">
               Debe seleccionar un clasificador.
             </small>
-            }
-            @if (selectedClasificadorData) {
-            <div class="mt-2 p-2 bg-green-50 rounded text-sm">
-              <div><strong>Código:</strong> {{ selectedClasificadorData.cod_clasificador || 'N/A' }}</div>
-              <div><strong>Teléfono:</strong> {{ selectedClasificadorData.tel_persona || 'N/A' }}</div>
-              <div><strong>Email:</strong> {{ selectedClasificadorData.email_persona || 'N/A' }}</div>
+            } @if (selectedClasificadorData) {
+            <div class="mt-2 p-2 bg-green-50 dark:bg-green-900/20 rounded text-sm">
+              <div>
+                <strong>Código:</strong>
+                {{ selectedClasificadorData.cod_clasificador || "N/A" }}
+              </div>
+              <div>
+                <strong>Teléfono:</strong>
+                {{ selectedClasificadorData.tel_persona || "N/A" }}
+              </div>
+              <div>
+                <strong>Email:</strong>
+                {{ selectedClasificadorData.email_persona || "N/A" }}
+              </div>
             </div>
             }
           </div>
@@ -327,8 +358,9 @@
         <div class="bg-blue-50 p-4 rounded-lg">
           <p class="text-sm text-blue-700">
             <lucide-icon [img]="infoIcon" size="16" class="mr-2"></lucide-icon>
-            La información de la finca, criador y propietario se obtendrá automáticamente 
-            del registro del animal. La fecha de emisión será la fecha actual.
+            La información de la finca, criador y propietario se obtendrá
+            automáticamente del registro del animal. La fecha de emisión será la
+            fecha actual.
           </p>
         </div>
         }
@@ -496,6 +528,11 @@
   <p-dialog
     [(visible)]="pdfViewerDialog"
     [style]="{ width: '90vw', height: '90vh' }"
+    [contentStyle]="{
+      height: 'calc(90vh - 140px)',
+      overflow: 'hidden',
+      padding: '0'
+    }"
     header="Certificado PDF"
     [modal]="true"
     [maximizable]="true"
@@ -503,14 +540,15 @@
     (onHide)="closePdfViewer()"
   >
     <ng-template #content>
-      <div class="pdf-viewer-container">
-          <app-certificate-viewer 
-            [pdfUrl]="pdfUrl" 
-            [isLoading]="isLoading" 
-            [error]="error"
-            [certificateData]="certificateData"
-            (allDataLoaded)="onAllDataLoaded()">
-          </app-certificate-viewer>
+      <div class="pdf-viewer-container p-3">
+        <app-certificate-viewer
+          [pdfUrl]="pdfUrl"
+          [isLoading]="isLoading"
+          [error]="error"
+          [certificateData]="certificateData"
+          (allDataLoaded)="onAllDataLoaded()"
+        >
+        </app-certificate-viewer>
       </div>
     </ng-template>
 
@@ -547,12 +585,16 @@
   ></app-clasificadores-table>
 </div>
 
-  <!-- Elementos ocultos para generación de PDF -->
-  <div class="offscreen">
-    <div #certificatePage1>
-      <app-certificate-page1 [certificateData]="certificateData"></app-certificate-page1>
-    </div>
-    <div #certificatePage2>
-      <app-certificate-page2 [certificateData]="certificateData"></app-certificate-page2>
-    </div>
+<!-- Elementos ocultos para generación de PDF -->
+<div class="offscreen">
+  <div #certificatePage1>
+    <app-certificate-page1
+      [certificateData]="certificateData"
+    ></app-certificate-page1>
   </div>
+  <div #certificatePage2>
+    <app-certificate-page2
+      [certificateData]="certificateData"
+    ></app-certificate-page2>
+  </div>
+</div>

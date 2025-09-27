@@ -172,12 +172,12 @@
     >
       <form [formGroup]="animalForm" (ngSubmit)="saveAnimal()" class="space-y-6">
         <!-- Información Básica -->
-        <div class="bg-gray-50 p-4 rounded-lg">
-          <h3 class="text-lg font-semibold mb-4 text-gray-800">Información Básica</h3>
+        <div class="bg-gray-50 dark:bg-cloud-700 p-4 rounded-lg">
+          <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">Información Básica</h3>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <!-- ID Finca (Tatuaje) -->
             <div>
-              <label for="cod_animal" class="block text-sm font-medium mb-2 text-gray-700">
+              <label for="cod_animal" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                 <i class="pi pi-hashtag text-blue-600"></i> ID Finca (TATUAJE) <span class="text-red-500">*</span>
               </label>
               <input
@@ -196,7 +196,7 @@
 
             <!-- Nombre -->
             <div>
-              <label for="nomb_animal" class="block text-sm font-medium mb-2 text-gray-700">
+              <label for="nomb_animal" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                 <i class="pi pi-user text-blue-600"></i> Nombre <span class="text-red-500">*</span>
               </label>
               <input
@@ -215,7 +215,7 @@
 
             <!-- Fecha de Nacimiento -->
             <div>
-              <label for="fec_nacim" class="block text-sm font-medium mb-2 text-gray-700">
+              <label for="fec_nacim" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                 <i class="pi pi-calendar text-blue-600"></i> Fecha de Nacimiento <span class="text-red-500">*</span>
               </label>
               <input
@@ -233,7 +233,7 @@
 
             <!-- Sexo -->
             <div>
-              <label for="sexo_animal" class="block text-sm font-medium mb-2 text-gray-700">
+              <label for="sexo_animal" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                 <i class="pi pi-venus-mars text-blue-600"></i> Sexo <span class="text-red-500">*</span>
               </label>
               <p-select
@@ -253,7 +253,7 @@
 
             <!-- Estatus -->
             <div>
-              <label for="estatus" class="block text-sm font-medium mb-2 text-gray-700">
+              <label for="estatus" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                 <i class="pi pi-check-circle text-blue-600"></i> Estatus
               </label>
               <p-select
@@ -270,12 +270,12 @@
         </div>
 
         <!-- Características Físicas -->
-        <div class="bg-gray-50 p-4 rounded-lg">
-          <h3 class="text-lg font-semibold mb-4 text-gray-800">Características Físicas</h3>
+        <div class="bg-gray-50 dark:bg-cloud-700 p-4 rounded-lg">
+          <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">Características Físicas</h3>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <!-- Raza -->
             <div>
-              <label for="cod_raza" class="block text-sm font-medium mb-2 text-gray-700">
+              <label for="cod_raza" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                 <i class="pi pi-tag text-green-600"></i> Raza
               </label>
               <p-select
@@ -291,7 +291,7 @@
 
             <!-- Color -->
             <div>
-              <label for="cod_color" class="block text-sm font-medium mb-2 text-gray-700">
+              <label for="cod_color" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                 <i class="pi pi-palette text-green-600"></i> Color
               </label>
               <p-select
@@ -307,7 +307,7 @@
 
             <!-- Tipo de Pelo -->
             <div>
-              <label for="cod_tipo_pelo" class="block text-sm font-medium mb-2 text-gray-700">
+              <label for="cod_tipo_pelo" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                 <i class="pi pi-scissors text-green-600"></i> Tipo de Pelo
               </label>
               <p-select
@@ -324,12 +324,12 @@
         </div>
 
         <!-- Origen y Reproducción -->
-        <div class="bg-gray-50 p-4 rounded-lg">
-          <h3 class="text-lg font-semibold mb-4 text-gray-800">Origen y Reproducción</h3>
+        <div class="bg-gray-50 dark:bg-cloud-700 p-4 rounded-lg">
+          <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">Origen y Reproducción</h3>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <!-- Origen -->
             <div>
-              <label for="origen" class="block text-sm font-medium mb-2 text-gray-700">
+              <label for="origen" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                 <i class="pi pi-map-marker text-purple-600"></i> Origen <span class="text-red-500">*</span>
               </label>
               <p-select
@@ -349,7 +349,7 @@
 
             <!-- Tipo de Concepción -->
             <div>
-              <label for="tipo_concepcion" class="block text-sm font-medium mb-2 text-gray-700">
+              <label for="tipo_concepcion" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                 <i class="pi pi-heart text-purple-600"></i> Tipo de Concepción
               </label>
               <p-select
@@ -365,7 +365,7 @@
 
             <!-- Tipo de Parto -->
             <div>
-              <label for="tipo_parto" class="block text-sm font-medium mb-2 text-gray-700">
+              <label for="tipo_parto" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                 <i class="pi pi-users text-purple-600"></i> Tipo de Parto
               </label>
               <p-select
@@ -381,7 +381,7 @@
 
             <!-- Material Genético -->
             <div>
-              <label for="material_genetico" class="block text-sm font-medium mb-2 text-gray-700">
+              <label for="material_genetico" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                 <i class="pi pi-cog text-purple-600"></i> Material Genético
               </label>
               <p-select
@@ -397,7 +397,7 @@
 
             <!-- Protocolo de Importación -->
             <div>
-              <label for="protocolo_importacion" class="block text-sm font-medium mb-2 text-gray-700">
+              <label for="protocolo_importacion" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                 <i class="pi pi-file-import text-purple-600"></i> Protocolo de Importación
               </label>
               <p-select
@@ -414,12 +414,12 @@
         </div>
 
         <!-- Tatuajes -->
-        <div class="bg-gray-50 p-4 rounded-lg">
-          <h3 class="text-lg font-semibold mb-4 text-gray-800">Tatuajes</h3>
+        <div class="bg-gray-50 dark:bg-cloud-700 p-4 rounded-lg">
+          <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">Tatuajes</h3>
           <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <!-- Tatuaje Oreja Izquierda -->
             <div>
-              <label for="tatuaje_oreja_izq" class="block text-sm font-medium mb-2 text-gray-700">
+              <label for="tatuaje_oreja_izq" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                 <i class="pi pi-hashtag text-orange-600"></i> Oreja Izquierda
               </label>
               <input
@@ -434,7 +434,7 @@
 
             <!-- Tatuaje Oreja Derecha -->
             <div>
-              <label for="tatuaje_oreja_der" class="block text-sm font-medium mb-2 text-gray-700">
+              <label for="tatuaje_oreja_der" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                 <i class="pi pi-hashtag text-orange-600"></i> Oreja Derecha
               </label>
               <input
@@ -449,7 +449,7 @@
 
             <!-- Tatuaje Cola -->
             <div>
-              <label for="tatuaje_cola" class="block text-sm font-medium mb-2 text-gray-700">
+              <label for="tatuaje_cola" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                 <i class="pi pi-hashtag text-orange-600"></i> Cola
               </label>
               <input
@@ -465,12 +465,12 @@
         </div>
 
         <!-- Pesos y Fechas -->
-        <div class="bg-gray-50 p-4 rounded-lg">
-          <h3 class="text-lg font-semibold mb-4 text-gray-800">Pesos y Fechas</h3>
+        <div class="bg-gray-50 dark:bg-cloud-700 p-4 rounded-lg">
+          <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">Pesos y Fechas</h3>
           <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <!-- Peso Actual -->
             <div>
-              <label for="peso_actual" class="block text-sm font-medium mb-2 text-gray-700">
+              <label for="peso_actual" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                 <i class="pi pi-chart-line text-indigo-600"></i> Peso Actual (kg)
               </label>
               <input
@@ -487,7 +487,7 @@
 
             <!-- Peso al Nacer -->
             <div>
-              <label for="peso_al_nacer" class="block text-sm font-medium mb-2 text-gray-700">
+              <label for="peso_al_nacer" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                 <i class="pi pi-chart-line text-indigo-600"></i> Peso al Nacer (kg)
               </label>
               <input
@@ -504,7 +504,7 @@
 
             <!-- Peso al Destete -->
             <div>
-              <label for="peso_al_destete" class="block text-sm font-medium mb-2 text-gray-700">
+              <label for="peso_al_destete" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                 <i class="pi pi-chart-line text-indigo-600"></i> Peso al Destete (kg)
               </label>
               <input
@@ -521,7 +521,7 @@
 
             <!-- Fecha de Destete -->
             <div>
-              <label for="fec_destete" class="block text-sm font-medium mb-2 text-gray-700">
+              <label for="fec_destete" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                 <i class="pi pi-calendar text-indigo-600"></i> Fecha de Destete
               </label>
               <input
@@ -536,19 +536,19 @@
         </div>
 
         <!-- Criador y Propietario -->
-        <div class="bg-gray-50 p-4 rounded-lg">
-          <h3 class="text-lg font-semibold mb-4 text-gray-800">Criador y Propietario</h3>
+        <div class="bg-gray-50 dark:bg-cloud-700 p-4 rounded-lg">
+          <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">Criador y Propietario</h3>
           
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Criador -->
             <div>
-              <h4 class="text-md font-medium mb-3 text-gray-700 border-b pb-2 text-center">
+              <h4 class="text-md font-medium mb-3 text-gray-700 dark:text-gray-300 border-b pb-2 text-center">
                 Criador <span class="text-red-600">*</span>
               </h4>
               <div class="space-y-3">
                 <!-- Siglas Criador -->
                 <div>
-                  <label for="siglas_criador" class="block text-sm font-medium mb-2 text-gray-700">
+                  <label for="siglas_criador" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                     Siglas Criador
                   </label>
                   <p-inputgroup>
@@ -585,7 +585,7 @@
                 
                 <!-- Nombre Criador -->
                 <div>
-                  <label for="nombre_criador" class="block text-sm font-medium mb-2 text-gray-700">
+                  <label for="nombre_criador" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                     Nombre Finca Criadora
                   </label>
                   <input
@@ -595,7 +595,7 @@
                     formControlName="nombre_criador"
                     readonly
                     [disabled]="isEditMode"
-                    class="w-full bg-gray-100"
+                    class="w-full bg-gray-100 dark:bg-[#3f3f46]"
                     [placeholder]="isEditMode ? 'Nombre de la finca criadora (no editable)' : 'Nombre de la finca criadora seleccionada'"
                   />
                 </div>
@@ -604,13 +604,13 @@
 
             <!-- Propietario -->
             <div>
-              <h4 class="text-md font-medium mb-3 text-gray-700 border-b pb-2 text-center">
+              <h4 class="text-md font-medium mb-3 text-gray-700 dark:text-gray-300 border-b pb-2 text-center">
                 Propietario <span class="text-red-600">*</span>
               </h4>
               <div class="space-y-3">
                 <!-- Siglas Propietario -->
                 <div>
-                  <label for="siglas_propietario" class="block text-sm font-medium mb-2 text-gray-700">
+                  <label for="siglas_propietario" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                     Siglas Propietario
                   </label>
                   <p-inputgroup>
@@ -641,7 +641,7 @@
                 
                 <!-- Nombre Propietario -->
                 <div>
-                  <label for="nombre_propietario" class="block text-sm font-medium mb-2 text-gray-700">
+                  <label for="nombre_propietario" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                     Nombre Finca Propietaria
                   </label>
                   <input
@@ -650,7 +650,7 @@
                     id="nombre_propietario"
                     formControlName="nombre_propietario"
                     readonly
-                    class="w-full bg-gray-100"
+                    class="w-full bg-gray-100 dark:bg-[#3f3f46]"
                     placeholder="Nombre de la finca propietaria seleccionada"
                   />
                 </div>
@@ -659,8 +659,8 @@
           </div>
           
           <!-- Nota informativa -->
-          <div class="mt-4 p-3 bg-blue-50 rounded border-l-4 border-blue-400">
-            <p class="text-sm text-blue-700">
+          <div class="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded border-l-4 border-blue-400 dark:border-blue-600">
+            <p class="text-sm text-blue-700 dark:text-blue-300">
               <strong>Nota:</strong> El criador determina la finca donde nació el animal, 
               mientras que el propietario determina la finca actual donde se encuentra el animal.
             </p>
@@ -668,19 +668,19 @@
         </div>
 
         <!-- Genealogía -->
-        <div class="bg-gray-50 p-4 rounded-lg">
-          <h3 class="text-lg font-semibold mb-4 text-gray-800">Genealogía</h3>
+        <div class="bg-gray-50 dark:bg-cloud-700 p-4 rounded-lg">
+          <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">Genealogía</h3>
           
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Padre -->
             <div>
-              <h4 class="text-md font-medium mb-3 text-gray-700 border-b pb-2 text-center">
+              <h4 class="text-md font-medium mb-3 text-gray-700 dark:text-gray-300 border-b pb-2 text-center">
                 Padre
               </h4>
               <div class="space-y-3">
                 <!-- Código Padre -->
                 <div>
-                  <label for="cod_padre" class="block text-sm font-medium mb-2 text-gray-700">
+                  <label for="cod_padre" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                     Código Padre
                   </label>
                   <p-inputgroup>
@@ -716,7 +716,7 @@
                 
                 <!-- Nombre Padre -->
                 <div>
-                  <label for="nombre_padre" class="block text-sm font-medium mb-2 text-gray-700">
+                  <label for="nombre_padre" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                     Nombre del Padre
                   </label>
                   <input
@@ -725,7 +725,7 @@
                     id="nombre_padre"
                     formControlName="nombre_padre"
                     readonly
-                    class="w-full bg-gray-100"
+                    class="w-full bg-gray-100 dark:bg-[#3f3f46]"
                     placeholder="Nombre del padre seleccionado"
                   />
                 </div>
@@ -741,13 +741,13 @@
 
             <!-- Madre -->
             <div>
-              <h4 class="text-md font-medium mb-3 text-gray-700 border-b pb-2 text-center">
+              <h4 class="text-md font-medium mb-3 text-gray-700 dark:text-gray-300 border-b pb-2 text-center">
                 Madre
               </h4>
               <div class="space-y-3">
                 <!-- Código Madre -->
                 <div>
-                  <label for="cod_madre" class="block text-sm font-medium mb-2 text-gray-700">
+                  <label for="cod_madre" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                     Código Madre
                   </label>
                   <p-inputgroup>
@@ -783,7 +783,7 @@
                 
                 <!-- Nombre Madre -->
                 <div>
-                  <label for="nombre_madre" class="block text-sm font-medium mb-2 text-gray-700">
+                  <label for="nombre_madre" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                     Nombre de la Madre
                   </label>
                   <input
@@ -792,7 +792,7 @@
                     id="nombre_madre"
                     formControlName="nombre_madre"
                     readonly
-                    class="w-full bg-gray-100"
+                    class="w-full bg-gray-100 dark:bg-[#3f3f46]"
                     placeholder="Nombre de la madre seleccionada"
                   />
                 </div>
@@ -810,12 +810,12 @@
         </div>
 
         <!-- Información Adicional -->
-        <div class="bg-gray-50 p-4 rounded-lg">
-          <h3 class="text-lg font-semibold mb-4 text-gray-800">Información Adicional</h3>
+        <div class="bg-gray-50 dark:bg-cloud-700 p-4 rounded-lg">
+          <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">Información Adicional</h3>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <!-- Código ASO -->
             <div>
-              <label for="codigo_aso" class="block text-sm font-medium mb-2 text-gray-700">
+              <label for="codigo_aso" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                 <i class="pi pi-id-card text-teal-600"></i> Código ASO
               </label>
               <input
@@ -830,7 +830,7 @@
 
             <!-- Composición Racial -->
             <div>
-              <label for="p_sangre" class="block text-sm font-medium mb-2 text-gray-700">
+              <label for="p_sangre" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                 <i class="pi pi-percentage text-teal-600"></i> Composición Racial
               </label>
               <p-select
@@ -846,7 +846,7 @@
 
             <!-- Porcentaje Racial -->
             <div>
-              <label for="porcen_sangre" class="block text-sm font-medium mb-2 text-gray-700">
+              <label for="porcen_sangre" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                 <i class="pi pi-percentage text-teal-600"></i> % Racial
               </label>
               <input
@@ -863,7 +863,7 @@
 
             <!-- Imagen -->
             <div>
-              <label for="imagen" class="block text-sm font-medium mb-2 text-gray-700">
+              <label for="imagen" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                 <i class="pi pi-image text-teal-600"></i> URL de Imagen
               </label>
               <input
@@ -878,7 +878,7 @@
 
             <!-- Información de Orejas -->
             <div>
-              <label for="info_orejas" class="block text-sm font-medium mb-2 text-gray-700">
+              <label for="info_orejas" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                 <i class="pi pi-info-circle text-teal-600"></i> Información de Orejas
               </label>
               <p-select
@@ -894,7 +894,7 @@
 
             <!-- Información de Cuernos -->
             <div>
-              <label for="info_cuernos" class="block text-sm font-medium mb-2 text-gray-700">
+              <label for="info_cuernos" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                 <i class="pi pi-info-circle text-teal-600"></i> Información de Cuernos
               </label>
               <p-select
@@ -910,7 +910,7 @@
 
             <!-- Tipo de Registro -->
             <div>
-              <label for="tipo_registro" class="block text-sm font-medium mb-2 text-gray-700">
+              <label for="tipo_registro" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                 <i class="pi pi-file-text text-teal-600"></i> Tipo de Registro
               </label>
               <p-select
@@ -926,7 +926,7 @@
 
             <!-- Aretes -->
             <div>
-              <label for="aretes" class="block text-sm font-medium mb-2 text-gray-700">
+              <label for="aretes" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                 <i class="pi pi-tag text-teal-600"></i> Aretes
               </label>
               <input
@@ -942,7 +942,7 @@
 
             <!-- Registro Internacional -->
             <div>
-              <label for="reg_intl" class="block text-sm font-medium mb-2 text-gray-700">
+              <label for="reg_intl" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                 <i class="pi pi-globe text-teal-600"></i> Registro Internacional
               </label>
               <input
@@ -959,7 +959,7 @@
 
           <!-- Observaciones -->
           <div class="mt-4">
-            <label for="observac" class="block text-sm font-medium mb-2 text-gray-700">
+            <label for="observac" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
               <i class="pi pi-comment text-teal-600"></i> Observaciones
             </label>
             <textarea
@@ -978,7 +978,6 @@
           <p-button
             type="button"
             label="Cancelar"
-            icon="pi pi-times"
             severity="secondary"
             (onClick)="hideDialog()"
             [disabled]="loading"

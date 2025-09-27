@@ -3,20 +3,18 @@ import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError } from 'rxjs/operators';
 import { throwError } from 'rxjs';
-import { JwtAuthService } from '@core/services/jwt-auth.service';
 
 export const authInterceptor: HttpInterceptorFn = (
   request: HttpRequest<unknown>,
   next: HttpHandlerFn
 ) => {
   const router = inject(Router);
-  const jwtAuthService = inject(JwtAuthService);
 
   // Solo interceptar peticiones a la API que no sean de autenticación
   const isApiRequest = request.url.includes('/api/');
   const isAuthRequest = request.url.includes('/auth/login') || 
                        request.url.includes('/auth/register') ||
-                       request.url.includes('/auth/user');
+                       request.url.includes('/auth/me');
 
   // Si no es una petición a la API o es una petición de autenticación, no interceptar
   if (!isApiRequest || isAuthRequest) {
@@ -46,8 +44,13 @@ export const authInterceptor: HttpInterceptorFn = (
 
         // Si no es una petición de autenticación y no estamos ya en login
         if (!isLoginRequest && !isRegisterRequest && !isLogoutRequest && !isAlreadyOnLogin) {
-          console.log('🔒 Interceptor: Error 401, redirigiendo al login');
-          jwtAuthService.handleUnauthorized();
+          console.log('🔒 Interceptor: Error 401, limpiando sesión y redirigiendo al login');
+          
+          // Limpiar token de la cookie
+          deleteCookie('access_token');
+          
+          // Redirigir al login
+          router.navigate(['/Auth/Login']);
         }
       }
       return throwError(() => error);
@@ -67,4 +70,11 @@ function getCookie(name: string): string | null {
     if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
   }
   return null;
+}
+
+/**
+ * Eliminar cookie
+ */
+function deleteCookie(name: string): void {
+  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
 } 

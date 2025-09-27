@@ -94,6 +94,11 @@ export const routes: Routes = [
           import('@features/farms/farms').then((c) => c.Farms),
       },
       {
+        path: 'Account',
+        loadComponent: () =>
+          import('@features/account/account').then((c) => c.Account),
+      },
+      {
         path: 'test',
         loadComponent: () =>
           import(

@@ -1,0 +1,234 @@
+/* =================================================================
+   ESTILOS DE IMPRESIÓN OPTIMIZADOS PARA CERTIFICADO PÁGINA 1
+   ================================================================= */
+
+/* Configuración de página para impresión */
+@media print {
+  /* Configuración de página */
+  @page {
+    margin: 0;
+    size: A4 landscape;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  /* Contenedor principal del certificado */
+  .container-certificate {
+    width: 100% !important;
+    height: 100vh !important;
+    max-width: none !important;
+    max-height: none !important;
+    min-width: auto !important;
+    min-height: auto !important;
+    margin: 0 !important;
+    padding: 15mm !important;
+    border: 20px solid #FBCF24 !important; /* yellow-400 */
+    box-sizing: border-box !important;
+    page-break-after: always;
+    background-color: white !important;
+    font-family: Arial, sans-serif !important;
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+    color: black !important;
+    position: relative !important;
+    overflow: visible !important;
+    
+    /* Forzar colores en impresión */
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    color-adjust: exact;
+  }
+  
+  /* Ocultar elementos no necesarios en impresión */
+  .no-print,
+  .offscreen,
+  .pdf-toolbar,
+  .loading-container,
+  .error-container,
+  .pdf-preview-container {
+    display: none !important;
+    visibility: hidden !important;
+  }
+  
+  /* Asegurar que todo el texto sea negro y visible */
+  .container-certificate *,
+  .container-certificate {
+    color: black !important;
+    font-family: Arial, sans-serif !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
+  /* Bordes visibles en impresión */
+  .border-yellow-400,
+  .border-\[30px\] {
+    border-color: #FBCF24 !important; /* yellow-400 */
+    border-style: solid !important;
+  }
+  
+  .border-black,
+  .border-dashed {
+    border-color: #000000 !important;
+    border-style: dashed !important;
+  }
+  
+  .border-\[1\.5px\] {
+    border-width: 1.5px !important;
+  }
+  
+  .border-\[2px\] {
+    border-width: 2px !important;
+  }
+  
+  /* Imágenes en impresión */
+  img {
+    max-width: 130px !important;
+    max-height: 130px !important;
+    width: 130px !important;
+    height: 130px !important;
+    display: block !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  /* Flexbox fallbacks para impresión */
+  .flex {
+    display: table !important;
+    width: 100% !important;
+  }
+  
+  .flex > * {
+    display: table-cell !important;
+    vertical-align: middle !important;
+  }
+  
+  .justify-between > *:first-child {
+    text-align: left !important;
+  }
+  
+  .justify-between > *:last-child {
+    text-align: right !important;
+  }
+  
+  .justify-center,
+  .items-center {
+    text-align: center !important;
+    vertical-align: middle !important;
+  }
+  
+  .justify-end,
+  .items-end {
+    text-align: right !important;
+    vertical-align: bottom !important;
+  }
+  
+  /* Espaciado en impresión */
+  .gap-1 > * { margin-right: 4px !important; }
+  .gap-2 > * { margin-right: 8px !important; }
+  .gap-4 > * { margin-right: 16px !important; }
+  .gap-\[50px\] > * { margin-right: 50px !important; }
+  .gap-\[200px\] > * { margin-right: 200px !important; }
+  
+  .space-y-4 > * { margin-bottom: 16px !important; }
+  .space-y-6 > * { margin-bottom: 24px !important; }
+  
+  .mb-4 { margin-bottom: 16px !important; }
+  .mb-5 { margin-bottom: 20px !important; }
+  .ms-4 { margin-left: 16px !important; }
+  .ms-\[100px\] { margin-left: 100px !important; }
+  .pe-1 { padding-right: 4px !important; }
+  .pe-2 { padding-right: 8px !important; }
+  .ps-\[4px\] { padding-left: 4px !important; }
+  .pt-\[1px\] { padding-top: 1px !important; }
+  .p-0\.5 { padding: 2px !important; }
+  .p-1 { padding: 4px !important; }
+  
+  /* Tamaños específicos */
+  .w-\[130px\] { width: 130px !important; }
+  .w-\[150px\] { width: 150px !important; }
+  .w-\[100px\] { width: 100px !important; }
+  .w-\[125px\] { width: 125px !important; }
+  .w-\[60\%\] { width: 60% !important; }
+  .w-1\/2 { width: 50% !important; }
+  .w-64 { width: 256px !important; }
+  
+  .h-\[130px\] { height: 130px !important; }
+  .h-\[145px\] { height: 145px !important; }
+  .h-\[160px\] { height: 160px !important; }
+  
+  /* Posicionamiento */
+  .flex-grow-1 { 
+    width: auto !important;
+    flex-grow: 1 !important;
+  }
+  
+  /* Texto y fuentes */
+  .font-bold { font-weight: bold !important; }
+  .text-sm { font-size: 11px !important; }
+  .text-end { text-align: right !important; }
+  .text-center { text-align: center !important; }
+  .text-3xl { font-size: 24px !important; }
+  
+  .m-0 { margin: 0 !important; }
+  
+  /* Bordes específicos */
+  .border-s-\[1\.5px\] { border-left-width: 1.5px !important; }
+  .border-s-\[2px\] { border-left-width: 2px !important; }
+  .border-t-\[1\.5px\] { border-top-width: 1.5px !important; }
+  .border-b-\[1\.5px\] { border-bottom-width: 1.5px !important; }
+  .border-b-\[2px\] { border-bottom-width: 2px !important; }
+  .border-e-\[1\.5px\] { border-right-width: 1.5px !important; }
+  
+  /* Líneas de firma */
+  .border-t {
+    border-top: 1px solid black !important;
+  }
+  
+  /* Asegurar que los contenedores con bordes se vean correctamente */
+  .border-dashed {
+    border-style: dashed !important;
+    border-color: black !important;
+  }
+  
+  /* Marca de agua para impresión */
+  .container-certificate::after {
+    content: "" !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background-image: url("/assets/logos/logo.png") !important;
+    background-size: 170px !important;
+    background-repeat: repeat !important;
+    background-position: 0 0, 200px 150px, 400px 0, 600px 150px !important;
+    opacity: 0.1 !important;
+    z-index: 0 !important;
+    pointer-events: none !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  /* Contenido por encima de la marca de agua */
+  .container-certificate > * {
+    position: relative !important;
+    z-index: 1 !important;
+  }
+}
+
+/* Estilos adicionales para mejor compatibilidad de impresión */
+@media print and (orientation: landscape) {
+  .container-certificate {
+    width: 100% !important;
+    height: 100vh !important;
+    transform: none !important;
+  }
+}
+
+/* Optimización para impresoras específicas */
+@media print and (-webkit-min-device-pixel-ratio: 1) {
+  .container-certificate {
+    -webkit-transform: scale(1) !important;
+    transform: scale(1) !important;
+  }
+}

@@ -4,10 +4,10 @@ import { CardModule } from 'primeng/card';
 import { SkeletonModule } from 'primeng/skeleton';
 import { MessageModule } from 'primeng/message';
 import { ButtonModule } from 'primeng/button';
-import { LucideAngularModule, BarChart3, RefreshCw, AlertCircle } from 'lucide-angular';
+import { LucideAngularModule, ChartColumn, RefreshCw, AlertCircle } from 'lucide-angular';
 import { Subject, takeUntil } from 'rxjs';
 
-import { DashboardService, DashboardStats } from './services/dashboard.service';
+import { DashboardService, DashboardStats } from './services/dashboard-service';
 import { DashboardSexStatsComponent } from './components/dashboard-sex-stats/dashboard-sex-stats.component';
 import { DashboardBreedStatsComponent } from './components/dashboard-breed-stats/dashboard-breed-stats.component';
 import { DashboardPurityStatsComponent } from './components/dashboard-purity-stats/dashboard-purity-stats.component';
@@ -37,7 +37,7 @@ export class Dashboard implements OnInit, OnDestroy {
   error: string | null = null;
   
   // Icons
-  barChartIcon = BarChart3;
+  barChartIcon = ChartColumn;
   refreshIcon = RefreshCw;
   alertIcon = AlertCircle;
 

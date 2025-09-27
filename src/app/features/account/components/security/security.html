@@ -1,0 +1,253 @@
+<div class="space-y-6">
+  <p-toast></p-toast>
+
+  <!-- Header de la sección -->
+  <div>
+    <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
+      Configuración de Seguridad
+    </h2>
+    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+      Gestiona tu contraseña y configuraciones de seguridad
+    </p>
+  </div>
+
+  <!-- Cambio de Contraseña -->
+  <div
+    class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6"
+  >
+    <div class="flex items-center gap-2 mb-6">
+      <lucide-angular
+        [img]="lockIcon"
+        size="20"
+        class="text-amber-600 dark:text-amber-400"
+      ></lucide-angular>
+      <h3 class="text-lg font-medium text-gray-900 dark:text-white">
+        Cambiar Contraseña
+      </h3>
+    </div>
+
+    <form
+      [formGroup]="passwordForm"
+      (ngSubmit)="onSubmitPasswordChange()"
+      class="space-y-6"
+    >
+      <!-- Contraseña Actual -->
+      <div class="space-y-2">
+        <label
+          for="currentPassword"
+          class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+        >
+          Contraseña Actual
+        </label>
+          <p-password
+            id="currentPassword"
+            formControlName="currentPassword"
+            placeholder="Ingresa tu contraseña actual"
+            [feedback]="false"
+            [toggleMask]="true"
+            class="w-full"
+            inputStyleClass="w-full"
+            [class.ng-invalid]="
+              f['currentPassword'].invalid && f['currentPassword'].touched
+            "
+          >
+          </p-password>
+          @if (f['currentPassword'].invalid && f['currentPassword'].touched) {
+          <div class="text-red-500 text-xs mt-1">
+            <span>La contraseña actual es requerida</span>
+          </div>
+          }
+      </div>
+
+      <!-- Nueva Contraseña -->
+      <div class="space-y-2">
+        <label
+          for="newPassword"
+          class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+        >
+          Nueva Contraseña
+        </label>
+          <p-password
+            id="newPassword"
+            formControlName="newPassword"
+            placeholder="Ingresa tu nueva contraseña"
+            [feedback]="true"
+            [toggleMask]="true"
+            class="w-full"
+            inputStyleClass="w-full"
+            [class.ng-invalid]="
+              f['newPassword'].invalid && f['newPassword'].touched
+            "
+          >
+          </p-password>
+          @if (f['newPassword'].invalid && f['newPassword'].touched) {
+          <div class="text-red-500 text-xs mt-1">
+            @if (f['newPassword'].errors?.['required']) {
+            <span>La nueva contraseña es requerida</span>
+            } @if (f['newPassword'].errors?.['minlength']) {
+            <span>La contraseña debe tener al menos 8 caracteres</span>
+            }
+          </div>
+          }
+      </div>
+
+      <!-- Confirmar Contraseña -->
+      <div class="space-y-2">
+        <label
+          for="confirmPassword"
+          class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+        >
+          Confirmar Nueva Contraseña
+        </label>
+        <p-password
+          id="confirmPassword"
+          formControlName="confirmPassword"
+          placeholder="Confirma tu nueva contraseña"
+          [feedback]="false"
+          [toggleMask]="true"
+          class="w-full"
+          inputStyleClass="w-full"
+          [class.ng-invalid]="
+            f['confirmPassword'].invalid && f['confirmPassword'].touched
+          "
+        >
+        </p-password>
+        @if (f['confirmPassword'].invalid && f['confirmPassword'].touched) {
+        <div class="text-red-500 text-xs mt-1">
+          @if (f['confirmPassword'].errors?.['required']) {
+          <span>Confirma tu nueva contraseña</span>
+          } @if (f['confirmPassword'].errors?.['passwordMismatch']) {
+          <span>Las contraseñas no coinciden</span>
+          }
+        </div>
+        }
+      </div>
+
+      <!-- Botón de Cambiar Contraseña -->
+      <div
+        class="flex justify-end pt-4 border-t border-gray-200 dark:border-gray-700"
+      >
+        <p-button
+          label="Cambiar Contraseña"
+          severity="primary"
+          [loading]="isLoading()"
+          [disabled]="passwordForm.invalid"
+          type="submit"
+        >
+          <lucide-angular [img]="keyIcon" size="16"></lucide-angular>
+        </p-button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Configuraciones de Seguridad Futuras -->
+  <div
+    class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6"
+  >
+    <div class="flex items-center gap-2 mb-6">
+      <lucide-angular
+        [img]="shieldIcon"
+        size="20"
+        class="text-amber-600 dark:text-amber-400"
+      ></lucide-angular>
+      <h3 class="text-lg font-medium text-gray-900 dark:text-white">
+        Configuraciones Adicionales
+      </h3>
+    </div>
+
+    <div class="space-y-4">
+      <!-- Autenticación de Dos Factores (Futuro) -->
+      <div
+        class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
+      >
+        <div class="flex items-center gap-3">
+          <div
+            class="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center"
+          >
+            <lucide-angular
+              [img]="smartphoneIcon"
+              size="20"
+              class="text-blue-600 dark:text-blue-400"
+            ></lucide-angular>
+          </div>
+          <div>
+            <h4 class="text-sm font-medium text-gray-900 dark:text-white">
+              Autenticación de Dos Factores
+            </h4>
+            <p class="text-xs text-gray-500 dark:text-gray-400">
+              Agrega una capa extra de seguridad a tu cuenta
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-gray-500 dark:text-gray-400"
+            >Próximamente</span
+          >
+          <div class="w-2 h-2 bg-yellow-400 rounded-full"></div>
+        </div>
+      </div>
+
+      <!-- Historial de Sesiones (Futuro) -->
+      <div
+        class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
+      >
+        <div class="flex items-center gap-3">
+          <div
+            class="w-10 h-10 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center"
+          >
+            <lucide-angular
+              [img]="clockIcon"
+              size="20"
+              class="text-green-600 dark:text-green-400"
+            ></lucide-angular>
+          </div>
+          <div>
+            <h4 class="text-sm font-medium text-gray-900 dark:text-white">
+              Historial de Sesiones
+            </h4>
+            <p class="text-xs text-gray-500 dark:text-gray-400">
+              Revisa las sesiones activas y el historial de acceso
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-gray-500 dark:text-gray-400"
+            >Próximamente</span
+          >
+          <div class="w-2 h-2 bg-yellow-400 rounded-full"></div>
+        </div>
+      </div>
+
+      <!-- Notificaciones de Seguridad (Futuro) -->
+      <div
+        class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
+      >
+        <div class="flex items-center gap-3">
+          <div
+            class="w-10 h-10 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center"
+          >
+            <lucide-angular
+              [img]="alertTriangleIcon"
+              size="20"
+              class="text-purple-600 dark:text-purple-400"
+            ></lucide-angular>
+          </div>
+          <div>
+            <h4 class="text-sm font-medium text-gray-900 dark:text-white">
+              Notificaciones de Seguridad
+            </h4>
+            <p class="text-xs text-gray-500 dark:text-gray-400">
+              Recibe alertas sobre actividad sospechosa
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-gray-500 dark:text-gray-400"
+            >Próximamente</span
+          >
+          <div class="w-2 h-2 bg-yellow-400 rounded-full"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
