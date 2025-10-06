@@ -619,13 +619,32 @@ export class Certificates implements OnInit {
 
       const animalName =
         this.certificateData?.animal?.nomb_animal || 'certificado';
+      
+      // Convertir tipo de registro a sigla corta
+      const tipoRegistroSigla = this.getTipoRegistroSigla(
+        this.certificateData?.animal?.tipo_registro
+      );
+      
+      // Obtener sigla de finca, si no existe usar las primeras 3 letras del nombre
+      let siglaFinca = this.certificateData?.propietario?.abr_finca;
+      if (!siglaFinca && this.certificateData?.propietario?.nomb_finca) {
+        siglaFinca = this.certificateData.propietario.nomb_finca
+          .substring(0, 3)
+          .toUpperCase()
+          .replace(/\s/g, '');
+      }
+      
+      const idFinca = this.certificateData?.propietario?.cod_finca;
 
       // Generar PDF como blob
       const { blob } =
         await this.pdfGeneratorService.generateCertificatePDFBlob(
           page1Element as HTMLElement,
           page2Element as HTMLElement,
-          animalName
+          animalName,
+          tipoRegistroSigla,
+          siglaFinca,
+          idFinca
         );
 
       // Crear URL para el PDF embebido
@@ -662,11 +681,40 @@ export class Certificates implements OnInit {
 
       const animalName =
         this.certificateData?.animal?.nomb_animal || 'certificado';
+      
+      // Convertir tipo de registro a sigla corta
+      const tipoRegistroSigla = this.getTipoRegistroSigla(
+        this.certificateData?.animal?.tipo_registro
+      );
+      
+      // Obtener sigla de finca, si no existe usar las primeras 3 letras del nombre
+      let siglaFinca = this.certificateData?.propietario?.abr_finca;
+      if (!siglaFinca && this.certificateData?.propietario?.nomb_finca) {
+        siglaFinca = this.certificateData.propietario.nomb_finca
+          .substring(0, 3)
+          .toUpperCase()
+          .replace(/\s/g, '');
+      }
+      
+      const idFinca = this.certificateData?.propietario?.cod_finca;
+
+      // Debug: verificar datos para el nombre del archivo
+      console.log('📄 Datos para nombre de archivo PDF:', {
+        tipoRegistroOriginal: this.certificateData?.animal?.tipo_registro,
+        tipoRegistroSigla,
+        siglaFinca,
+        idFinca,
+        propietario: this.certificateData?.propietario,
+        animal: this.certificateData?.animal
+      });
 
       await this.pdfGeneratorService.generateCertificatePDF(
         page1Element as HTMLElement,
         page2Element as HTMLElement,
-        animalName
+        animalName,
+        tipoRegistroSigla,
+        siglaFinca,
+        idFinca
       );
 
       this.messageService.add({
@@ -730,5 +778,30 @@ export class Certificates implements OnInit {
   clearClasificadorSelection() {
     this.selectedClasificadorData = null;
     this.certificate.ced_clasificador = '';
+  }
+
+  /**
+   * Convierte el tipo de registro a una sigla corta
+   */
+  private getTipoRegistroSigla(tipoRegistro?: string): string {
+    if (!tipoRegistro) return 'REG';
+    
+    const tipoLower = tipoRegistro.toLowerCase();
+    
+    // Mapeo de tipos de registro a siglas
+    if (tipoLower.includes('definitivo')) return 'RD';
+    if (tipoLower.includes('provisional')) return 'RP';
+    if (tipoLower.includes('puro') && tipoLower.includes('original')) return 'PO';
+    if (tipoLower.includes('puro') && tipoLower.includes('registro')) return 'PR';
+    if (tipoLower.includes('puro')) return 'PU';
+    if (tipoLower.includes('apéndice') || tipoLower.includes('apendice')) return 'AP';
+    
+    // Si no coincide con ninguno, usar las iniciales
+    return tipoRegistro
+      .split(' ')
+      .map(word => word.charAt(0))
+      .join('')
+      .toUpperCase()
+      .substring(0, 3);
   }
 }

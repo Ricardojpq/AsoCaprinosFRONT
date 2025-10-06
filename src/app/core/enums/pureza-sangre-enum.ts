@@ -11,9 +11,9 @@ export enum PurezaSangreEnum {
 
 export const PurezaSangreLabels: Record<string | number, string> = {
   [PurezaSangreEnum.PO]: 'Puro Original (PO)',
-  [PurezaSangreEnum.PCOC]: 'Puro por Cruzamiento Orientado y Controlado (PCOC)',
+  [PurezaSangreEnum.PCOC]: 'Puro por Cruce de Origen Conocido (PCOC)',
   [PurezaSangreEnum.PR]: 'Puro por Registro (PR)',
-  [PurezaSangreEnum.BASE]: 'Base',
+  [PurezaSangreEnum.BASE]: 'Rebaño Base',
   [PurezaSangreEnum.G1]: 'Generación 1 (G1)',
   [PurezaSangreEnum.G2]: 'Generación 2 (G2)',
   [PurezaSangreEnum.G3]: 'Generación 3 (G3)',

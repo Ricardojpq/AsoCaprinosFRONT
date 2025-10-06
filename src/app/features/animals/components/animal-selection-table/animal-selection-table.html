@@ -27,16 +27,19 @@
           />
         </p-iconfield>
 
-        <!-- Filtro por sexo -->
+        <!-- Filtro por finca -->
         <p-select
-          [(ngModel)]="filters.sexo_animal"
-          [options]="sexOptions"
+          [(ngModel)]="filters.cod_finca"
+          [options]="fincaOptions"
           optionLabel="label"
           optionValue="value"
-          placeholder="Sexo"
+          placeholder="Todas las fincas"
           (onChange)="onFilterChange()"
-          [disabled]="!!sexFilter"
-          class="w-8rem"
+          [filter]="true"
+          filterPlaceholder="Buscar finca"
+          [loading]="loadingFincas"
+          [showClear]="true"
+          class="w-20rem"
         />
 
         <!-- Filtro por estatus -->
@@ -62,18 +65,7 @@
       </div>
     </ng-template>
 
-    <ng-template pTemplate="end">
-      <div class="flex flex-column align-items-end gap-1">
-        <span class="text-sm text-gray-600 dark:text-gray-300">
-          Total: {{ totalRecords }} animales
-        </span>
-        @if (globalFilterValue) {
-          <small class="text-xs text-gray-500 dark:text-gray-400">
-            Buscando en: Código Finca, Código Animal, Nombre, Fecha Nac., Fecha Ingreso
-          </small>
-        }
-      </div>
-    </ng-template>
+   
   </p-toolbar>
 
   <!-- Tabla de animales -->
@@ -88,6 +80,7 @@
     [rowsPerPageOptions]="[10, 25, 50]"
     [showCurrentPageReport]="true"
     currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} animales"
+    [globalFilterFields]="['criador.nomb_finca', 'id_finca', 'tatuaje', 'nro_registro_cla', 'nomb_animal', 'raza.nomb_raza', 'raza.descripcion', 'estatus']"
     selectionMode="single"
     [(selection)]="selectedAnimal"
     (onRowSelect)="onRowSelect($event)"
@@ -101,24 +94,21 @@
     <!-- Columnas de la tabla -->
     <ng-template pTemplate="header">
       <tr>
-        <th pSortableColumn="cod_finca" style="min-width: 8rem">
-          Finca <p-sortIcon field="cod_finca"></p-sortIcon>
+        <th style="min-width: 12rem">
+          Finca Criadora
         </th>
-        <th pSortableColumn="cod_animal" style="min-width: 8rem">
-          Código <p-sortIcon field="cod_animal"></p-sortIcon>
+        <th style="min-width: 8rem">
+          Id Finca
         </th>
-        <th pSortableColumn="nomb_animal" style="min-width: 12rem">
-          Nombre <p-sortIcon field="nomb_animal"></p-sortIcon>
+        <th style="min-width: 10rem">
+          Nro. Registro
         </th>
-        <th pSortableColumn="sexo_animal" style="min-width: 6rem">
-          Sexo 
+        <th style="min-width: 12rem">
+          Nombre
         </th>
-        <th pSortableColumn="fec_nacim" style="min-width: 8rem">
-          Fecha Nac. <p-sortIcon field="fec_nacim"></p-sortIcon>
-        </th>
-        <th style="min-width: 8rem">Raza</th>
-        <th pSortableColumn="estatus" style="min-width: 6rem">
-          Estatus 
+        <th style="min-width: 10rem">Raza</th>
+        <th style="min-width: 8rem">
+          Estatus
         </th>
       </tr>
     </ng-template>
@@ -126,25 +116,26 @@
     <ng-template pTemplate="body" let-animal let-rowIndex="rowIndex">
       <tr [pSelectableRow]="animal" [pSelectableRowIndex]="rowIndex">
         <td>
-          <span class="font-medium">{{ animal.cod_finca }}</span>
+          <div class="flex flex-column gap-1">
+            <span class="font-medium text-gray-900 dark:text-white">{{ animal.criador?.nomb_finca || 'N/A' }}</span>
+            @if (animal.criador?.persona) {
+              <small class="text-gray-500 dark:text-gray-400">
+                {{ animal.criador.persona.nomb_persona }} {{ animal.criador.persona.apell_persona }}
+              </small>
+            }
+          </div>
         </td>
         <td>
-          <span class="font-medium text-blue-600 dark:text-blue-400">{{ animal.cod_animal }}</span>
+          <span class="font-medium text-blue-600 dark:text-blue-400">{{ animal.id_finca || animal.tatuaje || 'N/A' }}</span>
+        </td>
+        <td>
+          <span class="text-sm">{{ animal.nro_registro_cla || 'No Posee' }}</span>
         </td>
         <td>
           <span class="font-semibold">{{ animal.nomb_animal }}</span>
         </td>
         <td>
-          <p-tag 
-            [value]="getSexLabel(animal.sexo_animal)" 
-            [severity]="animal.sexo_animal === 'M' ? 'info' : 'success'"
-          />
-        </td>
-        <td>
-          {{ animal.fec_nacim | date:'dd/MM/yyyy' }}
-        </td>
-        <td>
-          <span class="text-sm">{{ animal.raza_info?.nomb_raza || 'N/A' }}</span>
+          <span class="text-sm">{{ animal.raza?.nomb_raza || animal.raza?.descripcion || 'N/A' }}</span>
         </td>
         <td>
           <p-tag 
@@ -157,7 +148,7 @@
 
     <ng-template pTemplate="emptymessage">
       <tr>
-        <td colspan="9" class="text-center p-4">
+        <td colspan="6" class="text-center p-4">
           <div class="flex flex-column align-items-center gap-2">
             <i class="pi pi-search text-4xl text-gray-400 dark:text-gray-500"></i>
             <span class="text-gray-500 dark:text-gray-400">No se encontraron animales</span>

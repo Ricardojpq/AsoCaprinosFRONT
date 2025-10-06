@@ -105,10 +105,11 @@ export class FarmsService {
 
   /**
    * Get all active farms for dropdowns
+   * @param perPage Número de elementos a obtener (por defecto 100)
    */
-  getAllActiveFincas$(): Observable<FincaDto[]> {
+  getAllActiveFincas$(perPage: number = 100): Observable<FincaDto[]> {
     const params: FincaQueryParams = {
-      per_page: 1000,
+      per_page: perPage,
       estatus_finca: 'A'
     };
     return this.getFincas$(params).pipe(

@@ -49,7 +49,7 @@ import { BreedStats } from '../../services/dashboard-service';
             <div class="p-1 bg-gradient-to-br from-amber-400 to-orange-500 rounded">
               <lucide-icon [img]="awardIcon" size="16" class="text-white"></lucide-icon>
             </div>
-            <span class="font-semibold text-gray-900 dark:text-white">Top Razas</span>
+            <span class="font-semibold text-gray-900 dark:text-white">Distribución De Animales Ror Razas</span>
           </div>
           
           <div class="space-y-3">
@@ -80,7 +80,7 @@ import { BreedStats } from '../../services/dashboard-service';
         <!-- Summary Stats -->
         <div class="grid grid-cols-2 gap-4">
           <div class="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 text-center border border-slate-200 dark:border-slate-600">
-            <div class="text-gray-600 dark:text-gray-300 text-sm mb-1">Total Razas</div>
+            <div class="text-gray-600 dark:text-gray-300 text-sm mb-1">Nro de Razas</div>
             <div class="text-gray-900 dark:text-white font-bold text-2xl">{{ totalBreeds }}</div>
           </div>
           <div class="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 text-center border border-slate-200 dark:border-slate-600">

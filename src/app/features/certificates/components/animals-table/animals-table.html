@@ -44,7 +44,7 @@
     <p-table
       #dt
       [value]="animals"
-      [globalFilterFields]="['cod_animal', 'nomb_animal', 'raza_info.nomb_raza']"
+      [globalFilterFields]="['cod_animal', 'nomb_animal', 'raza_info.nomb_raza', 'raza_info.descripcion']"
       selectionMode="single"
       [(selection)]="selectedAnimal"
       (onRowSelect)="onRowSelect($event)"
@@ -96,7 +96,7 @@
             </span>
           </td>
           <td>
-            <span class="text-sm text-gray-700 dark:text-gray-300">{{ animal.raza_info?.nomb_raza || 'N/A' }}</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300">{{ animal.raza_info?.nomb_raza || animal.raza_info?.descripcion || 'N/A' }}</span>
           </td>
           <td>
             <span class="text-sm text-gray-600 dark:text-gray-400">{{ formatDate(animal.fec_nacim) }}</span>

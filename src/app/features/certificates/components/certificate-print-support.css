@@ -9,8 +9,8 @@
 @media print {
   /* Configuración de página */
   @page {
-    margin: 0;
-    size: A4 landscape;
+    margin: 10mm 8mm 10mm 8mm; /* top right bottom left */
+    size: letter landscape; /* Formato CARTA horizontal */
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }

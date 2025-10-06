@@ -20,6 +20,7 @@ import {
   CreateFincaDto,
   UpdateFincaDto,
   FincaQueryParams,
+  PropietarioFincaDto,
 } from './models/finca.dto';
 import { PoliticalDivisionService } from '../political-division/Services/political-division-service';
 import { PoliticalDivisionSelectOption } from '../political-division/models/political-division.dto';
@@ -43,6 +44,8 @@ import {
   Plus,
   Search,
   X,
+  User,
+  Star,
 } from 'lucide-angular';
 import { TextareaModule } from 'primeng/textarea';
 import { TipoGanaderiaFincaEnum } from '../../core/enums/tipo-ganaderia-finca';
@@ -95,6 +98,8 @@ export class Farms implements OnInit, OnDestroy {
   readonly plusIcon = Plus;
   readonly searchIcon = Search;
   readonly xIcon = X;
+  readonly userIcon = User;
+  readonly starIcon = Star;
 
   // BehaviorSubject para el término de búsqueda
   private searchSubject$ = new BehaviorSubject<string>('');
@@ -161,6 +166,10 @@ export class Farms implements OnInit, OnDestroy {
 
   // Members table dialog
   showMembersDialog = false;
+  
+  // Propietarios seleccionados
+  selectedPropietarios: PropietarioFincaDto[] = [];
+  propietariosMap: Map<string, string> = new Map(); // Mapa ced_propietario -> nombre completo
 
   constructor(
     private fb: FormBuilder,
@@ -420,6 +429,10 @@ export class Farms implements OnInit, OnDestroy {
     this.fincaForm.get('cod_municipio')?.disable();
     this.fincaForm.get('cod_ciudad')?.disable();
 
+    // Limpiar propietarios al abrir nueva finca
+    this.selectedPropietarios = [];
+    this.propietariosMap.clear();
+
     // ✅ OPTIMIZACIÓN: Cargar datos geográficos solo cuando se necesiten
     this.loadGeographicData();
 
@@ -431,6 +444,11 @@ export class Farms implements OnInit, OnDestroy {
   editFinca(farm: FincaDto) {
     this.selectedFincas = [{ ...farm }];
     this.isEditMode = true;
+    
+    // IMPORTANTE: Limpiar propietarios ANTES de cargar los nuevos
+    this.selectedPropietarios = [];
+    this.propietariosMap.clear();
+    
     this.fincaForm.patchValue({
       cod_empresa: farm.cod_empresa,
       ide_finca: farm.ide_finca,
@@ -473,6 +491,29 @@ export class Farms implements OnInit, OnDestroy {
 
     // Load geographic data for editing
     this.loadGeographicDataForEditFinca(farm);
+
+    // Cargar propietarios si existen
+    if (farm.propietarios && farm.propietarios.length > 0) {
+      this.selectedPropietarios = farm.propietarios.map(persona => ({
+        ced_propietario: persona.ced_persona,
+        propietario_principal: false, // Se actualizará desde la tabla pivote
+        nombre_completo: `${persona.nom_persona} ${persona.ape_persona}`
+      }));
+
+      // Guardar nombres en el mapa
+      farm.propietarios.forEach(persona => {
+        this.propietariosMap.set(
+          persona.ced_persona,
+          `${persona.nom_persona} ${persona.ape_persona}`
+        );
+      });
+
+      // TODO: Obtener cuál es el principal desde la tabla pivote
+      // Por ahora, el primero será el principal
+      if (this.selectedPropietarios.length > 0) {
+        this.selectedPropietarios[0].propietario_principal = true;
+      }
+    }
 
     this.isEditMode = true;
     this.fincaDialog = true;
@@ -549,6 +590,10 @@ export class Farms implements OnInit, OnDestroy {
     this.fincaForm.reset();
     this.isEditMode = false;
     this.submitted = false;
+    
+    // Limpiar propietarios seleccionados
+    this.selectedPropietarios = [];
+    this.propietariosMap.clear();
   }
 
   /**
@@ -607,6 +652,17 @@ export class Farms implements OnInit, OnDestroy {
       return;
     }
 
+    // Validar que haya al menos un propietario
+    if (!this.selectedPropietarios || this.selectedPropietarios.length === 0) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Debe seleccionar al menos un propietario',
+        life: 3000,
+      });
+      return;
+    }
+
     this.loading = true;
     const formValue = this.fincaForm.value;
 
@@ -614,10 +670,28 @@ export class Farms implements OnInit, OnDestroy {
       // Update
       const updateData: UpdateFincaDto = {
         ...formValue,
+        propietarios: this.selectedPropietarios.map(p => ({
+          ced_propietario: p.ced_propietario,
+          propietario_principal: p.propietario_principal
+        }))
       };
 
+      // Obtener el cod_finca de la finca que se está editando
+      const codFinca = this.selectedFincas[0]?.cod_finca;
+      
+      if (!codFinca) {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo identificar la finca a actualizar',
+          life: 3000,
+        });
+        this.loading = false;
+        return;
+      }
+
       this.farmsService
-        .updateFinca$(formValue.cod_finca, updateData)
+        .updateFinca$(codFinca, updateData)
         .subscribe({
           next: () => {
             this.loadFarms();
@@ -636,7 +710,7 @@ export class Farms implements OnInit, OnDestroy {
             this.messageService.add({
               severity: 'error',
               summary: 'Error',
-              detail: 'Error al actualizar la finca',
+              detail: error.error?.message || 'Error al actualizar la finca',
               life: 5000,
             });
           },
@@ -645,6 +719,10 @@ export class Farms implements OnInit, OnDestroy {
       // Create
       const createData: CreateFincaDto = {
         ...formValue,
+        propietarios: this.selectedPropietarios.map(p => ({
+          ced_propietario: p.ced_propietario,
+          propietario_principal: p.propietario_principal
+        }))
       };
 
       this.farmsService.createFinca$(createData).subscribe({
@@ -665,7 +743,7 @@ export class Farms implements OnInit, OnDestroy {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'Error al crear la finca',
+            detail: error.error?.message || 'Error al crear la finca',
             life: 5000,
           });
         },
@@ -870,7 +948,7 @@ export class Farms implements OnInit, OnDestroy {
   }
 
   /**
-   * Maneja la selección de un socio desde el diálogo
+   * Maneja la selección de un socio desde el diálogo (DEPRECATED - usar onOwnersConfirmed)
    */
   onSocioSelected(socio: SocioSelectionDto) {
     this.fincaForm.patchValue({
@@ -878,6 +956,53 @@ export class Farms implements OnInit, OnDestroy {
       nombre_propietario: `${socio.nom_persona} ${socio.ape_persona}`,
     });
     this.showMembersDialog = false;
+  }
+
+  /**
+   * Maneja la confirmación de propietarios seleccionados
+   */
+  onOwnersConfirmed(propietarios: PropietarioFincaDto[]) {
+    this.selectedPropietarios = propietarios;
+    
+    // Guardar nombres en el mapa para mostrarlos en la UI
+    this.propietariosMap.clear();
+    propietarios.forEach(prop => {
+      if (prop.nombre_completo) {
+        this.propietariosMap.set(prop.ced_propietario, prop.nombre_completo);
+      }
+    });
+    
+    // Actualizar el formulario con el propietario principal
+    const principal = propietarios.find(p => p.propietario_principal);
+    if (principal) {
+      this.fincaForm.patchValue({
+        ced_propietario: principal.ced_propietario
+      });
+    }
+    
+    // El modal se cierra automáticamente en members-table
+  }
+
+  /**
+   * Obtiene el nombre completo de un propietario por su cédula
+   */
+  getPropietarioNombre(cedula: string): string {
+    return this.propietariosMap.get(cedula) || cedula;
+  }
+
+  /**
+   * Obtiene el nombre del propietario principal de una finca
+   */
+  getPropietarioPrincipal(finca: FincaDto): string {
+    if (!finca.propietarios || finca.propietarios.length === 0) {
+      return 'Sin propietario';
+    }
+
+    // TODO: Cuando el backend devuelva el campo propietario_principal en la tabla pivote,
+    // buscar el que tenga propietario_principal = true
+    // Por ahora, mostrar el primero
+    const principal = finca.propietarios[0];
+    return `${principal.nom_persona} ${principal.ape_persona}`;
   }
 
   /**

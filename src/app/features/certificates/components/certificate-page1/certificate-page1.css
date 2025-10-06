@@ -6,8 +6,8 @@
 @media print {
   /* Configuración de página */
   @page {
-    margin: 0;
-    size: A4 landscape;
+    margin: 10mm 8mm 10mm 8mm; /* top right bottom left */
+    size: letter landscape; /* Formato CARTA horizontal */
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
@@ -15,14 +15,14 @@
   /* Contenedor principal del certificado */
   .container-certificate {
     width: 100% !important;
-    height: 100vh !important;
+    height: auto !important;
     max-width: none !important;
     max-height: none !important;
     min-width: auto !important;
     min-height: auto !important;
     margin: 0 !important;
-    padding: 15mm !important;
-    border: 20px solid #FBCF24 !important; /* yellow-400 */
+    padding: 12mm !important;
+    border: 15px solid #FBCF24 !important; /* Borde uniforme amarillo */
     box-sizing: border-box !important;
     page-break-after: always;
     background-color: white !important;
@@ -64,6 +64,7 @@
   .border-\[30px\] {
     border-color: #FBCF24 !important; /* yellow-400 */
     border-style: solid !important;
+    border-width: 15px !important; /* Grosor uniforme */
   }
   
   .border-black,

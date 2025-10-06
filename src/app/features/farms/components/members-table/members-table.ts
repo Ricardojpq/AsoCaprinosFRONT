@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
@@ -7,8 +7,10 @@ import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
-import { LucideAngularModule, Search, X } from 'lucide-angular';
+import { LucideAngularModule, Search, X, Check, User, Users, Star } from 'lucide-angular';
 import { ToolbarModule } from 'primeng/toolbar';
+import { RadioButtonModule } from 'primeng/radiobutton';
+import { PropietarioFincaDto } from '../../models/finca.dto';
 import { MembersService, MemberQueryParams } from '../../../members/services/members-service';
 import { MemberDto } from '../../../members/models/DTOs/member';
 import { LaravelPaginationResponse } from '../../../../core/models/DTOs';
@@ -21,6 +23,11 @@ export interface SocioSelectionDto {
   ape_persona: string;
   tlf_persona?: string;
   finca?: string;
+}
+
+export interface PropietarioSelectionResult {
+  propietarios: PropietarioFincaDto[];
+  ced_principal: string;
 }
 
 @Component({
@@ -36,19 +43,25 @@ export interface SocioSelectionDto {
     IconFieldModule,
     InputIconModule,
     LucideAngularModule,
-    ToolbarModule
+    ToolbarModule,
+    RadioButtonModule
   ],
   templateUrl: './members-table.html',
   styleUrl: './members-table.css'
 })
-export class MembersTable implements OnInit, OnDestroy {
+export class MembersTable implements OnInit, OnDestroy, OnChanges {
   @Input() visible: boolean = false;
-  @Input() title: string = 'Seleccionar Socio';
+  @Input() title: string = 'Seleccionar Propietarios';
+  @Input() selectedOwners: PropietarioFincaDto[] = []; // Propietarios preseleccionados
   @Output() visibleChange = new EventEmitter<boolean>();
   @Output() socioSelected = new EventEmitter<SocioSelectionDto>();
+  @Output() ownersConfirmed = new EventEmitter<PropietarioFincaDto[]>(); // Emite propietarios confirmados
 
   socios: SocioSelectionDto[] = [];
   selectedSocio: SocioSelectionDto | null = null;
+  selectedSocios: SocioSelectionDto[] = []; // Selección múltiple
+  cedPrincipal: string = ''; // Cédula del propietario principal
+  showPrincipalDialog: boolean = false; // Diálogo para seleccionar principal
   globalFilterValue: string = '';
   totalRecords: number = 0;
 
@@ -67,12 +80,23 @@ export class MembersTable implements OnInit, OnDestroy {
   // Icons
   readonly searchIcon = Search;
   readonly xIcon = X;
+  readonly checkIcon = Check;
+  readonly userIcon = User;
+  readonly usersIcon = Users;
+  readonly starIcon = Star;
 
   constructor(private membersService: MembersService) {}
 
   ngOnInit() {
     this.setupSearchPipe();
     this.loadMembers();
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    // Cuando se abre el diálogo y hay propietarios preseleccionados
+    if (changes['visible'] && this.visible && this.selectedOwners.length > 0) {
+      this.preselectOwners();
+    }
   }
 
   ngOnDestroy() {
@@ -111,6 +135,11 @@ export class MembersTable implements OnInit, OnDestroy {
         this.totalRecords = response.total || 0;
         this.socios = this.mapMembersToSocios(this.members);
         this.loading = false;
+        
+        // Preseleccionar propietarios si hay datos cargados
+        if (this.selectedOwners.length > 0) {
+          this.preselectOwners();
+        }
       },
       error: (error) => {
         console.error('Error loading members:', error);
@@ -120,6 +149,22 @@ export class MembersTable implements OnInit, OnDestroy {
         this.totalRecords = 0;
       }
     });
+  }
+
+  /**
+   * Preselecciona los propietarios que ya están en selectedOwners
+   */
+  private preselectOwners() {
+    if (!this.selectedOwners || this.selectedOwners.length === 0) {
+      return;
+    }
+
+    // Filtrar los socios que coinciden con los propietarios seleccionados
+    this.selectedSocios = this.socios.filter(socio => 
+      this.selectedOwners.some(owner => owner.ced_propietario === socio.ced_socio)
+    );
+
+    console.log('Propietarios preseleccionados:', this.selectedSocios);
   }
 
   private mapSortField(frontendField: string): 'ced_socio' | 'cod_finca' | 'estatus_socio' | 'fec_ingreso' | 'created_at' {
@@ -187,5 +232,58 @@ export class MembersTable implements OnInit, OnDestroy {
     this.visible = false;
     this.visibleChange.emit(false);
     this.selectedSocio = null;
+    this.selectedSocios = [];
+    this.cedPrincipal = '';
+    this.showPrincipalDialog = false;
+  }
+
+  // Método para confirmar selección múltiple
+  confirmSelection() {
+    if (this.selectedSocios.length === 0) {
+      return;
+    }
+
+    // Si solo hay un propietario, es automáticamente el principal
+    if (this.selectedSocios.length === 1) {
+      const propietarios: PropietarioFincaDto[] = [{
+        ced_propietario: this.selectedSocios[0].ced_socio,
+        propietario_principal: true,
+        nombre_completo: this.getFullName(this.selectedSocios[0])
+      }];
+      this.ownersConfirmed.emit(propietarios);
+      this.hideDialog();
+      return;
+    }
+
+    // Si hay múltiples, mostrar diálogo para seleccionar principal
+    this.cedPrincipal = this.selectedSocios[0].ced_socio; // Preseleccionar el primero
+    this.showPrincipalDialog = true;
+  }
+
+  // Confirmar propietario principal
+  confirmPrincipal() {
+    if (!this.cedPrincipal) {
+      return;
+    }
+
+    const propietarios: PropietarioFincaDto[] = this.selectedSocios.map(socio => ({
+      ced_propietario: socio.ced_socio,
+      propietario_principal: socio.ced_socio === this.cedPrincipal,
+      nombre_completo: this.getFullName(socio) // Agregar nombre completo
+    }));
+
+    this.ownersConfirmed.emit(propietarios);
+    this.hideDialog();
+  }
+
+  // Cancelar selección de principal
+  cancelPrincipal() {
+    this.showPrincipalDialog = false;
+    this.cedPrincipal = '';
+  }
+
+  // Obtener nombre completo
+  getFullName(socio: SocioSelectionDto): string {
+    return `${socio.nom_persona} ${socio.ape_persona}`;
   }
 }

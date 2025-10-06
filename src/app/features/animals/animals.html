@@ -122,7 +122,7 @@
             <span class="text-gray-400">Sin imagen</span>
           }
         </td>
-        <td>{{ animal.raza_info?.nomb_raza || 'N/A' }}</td>
+        <td>{{ animal.raza?.nomb_raza || animal.raza?.descripcion || 'N/A' }}</td>
         <td>
           <p-tag
             [value]="getEstatusLabel(animal.estatus)"

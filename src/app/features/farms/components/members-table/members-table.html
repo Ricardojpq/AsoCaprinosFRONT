@@ -9,11 +9,11 @@
 >
   <div class="space-y-4">
     <!-- Toolbar -->
-    <p-toolbar class="mb-4 gap-2 bg-gray-50">
+    <p-toolbar class="mb-4 gap-2 bg-gray-50 dark:bg-gray-800">
       <ng-template pTemplate="start">
         <div class="flex items-center gap-2">
-          <i class="pi pi-search text-gray-600"></i>
-          <span class="text-sm font-medium text-gray-700">Buscar:</span>
+          <i class="pi pi-search text-gray-600 dark:text-gray-400"></i>
+          <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Buscar:</span>
           <input
             pInputText
             type="text"
@@ -33,21 +33,32 @@
       </ng-template>
       
       <ng-template pTemplate="end">
-        <div class="text-sm text-gray-600">
-          Total: {{ totalRecords }} socios
-        </div>
+        <!-- Badge de seleccionados -->
+        @if (selectedSocios.length > 0) {
+          <div class="flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+            <lucide-angular
+              [img]="checkIcon"
+              [size]="16"
+              class="text-amber-600 dark:text-amber-400"
+            ></lucide-angular>
+            <span class="text-sm font-medium text-amber-900 dark:text-amber-100">
+              {{ selectedSocios.length }} seleccionado(s)
+            </span>
+          </div>
+        } @else {
+          <div class="text-sm text-gray-600 dark:text-gray-400">
+            Total: {{ totalRecords }} socios
+          </div>
+        }
       </ng-template>
     </p-toolbar>
 
-    <!-- Table Container -->
+    <!-- Table Container con selección múltiple -->
     <p-table
       #dt
       [value]="socios"
-      [globalFilterFields]="['ced_socio', 'nom_persona', 'ape_persona', 'finca']"
-      selectionMode="single"
-      [(selection)]="selectedSocio"
-      (onRowSelect)="onRowSelect($event)"
-      (onRowUnselect)="onRowUnselect($event)"
+      [(selection)]="selectedSocios"
+      dataKey="ced_socio"
       [paginator]="true"
       [rows]="perPage"
       [rowsPerPageOptions]="[10, 25, 50]"
@@ -62,6 +73,9 @@
     >
       <ng-template pTemplate="header">
         <tr>
+          <th style="width: 4rem">
+            <p-tableHeaderCheckbox />
+          </th>
           <th pSortableColumn="ced_socio" style="min-width: 12rem">
             Cédula
             <p-sortIcon field="ced_socio"></p-sortIcon>
@@ -83,27 +97,30 @@
       </ng-template>
       
       <ng-template pTemplate="body" let-socio let-rowIndex="rowIndex">
-        <tr [pSelectableRow]="socio" [pSelectableRowIndex]="rowIndex">
+        <tr>
           <td>
-            <span class="font-medium text-blue-600">{{ socio.ced_socio }}</span>
+            <p-tableCheckbox [value]="socio" />
+          </td>
+          <td>
+            <span class="font-medium text-blue-600 dark:text-blue-400">{{ socio.ced_socio }}</span>
           </td>
           <td>{{ socio.nom_persona }}</td>
           <td>{{ socio.ape_persona }}</td>
           <td>
-            <span class="text-sm text-gray-600">{{ socio.tlf_persona || 'N/A' }}</span>
+            <span class="text-sm text-gray-600 dark:text-gray-400">{{ socio.tlf_persona || 'N/A' }}</span>
           </td>
           <td>
-            <span class="text-sm font-medium text-green-600">{{ socio.finca || 'N/A' }}</span>
+            <span class="text-sm font-medium text-green-600 dark:text-green-400">{{ socio.finca || 'N/A' }}</span>
           </td>
         </tr>
       </ng-template>
       
       <ng-template pTemplate="emptymessage">
         <tr>
-          <td colspan="5" class="text-center py-8">
+          <td colspan="6" class="text-center py-8">
             <div class="flex flex-col items-center gap-2">
-              <i class="pi pi-users text-4xl text-gray-400"></i>
-              <span class="text-gray-500">No se encontraron socios</span>
+              <i class="pi pi-users text-4xl text-gray-400 dark:text-gray-600"></i>
+              <span class="text-gray-500 dark:text-gray-400">No se encontraron socios</span>
             </div>
           </td>
         </tr>
@@ -114,6 +131,15 @@
   <!-- Dialog Footer -->
   <ng-template pTemplate="footer">
     <div class="flex justify-between items-center">
+      <div class="text-sm text-gray-600 dark:text-gray-400">
+        @if (selectedSocios.length > 0) {
+          <span class="font-medium text-amber-600 dark:text-amber-400">
+            {{ selectedSocios.length }} propietario(s) seleccionado(s)
+          </span>
+        } @else {
+          <span>Seleccione al menos un propietario</span>
+        }
+      </div>
       <div class="flex gap-2">
         <p-button
           label="Cancelar"
@@ -121,11 +147,94 @@
           (onClick)="hideDialog()"
         />
         <p-button
-          label="Seleccionar"
-          [disabled]="!selectedSocio"
-          (onClick)="selectSocio()"
+          label="Confirmar Selección"
+          [disabled]="selectedSocios.length === 0"
+          (onClick)="confirmSelection()"
         />
       </div>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<!-- Diálogo para seleccionar propietario principal -->
+<p-dialog
+  [(visible)]="showPrincipalDialog"
+  [header]="'Seleccionar Propietario Principal'"
+  [modal]="true"
+  [style]="{ width: '600px' }"
+  [closable]="false"
+  [draggable]="false"
+  [resizable]="false"
+>
+  <div class="space-y-4">
+    <div class="flex items-start gap-3 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+      <lucide-angular
+        [img]="starIcon"
+        [size]="24"
+        class="text-amber-600 dark:text-amber-400 mt-1"
+      ></lucide-angular>
+      <div>
+        <p class="font-medium text-gray-900 dark:text-white mb-1">
+          Seleccione el propietario principal
+        </p>
+        <p class="text-sm text-gray-600 dark:text-gray-400">
+          Debe designar uno de los propietarios seleccionados como principal.
+        </p>
+      </div>
+    </div>
+
+    <div class="space-y-3">
+      @for (socio of selectedSocios; track socio.ced_socio) {
+        <div 
+          class="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+          (click)="cedPrincipal = socio.ced_socio"
+        >
+          <p-radioButton
+            [name]="'principal'"
+            [value]="socio.ced_socio"
+            [(ngModel)]="cedPrincipal"
+          />
+          <div class="flex items-center gap-2 flex-1">
+            <div class="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-500">
+              <lucide-angular
+                [img]="userIcon"
+                [size]="20"
+                class="text-white"
+              ></lucide-angular>
+            </div>
+            <div>
+              <p class="font-medium text-gray-900 dark:text-white">
+                {{ getFullName(socio) }}
+              </p>
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                Cédula: {{ socio.ced_socio }}
+              </p>
+            </div>
+          </div>
+          @if (cedPrincipal === socio.ced_socio) {
+            <lucide-angular
+              [img]="starIcon"
+              [size]="20"
+              class="text-amber-500"
+            ></lucide-angular>
+          }
+        </div>
+      }
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="flex justify-end gap-2">
+      <p-button
+        label="Cancelar"
+        severity="secondary"
+        (onClick)="cancelPrincipal()"
+      />
+      <p-button
+        label="Confirmar"
+        [disabled]="!cedPrincipal"
+        (onClick)="confirmPrincipal()"
+      />
     </div>
   </ng-template>
 </p-dialog>

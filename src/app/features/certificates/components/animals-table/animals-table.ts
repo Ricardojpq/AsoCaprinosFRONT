@@ -21,6 +21,7 @@ export interface AnimalSelectionDto {
   fec_nacim?: string;
   raza_info?: {
     nomb_raza?: string;
+    descripcion?: string;
   };
   criador?: {
     nomb_finca?: string;
@@ -149,7 +150,7 @@ export class AnimalsTable implements OnInit, OnDestroy, OnChanges {
       nomb_animal: animal.nomb_animal,
       sexo_animal: animal.sexo_animal,
       fec_nacim: animal.fec_nacim,
-      raza_info: animal.raza_info,
+      raza_info: animal.raza, // Actualizado: raza_info -> raza
       criador: animal.criador,
       propietario: animal.propietario
     }));

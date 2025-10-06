@@ -294,7 +294,7 @@ export class Animals implements OnInit, OnDestroy {
       { field: 'fec_nacim', header: 'Fec Nac' },
       { field: 'sexo_animal', header: 'Sexo' },
       { field: 'imagen', header: 'Imagen' },
-      { field: 'raza_info.nomb_raza', header: 'Raza' },
+      { field: 'raza.nomb_raza', header: 'Raza' },
       { field: 'estatus', header: 'Estatus' },
       { field: 'origen', header: 'Origen' },
       { field: 'tipo_concepcion', header: 'Tipo Concepción' },

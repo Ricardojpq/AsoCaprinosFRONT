@@ -38,7 +38,7 @@
   position: absolute;
   left: -10000px; /* fuera de la pantalla, no molesta */
   top: 0;
-  width: 297mm;   /* A4 landscape */
+  width: 279mm;   /* CARTA landscape (11 inches = 279mm) */
   height: auto;   /* Permitir altura automática */
   background-color: white;
   visibility: visible;    
@@ -49,8 +49,8 @@
 .offscreen app-certificate-page1,
 .offscreen app-certificate-page2 {
   display: block;
-  width: 297mm;
-  height: 210mm;
+  width: 279mm;   /* CARTA landscape width */
+  height: 216mm;  /* CARTA landscape height (8.5 inches = 216mm) */
   background-color: white;
   overflow: hidden;
   position: relative;
@@ -58,12 +58,12 @@
 
 /* Forzar dimensiones específicas para el contenido del certificado */
 .offscreen .container-certificate {
-  width: 297mm !important;
-  height: 210mm !important;
-  max-width: 297mm !important;
-  max-height: 210mm !important;
-  min-width: 297mm !important;
-  min-height: 210mm !important;
+  width: 279mm !important;
+  height: 216mm !important;
+  max-width: 279mm !important;
+  max-height: 216mm !important;
+  min-width: 279mm !important;
+  min-height: 216mm !important;
   box-sizing: border-box;
   display: flex !important;
   flex-direction: column !important;
@@ -197,8 +197,8 @@
 @media print {
   /* Configuración de página para impresión */
   @page {
-    margin: 0;
-    size: A4 landscape;
+    margin: 10mm 8mm 10mm 8mm; /* top right bottom left */
+    size: letter landscape; /* Formato CARTA horizontal */
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
@@ -243,15 +243,15 @@
   .offscreen .container-certificate {
     width: 100% !important;
     height: auto !important;
-    min-height: 100vh !important;
+    min-height: auto !important;
     max-width: none !important;
     max-height: none !important;
     min-width: auto !important;
     box-sizing: border-box !important;
     display: block !important;
     margin: 0 !important;
-    padding: 15mm !important;
-    border: 20px solid #FBCF24 !important;
+    padding: 12mm !important;
+    border: 15px solid #FBCF24 !important; /* Borde uniforme */
     background-color: white !important;
     
     /* Forzar colores en Impressión */

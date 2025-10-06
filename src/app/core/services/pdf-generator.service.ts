@@ -97,13 +97,19 @@ export class PdfGeneratorService {
    * Genera PDF específicamente para certificados y retorna blob
    * @param page1Element - Elemento HTML de la página 1
    * @param page2Element - Elemento HTML de la página 2
-   * @param animalName - Nombre del animal para el filename
+   * @param animalName - Nombre del animal para el filename (legacy, no usado)
+   * @param tipoRegistro - Tipo de registro del animal
+   * @param siglaFinca - Sigla de la finca
+   * @param idFinca - ID de la finca
    * @returns Promise<{blob: Blob, filename: string}>
    */
   async generateCertificatePDFBlob(
     page1Element: HTMLElement,
     page2Element: HTMLElement,
-    animalName: string = 'certificado'
+    animalName: string = 'certificado',
+    tipoRegistro?: string,
+    siglaFinca?: string,
+    idFinca?: string
   ): Promise<{blob: Blob, filename: string}> {
     try {
       // Configuración del PDF en formato horizontal (A4)
@@ -128,8 +134,21 @@ export class PdfGeneratorService {
         await this.addElementToPDF(pdf, page2Element, pdfWidth, pdfHeight, true);
       }
 
-      // Retornar blob y filename
-      const filename = `certificado_${animalName.replace(/\s+/g, '_').toLowerCase()}.pdf`;
+      // Generar nombre de archivo con formato: TipoRegistro-SiglaFinca-Id_finca.pdf
+      let filename: string;
+      if (tipoRegistro && siglaFinca && idFinca) {
+        filename = `${tipoRegistro}-${siglaFinca}-${idFinca}.pdf`;
+        console.log('✅ Nombre de archivo generado:', filename);
+      } else {
+        // Fallback al formato anterior si no hay datos completos
+        filename = `certificado_${animalName.replace(/\s+/g, '_').toLowerCase()}.pdf`;
+        console.warn('⚠️ Usando nombre de archivo fallback. Datos faltantes:', {
+          tipoRegistro: tipoRegistro || 'FALTA',
+          siglaFinca: siglaFinca || 'FALTA',
+          idFinca: idFinca || 'FALTA'
+        });
+      }
+      
       const blob = pdf.output('blob');
       
       return { blob, filename };
@@ -144,15 +163,28 @@ export class PdfGeneratorService {
    * Genera PDF específicamente para certificados y lo descarga
    * @param page1Element - Elemento HTML de la página 1
    * @param page2Element - Elemento HTML de la página 2
-   * @param animalName - Nombre del animal para el filename
+   * @param animalName - Nombre del animal para el filename (legacy, no usado)
+   * @param tipoRegistro - Tipo de registro del animal
+   * @param siglaFinca - Sigla de la finca
+   * @param idFinca - ID de la finca
    */
   async generateCertificatePDF(
     page1Element: HTMLElement,
     page2Element: HTMLElement,
-    animalName: string = 'certificado'
+    animalName: string = 'certificado',
+    tipoRegistro?: string,
+    siglaFinca?: string,
+    idFinca?: string
   ): Promise<void> {
     try {
-      const { blob, filename } = await this.generateCertificatePDFBlob(page1Element, page2Element, animalName);
+      const { blob, filename } = await this.generateCertificatePDFBlob(
+        page1Element, 
+        page2Element, 
+        animalName,
+        tipoRegistro,
+        siglaFinca,
+        idFinca
+      );
       
       // Crear enlace de descarga
       const url = URL.createObjectURL(blob);

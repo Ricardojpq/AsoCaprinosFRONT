@@ -6,7 +6,7 @@ export interface AnimalDto {
   // Criador and Propietario information
   criador?: FincaInfo;
   propietario?: FincaInfo;
-  raza_info?: RazaInfo;
+  raza?: RazaInfo; // Objeto unificado con descripcion y nomb_raza
   
   // Basic Information
   cod_ini_porsan_pa?: number;
@@ -196,6 +196,14 @@ export interface PersonaInfo {
 }
 
 export interface RazaInfo {
-  cod_raza?: string;
-  nomb_raza?: string;
+  cod_raza?: number;
+  descripcion?: string;
+  nomb_raza?: string; // Agregado por el backend para compatibilidad
+  is_active?: boolean;
+  created_by?: number;
+  updated_by?: number;
+  is_deleted?: boolean;
+  created_at?: string;
+  updated_at?: string;
+  deleted_at?: string;
 }

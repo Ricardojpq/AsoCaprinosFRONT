@@ -97,8 +97,17 @@
         <td>{{ finca.municipio?.nom_municipio || 'N/A' }}</td>
         <td>{{ finca.ciudad?.nom_ciudad || 'N/A' }}</td>
         <td>
-          @if (finca.propietario) {
-            {{ finca.propietario.nom_persona }} {{ finca.propietario.ape_persona }}
+          @if (finca.propietarios && finca.propietarios.length > 0) {
+            <div class="flex items-center gap-2">
+              <div class="flex items-center justify-center w-6 h-6 rounded-full bg-gradient-to-br from-amber-400 to-orange-500">
+                <lucide-angular
+                  [img]="userIcon"
+                  [size]="12"
+                  class="text-white"
+                ></lucide-angular>
+              </div>
+              <span>{{ getPropietarioPrincipal(finca) }}</span>
+            </div>
           } @else {
             <span class="text-gray-400">Sin propietario</span>
           }
@@ -427,45 +436,64 @@
           }
         </div>
 
-        <!-- Cod Propietario -->
-        <div class="col-span-1">
-          <label for="ced_propietario" class="block font-bold mb-2">
-            Cod Propietario
-          </label>
-          <p-inputgroup>
+        <!-- Propietarios -->
+        <div class="col-span-2">
+          <div class="flex items-center justify-between mb-2">
+            <label class="block font-bold">
+              Propietarios <span class="text-red-600">*</span>
+            </label>
             <p-button 
               (onClick)="openPropietarioSociosDialog()"
-              pTooltip="Buscar propietario"
+              label="Seleccionar Propietarios"
               size="small"
-              styleClass="rounded-e-none"
+              severity="secondary"
             >
               <lucide-angular [img]="searchIcon" size="16"></lucide-angular>
             </p-button>
-            <input
-              type="text"
-              pInputText
-              id="ced_propietario"
-              formControlName="ced_propietario"
-              placeholder="Seleccione propietario..."
-              readonly
-            />
-          </p-inputgroup>
-        </div>
-        
-        <!-- Nombre Propietario -->
-        <div class="col-span-1">
-          <label for="nombre_propietario" class="block font-bold mb-2">
-            Propietario
-          </label>
-          <input
-            type="text"
-            pInputText
-            id="nombre_propietario"
-            formControlName="nombre_propietario"
-            readonly
-            class="w-full bg-gray-300 dark:bg-[#3f3f46]"
-            placeholder="Nombre del propietario seleccionado"
-          />
+          </div>
+
+          <!-- Lista de propietarios seleccionados -->
+          @if (selectedPropietarios.length > 0) {
+            <div class="space-y-3 p-4 bg-gray-50 dark:bg-slate-900/50 rounded-lg border border-gray-200 dark:border-slate-700">
+              @for (prop of selectedPropietarios; track prop.ced_propietario) {
+                <div class="flex items-center justify-between p-3 bg-white dark:bg-slate-800/80 rounded-lg border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
+                  <div class="flex items-center gap-3">
+                    <div class="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-500">
+                      <lucide-angular
+                        [img]="userIcon"
+                        [size]="18"
+                        class="text-white"
+                      ></lucide-angular>
+                    </div>
+                    <div>
+                      <p class="text-sm font-medium text-gray-900 dark:text-white">
+                        {{ getPropietarioNombre(prop.ced_propietario) }}
+                      </p>
+                      <p class="text-xs text-gray-500 dark:text-slate-400">
+                        Cédula: {{ prop.ced_propietario }}
+                      </p>
+                    </div>
+                  </div>
+                  @if (prop.propietario_principal) {
+                    <div class="flex items-center gap-1 px-3 py-1.5 bg-amber-100 dark:bg-amber-900/30 rounded-full border border-amber-200 dark:border-amber-800">
+                      <lucide-angular
+                        [img]="starIcon"
+                        [size]="14"
+                        class="text-amber-600 dark:text-amber-400"
+                      ></lucide-angular>
+                      <span class="text-xs font-medium text-amber-700 dark:text-amber-300">Principal</span>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="p-4 bg-gray-50 dark:bg-slate-900/50 rounded-lg border border-gray-200 dark:border-slate-700 text-center">
+              <p class="text-sm text-gray-500 dark:text-slate-400">
+                No hay propietarios seleccionados
+              </p>
+            </div>
+          }
         </div>
 
                 <!-- Estatus -->
@@ -534,8 +562,10 @@
 <!-- Members Selection Dialog -->
 <app-members-table
   [(visible)]="showMembersDialog"
-  title="Seleccionar Propietario"
+  title="Seleccionar Propietarios"
+  [selectedOwners]="selectedPropietarios"
   (socioSelected)="onSocioSelected($event)"
+  (ownersConfirmed)="onOwnersConfirmed($event)"
 ></app-members-table>
 
 <!-- Modal de Confirmación de Eliminación -->

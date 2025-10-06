@@ -131,7 +131,7 @@ export class DashboardService {
 
   private calculateBreedStats(animals: AnimalDto[]): BreedStats[] {
     const breedCounts = animals.reduce((acc, animal) => {
-      const breed = animal.raza_info?.nomb_raza || 'Sin Raza';
+      const breed = animal.raza?.nomb_raza || animal.raza?.descripcion || 'Sin Raza';
       acc[breed] = (acc[breed] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);

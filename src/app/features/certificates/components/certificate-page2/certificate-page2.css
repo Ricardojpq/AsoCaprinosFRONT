@@ -1,6 +1,6 @@
 .certificate-page-2 {
-  width: 1123px !important;
-  height: 794px !important;
+  width: 1056px !important; /* CARTA landscape: 11 inches * 96 DPI = 1056px */
+  height: 816px !important; /* CARTA landscape: 8.5 inches * 96 DPI = 816px */
   box-sizing: border-box;
   print-color-adjust: exact;
   -webkit-print-color-adjust: exact;
@@ -41,14 +41,22 @@
    ================================================================= */
 
 @media print {
+  /* Configuración de página */
+  @page {
+    margin: 10mm 8mm 10mm 8mm; /* top right bottom left */
+    size: letter landscape; /* Formato CARTA horizontal */
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
   /* Configuración de página para la segunda página */
   .certificate-page-2 {
     width: 100% !important;
-    height: 100vh !important;
+    height: auto !important;
     max-width: none !important;
     max-height: none !important;
     margin: 0 !important;
-    padding: 15mm !important;
+    padding: 12mm !important;
     box-sizing: border-box !important;
     page-break-before: always;
     background-color: white !important;
@@ -288,7 +296,7 @@
 @media print and (orientation: landscape) {
   .certificate-page-2 {
     width: 100% !important;
-    height: 100vh !important;
+    height: auto !important;
     transform: none !important;
   }
 }

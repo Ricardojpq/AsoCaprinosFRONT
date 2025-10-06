@@ -60,6 +60,15 @@ export interface PropietarioDto extends BaseEntity {
 }
 
 /**
+ * DTO for Propietario in Finca relationship
+ */
+export interface PropietarioFincaDto {
+  ced_propietario: string;
+  propietario_principal: boolean;
+  nombre_completo?: string; // Nombre completo del propietario (solo para UI)
+}
+
+/**
  * Main Finca DTO matching backend response
  */
 export interface FincaDto extends BaseEntity {
@@ -112,7 +121,8 @@ export interface FincaDto extends BaseEntity {
   estado?: EstadoDto;
   municipio?: MunicipioDto;
   ciudad?: CiudadDto;
-  propietario?: PropietarioDto;
+  propietario?: PropietarioDto; // Deprecated - mantener por compatibilidad
+  propietarios?: PropietarioDto[]; // Nueva relación múltiple
 }
 
 /**
@@ -138,9 +148,10 @@ export interface CreateFincaDto {
   dir_export?: string;
   dir_import?: string;
   formato_export?: string;
-  ced_propietario: string;
+  ced_propietario?: string; // Deprecated - mantener por compatibilidad
   cel_propietrio?: string;
   email_propietario?: string;
+  propietarios?: PropietarioFincaDto[]; // Nueva estructura de propietarios
   persona_contacto?: string;
   cel_contacto?: string;
   email_contacto?: string;
@@ -180,9 +191,10 @@ export interface UpdateFincaDto {
   dir_export?: string;
   dir_import?: string;
   formato_export?: string;
-  ced_propietario?: string;
+  ced_propietario?: string; // Deprecated
   cel_propietrio?: string;
   email_propietario?: string;
+  propietarios?: PropietarioFincaDto[]; // Nueva estructura de propietarios
   persona_contacto?: string;
   cel_contacto?: string;
   email_contacto?: string;

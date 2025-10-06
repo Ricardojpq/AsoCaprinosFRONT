@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, OnInit, OnDestroy } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
@@ -12,10 +12,10 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { AnimalDto } from '../../models/DTOs/animal';
 import { AnimalsService, AnimalQueryParams } from '../../services/animals-service';
+import { FarmsService } from '../../../farms/Services/farms-service';
 import { Subject, BehaviorSubject } from 'rxjs';
 import { takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { LucideAngularModule, Search } from 'lucide-angular';
-import { InputGroup } from "primeng/inputgroup";
 @Component({
   selector: 'app-animal-selection-table',
   imports: [
@@ -30,13 +30,12 @@ import { InputGroup } from "primeng/inputgroup";
     SelectModule,
     IconFieldModule,
     InputIconModule,
-    LucideAngularModule,
-    InputGroup
+    LucideAngularModule
 ],
   templateUrl: './animal-selection-table.html',
   styleUrl: './animal-selection-table.css'
 })
-export class AnimalSelectionTable implements OnInit, OnDestroy {
+export class AnimalSelectionTable implements OnInit, OnChanges, OnDestroy {
   @Input() visible: boolean = false;
   @Input() title: string = 'Seleccionar Animal';
   @Input() excludeAnimalId: string = ''; // Para excluir el animal actual
@@ -61,25 +60,26 @@ export class AnimalSelectionTable implements OnInit, OnDestroy {
   globalFilterValue = '';
 
   // Opciones de filtros
-  sexOptions = [
-    { label: 'Todos', value: '' },
-    { label: 'Hembra', value: 'H' },
-    { label: 'Macho', value: 'M' }
-  ];
-
   statusOptions = [
     { label: 'Todos', value: '' },
     { label: 'Activo', value: 'A' },
     { label: 'Inactivo', value: 'I' }
   ];
 
+  fincaOptions: Array<{label: string, value: string}> = [];
+  loadingFincas = false;
+
   // Filtros actuales
   filters = {
     sexo_animal: '',
-    estatus: 'A' // Solo animales activos por defecto
+    estatus: 'A', // Solo animales activos por defecto
+    cod_finca: undefined as string | undefined
   };
 
-  constructor(private animalsService: AnimalsService) {}
+  constructor(
+    private animalsService: AnimalsService,
+    private farmsService: FarmsService
+  ) {}
 
   ngOnInit() {
     // Configurar búsqueda con debounce y filtro mínimo
@@ -101,6 +101,31 @@ export class AnimalSelectionTable implements OnInit, OnDestroy {
     if (this.sexFilter) {
       this.filters.sexo_animal = this.sexFilter;
     }
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    // Detectar cuando el modal se abre
+    if (changes['visible'] && changes['visible'].currentValue === true) {
+      this.loadFincas();
+    }
+  }
+
+  loadFincas() {
+    this.loadingFincas = true;
+    this.farmsService.getAllActiveFincas$(1000).subscribe({
+      next: (fincas) => {
+        this.fincaOptions = fincas.map(finca => ({
+          label: finca.nomb_finca,
+          value: finca.cod_finca.toString()
+        }));
+        this.loadingFincas = false;
+      },
+      error: (error) => {
+        console.error('Error loading fincas:', error);
+        this.fincaOptions = [];
+        this.loadingFincas = false;
+      }
+    });
   }
 
   ngOnDestroy() {
@@ -179,7 +204,8 @@ export class AnimalSelectionTable implements OnInit, OnDestroy {
     this.page = 1; // Reset pagination
     this.filters = {
       sexo_animal: this.sexFilter, // Mantener filtro de sexo si existe
-      estatus: 'A'
+      estatus: 'A',
+      cod_finca: undefined as string | undefined
     };
     this.searchSubject$.next('');
     // loadAnimals se llamará automáticamente por el searchSubject subscription
@@ -232,6 +258,12 @@ export class AnimalSelectionTable implements OnInit, OnDestroy {
       default:
         return status;
     }
+  }
+
+  getFincaName(codFinca: string | undefined): string {
+    if (!codFinca) return '';
+    const finca = this.fincaOptions.find(f => f.value === codFinca);
+    return finca?.label || '';
   }
 }
 
