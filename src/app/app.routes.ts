@@ -5,6 +5,7 @@ import { Layout } from '@layout/layout';
 import { AuthGuard } from '@core/guards/auth-guard';
 import { NoAuthGuard } from '@core/guards/no-auth-guard';
 import { CanDeactivateGuard } from '@core/guards/can-deactivate-guard';
+import { CanDeactivateAnimalFormGuard } from '@core/guards/can-deactivate-animal-form.guard';
 import { CertificatePage1 } from '@features/certificates/components/certificate-page1/certificate-page1';
 
 export const routes: Routes = [
@@ -26,8 +27,10 @@ export const routes: Routes = [
       {
         path: 'Animals',
         loadComponent: () =>
-          import('@features/animals/animals').then((c) => c.Animals),
-        canDeactivate: [CanDeactivateGuard],
+          import('@features/animals/containers/animals-container.component').then(
+            (c) => c.AnimalsContainerComponent
+          ),
+        canDeactivate: [CanDeactivateAnimalFormGuard],
       },
       {
         path: 'Animals/Breeds',

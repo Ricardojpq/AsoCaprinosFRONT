@@ -1,0 +1,30 @@
+.animal-form {
+  max-width: 100%;
+}
+
+.field {
+  margin-bottom: 1rem;
+}
+
+.field label {
+  font-weight: 500;
+  color: #374151;
+}
+
+.field small.text-red-500 {
+  display: block;
+  margin-top: 0.25rem;
+}
+
+.ng-invalid.ng-touched,
+.ng-invalid.ng-dirty {
+  border-color: #ef4444 !important;
+}
+
+::ng-deep .p-tabview .p-tabview-panels {
+  padding: 0;
+}
+
+::ng-deep .p-tabview .p-tabview-nav {
+  background: #f9fafb;
+}

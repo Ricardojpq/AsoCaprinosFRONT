@@ -76,5 +76,16 @@ function getCookie(name: string): string | null {
  * Eliminar cookie
  */
 function deleteCookie(name: string): void {
-  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
+  const cookieParts = [
+    `${name}=`,
+    'expires=Thu, 01 Jan 1970 00:00:00 UTC',
+    'path=/',
+    'SameSite=Strict'
+  ];
+  
+  if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
+    cookieParts.push('Secure');
+  }
+  
+  document.cookie = cookieParts.join(';');
 } 

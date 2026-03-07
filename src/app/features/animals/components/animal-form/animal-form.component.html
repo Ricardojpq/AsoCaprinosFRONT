@@ -1,0 +1,466 @@
+<form [formGroup]="animalForm" (ngSubmit)="onSubmit()" class="animal-form">
+  <!-- Mensaje de error cuando el formulario es inválido -->
+  @if (submitted && animalForm.invalid) {
+    <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
+      <div class="flex items-start">
+        <i class="pi pi-exclamation-triangle text-red-500 text-xl mr-3 mt-1"></i>
+        <div>
+          <h3 class="text-red-800 font-semibold mb-2">Formulario incompleto</h3>
+          <p class="text-red-700 text-sm mb-2">Por favor, complete los siguientes campos requeridos:</p>
+          <ul class="list-disc list-inside text-red-700 text-sm space-y-1">
+            @if (hasError('cod_finca')) { <li>Código Finca</li> }
+            @if (hasError('cod_animal')) { <li>Código Animal</li> }
+            @if (hasError('nomb_animal')) { <li>Nombre</li> }
+            @if (hasError('sexo_animal')) { <li>Sexo</li> }
+            @if (hasError('fec_nacim')) { <li>Fecha de Nacimiento</li> }
+            @if (hasError('cod_raza')) { <li>Raza</li> }
+            @if (hasError('origen')) { <li>Origen</li> }
+            @if (hasError('cod_finca_actual')) { <li>Finca Actual</li> }
+          </ul>
+        </div>
+      </div>
+    </div>
+  }
+  
+  <p-tabs>
+    <!-- TAB 1: Información Básica -->
+    <p-tabpanel header="Información Básica">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+        <!-- Código Finca -->
+        <div class="field">
+          <label for="cod_finca" class="block mb-2">Código Finca *</label>
+          <input
+            pInputText
+            id="cod_finca"
+            formControlName="cod_finca"
+            type="number"
+            class="w-full"
+            [class.ng-invalid]="hasError('cod_finca')"
+          />
+          @if (hasError('cod_finca')) {
+            <small class="text-red-500">{{ getErrorMessage('cod_finca') }}</small>
+          }
+        </div>
+
+        <!-- Código Animal -->
+        <div class="field">
+          <label for="cod_animal" class="block mb-2">Código Animal *</label>
+          <input
+            pInputText
+            id="cod_animal"
+            formControlName="cod_animal"
+            class="w-full"
+            [class.ng-invalid]="hasError('cod_animal')"
+          />
+          @if (hasError('cod_animal')) {
+            <small class="text-red-500">{{ getErrorMessage('cod_animal') }}</small>
+          }
+        </div>
+
+        <!-- Nombre -->
+        <div class="field">
+          <label for="nomb_animal" class="block mb-2">Nombre *</label>
+          <input
+            pInputText
+            id="nomb_animal"
+            formControlName="nomb_animal"
+            class="w-full"
+            [class.ng-invalid]="hasError('nomb_animal')"
+          />
+          @if (hasError('nomb_animal')) {
+            <small class="text-red-500">{{ getErrorMessage('nomb_animal') }}</small>
+          }
+        </div>
+
+        <!-- Sexo -->
+        <div class="field">
+          <label for="sexo_animal" class="block mb-2">Sexo *</label>
+          <p-select
+            id="sexo_animal"
+            formControlName="sexo_animal"
+            [options]="catalogOptions()?.sexo || []"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Seleccione sexo"
+            class="w-full"
+          />
+          @if (hasError('sexo_animal')) {
+            <small class="text-red-500">{{ getErrorMessage('sexo_animal') }}</small>
+          }
+        </div>
+
+        <!-- Fecha Nacimiento -->
+        <div class="field">
+          <label for="fec_nacim" class="block mb-2">Fecha Nacimiento *</label>
+          <p-datepicker
+            id="fec_nacim"
+            formControlName="fec_nacim"
+            dateFormat="dd/mm/yy"
+            [showIcon]="true"
+            [showButtonBar]="true"
+            placeholder="Seleccione fecha"
+            class="w-full"
+            [class.ng-invalid]="hasError('fec_nacim')"
+          />
+          @if (hasError('fec_nacim')) {
+            <small class="text-red-500">{{ getErrorMessage('fec_nacim') }}</small>
+          }
+        </div>
+
+        <!-- Fecha Ingreso -->
+        <div class="field">
+          <label for="fec_ingreso" class="block mb-2">Fecha Ingreso</label>
+          <p-datepicker
+            id="fec_ingreso"
+            formControlName="fec_ingreso"
+            dateFormat="dd/mm/yy"
+            [showIcon]="true"
+            [showButtonBar]="true"
+            placeholder="Seleccione fecha"
+            class="w-full"
+          />
+        </div>
+
+        <!-- Raza -->
+        <div class="field">
+          <label for="cod_raza" class="block mb-2">Raza *</label>
+          <p-select
+            id="cod_raza"
+            formControlName="cod_raza"
+            [options]="catalogOptions()?.razas || []"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Seleccione raza"
+            class="w-full"
+            [filter]="true"
+          />
+          @if (hasError('cod_raza')) {
+            <small class="text-red-500">{{ getErrorMessage('cod_raza') }}</small>
+          }
+        </div>
+
+        <!-- Color -->
+        <div class="field">
+          <label for="cod_color" class="block mb-2">Color</label>
+          <p-select
+            id="cod_color"
+            formControlName="cod_color"
+            [options]="catalogOptions()?.colores || []"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Seleccione color"
+            class="w-full"
+            [filter]="true"
+          />
+        </div>
+
+        <!-- Tipo Pelo -->
+        <div class="field">
+          <label for="cod_tipo_pelo" class="block mb-2">Tipo Pelo</label>
+          <p-select
+            id="cod_tipo_pelo"
+            formControlName="cod_tipo_pelo"
+            [options]="catalogOptions()?.tiposPelo || []"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Seleccione tipo de pelo"
+            class="w-full"
+            [filter]="true"
+          />
+        </div>
+
+        <!-- Estatus -->
+        <div class="field">
+          <label for="estatus" class="block mb-2">Estatus</label>
+          <p-select
+            id="estatus"
+            formControlName="estatus"
+            [options]="catalogOptions()?.estatus || []"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Seleccione estatus"
+            class="w-full"
+          />
+        </div>
+
+        <!-- Origen -->
+        <div class="field">
+          <label for="origen" class="block mb-2">Origen *</label>
+          <p-select
+            id="origen"
+            formControlName="origen"
+            [options]="catalogOptions()?.origen || []"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Seleccione origen"
+            class="w-full"
+          />
+        </div>
+      </div>
+    </p-tabpanel>
+
+    <!-- TAB 2: Pesos y Medidas -->
+    <p-tabpanel header="Pesos y Medidas">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+        <!-- Peso Actual -->
+        <div class="field">
+          <label for="peso_actual" class="block mb-2">Peso Actual (kg)</label>
+          <p-inputnumber
+            id="peso_actual"
+            formControlName="peso_actual"
+            mode="decimal"
+            [minFractionDigits]="2"
+            [maxFractionDigits]="2"
+            [min]="0"
+            class="w-full"
+          />
+        </div>
+
+        <!-- Peso al Nacer -->
+        <div class="field">
+          <label for="peso_al_nacer" class="block mb-2">Peso al Nacer (kg)</label>
+          <p-inputnumber
+            id="peso_al_nacer"
+            formControlName="peso_al_nacer"
+            mode="decimal"
+            [minFractionDigits]="2"
+            [maxFractionDigits]="2"
+            [min]="0"
+            class="w-full"
+          />
+        </div>
+
+        <!-- Peso Destete -->
+        <div class="field">
+          <label for="peso_destete" class="block mb-2">Peso Destete (kg)</label>
+          <p-inputnumber
+            id="peso_destete"
+            formControlName="peso_destete"
+            mode="decimal"
+            [minFractionDigits]="2"
+            [maxFractionDigits]="2"
+            [min]="0"
+            class="w-full"
+          />
+        </div>
+
+        <!-- Fecha Destete -->
+        <div class="field">
+          <label for="fec_destete" class="block mb-2">Fecha Destete</label>
+          <p-datepicker
+            id="fec_destete"
+            formControlName="fec_destete"
+            dateFormat="dd/mm/yy"
+            [showIcon]="true"
+            [showButtonBar]="true"
+            placeholder="Seleccione fecha"
+            class="w-full"
+          />
+        </div>
+      </div>
+    </p-tabpanel>
+
+    <!-- TAB 3: Genealogía -->
+    <p-tabpanel header="Genealogía">
+      <div class="grid grid-cols-1 gap-6 p-4">
+        <!-- Padre -->
+        <div class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg shadow-sm p-5 border-l-4 border-blue-500">
+          <div class="flex items-center gap-2 mb-4">
+            <i class="pi pi-mars text-blue-600 dark:text-blue-400 text-xl"></i>
+            <h3 class="font-semibold text-lg text-blue-900 dark:text-blue-100">Padre</h3>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="field">
+              <label class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Código Finca Padre</label>
+              <input
+                pInputText
+                formControlName="cod_finca_padre"
+                type="number"
+                class="w-full"
+                readonly
+              />
+            </div>
+            <div class="field">
+              <label class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Código Padre</label>
+              <input
+                pInputText
+                formControlName="cod_padre"
+                class="w-full"
+                readonly
+              />
+            </div>
+            <div class="field md:col-span-2">
+              <label class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Nombre Padre</label>
+              <div class="flex gap-2">
+                <input
+                  pInputText
+                  formControlName="nombre_padre"
+                  class="flex-1"
+                  readonly
+                />
+                <p-button
+                  label="Seleccionar"
+                  icon="pi pi-search"
+                  (onClick)="selectPadre()"
+                  severity="info"
+                  [outlined]="true"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Madre -->
+        <div class="bg-gradient-to-br from-pink-50 to-pink-100 dark:from-pink-900/20 dark:to-pink-800/20 rounded-lg shadow-sm p-5 border-l-4 border-pink-500">
+          <div class="flex items-center gap-2 mb-4">
+            <i class="pi pi-venus text-pink-600 dark:text-pink-400 text-xl"></i>
+            <h3 class="font-semibold text-lg text-pink-900 dark:text-pink-100">Madre</h3>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="field">
+              <label class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Código Finca Madre</label>
+              <input
+                pInputText
+                formControlName="cod_finca_madre"
+                type="number"
+                class="w-full"
+                readonly
+              />
+            </div>
+            <div class="field">
+              <label class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Código Madre</label>
+              <input
+                pInputText
+                formControlName="cod_madre"
+                class="w-full"
+                readonly
+              />
+            </div>
+            <div class="field md:col-span-2">
+              <label class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Nombre Madre</label>
+              <div class="flex gap-2">
+                <input
+                  pInputText
+                  formControlName="nombre_madre"
+                  class="flex-1"
+                  readonly
+                />
+                <p-button
+                  label="Seleccionar"
+                  icon="pi pi-search"
+                  (onClick)="selectMadre()"
+                  severity="danger"
+                  [outlined]="true"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </p-tabpanel>
+
+    <!-- TAB 4: Identificación -->
+    <p-tabpanel header="Identificación">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+        <!-- Tatuaje -->
+        <div class="field">
+          <label for="tatuaje" class="block mb-2">Tatuaje</label>
+          <input
+            pInputText
+            id="tatuaje"
+            formControlName="tatuaje"
+            class="w-full"
+          />
+        </div>
+
+        <!-- Tatuaje Oreja Izquierda -->
+        <div class="field">
+          <label for="tatuaje_oreja_izq" class="block mb-2">Tatuaje Oreja Izq</label>
+          <input
+            pInputText
+            id="tatuaje_oreja_izq"
+            formControlName="tatuaje_oreja_izq"
+            class="w-full"
+          />
+        </div>
+
+        <!-- Tatuaje Oreja Derecha -->
+        <div class="field">
+          <label for="tatuaje_oreja_der" class="block mb-2">Tatuaje Oreja Der</label>
+          <input
+            pInputText
+            id="tatuaje_oreja_der"
+            formControlName="tatuaje_oreja_der"
+            class="w-full"
+          />
+        </div>
+
+        <!-- Tatuaje Cola -->
+        <div class="field">
+          <label for="tatuaje_cola" class="block mb-2">Tatuaje Cola</label>
+          <input
+            pInputText
+            id="tatuaje_cola"
+            formControlName="tatuaje_cola"
+            class="w-full"
+          />
+        </div>
+
+        <!-- Código Asociación -->
+        <div class="field">
+          <label for="codigo_aso" class="block mb-2">Código Asociación</label>
+          <input
+            pInputText
+            id="codigo_aso"
+            formControlName="codigo_aso"
+            class="w-full"
+          />
+        </div>
+
+        <!-- Porcentaje Sangre -->
+        <div class="field">
+          <label for="porcen_sangre" class="block mb-2">Porcentaje Sangre (%)</label>
+          <p-inputnumber
+            id="porcen_sangre"
+            formControlName="porcen_sangre"
+            [min]="0"
+            [max]="100"
+            class="w-full"
+          />
+        </div>
+      </div>
+    </p-tabpanel>
+
+    <!-- TAB 5: Observaciones -->
+    <p-tabpanel header="Observaciones">
+      <div class="p-4">
+        <div class="field">
+          <label for="observac" class="block mb-2">Observaciones</label>
+          <textarea
+            pTextarea
+            id="observac"
+            formControlName="observac"
+            rows="5"
+            class="w-full"
+          ></textarea>
+        </div>
+      </div>
+    </p-tabpanel>
+  </p-tabs>
+
+  <!-- Botones de Acción -->
+  <div class="flex justify-end gap-2 mt-6 p-4 border-t">
+    <p-button
+      label="Cancelar"
+      icon="pi pi-times"
+      (onClick)="cancel()"
+      styleClass="p-button-text"
+    />
+    <p-button
+      label="Guardar"
+      icon="pi pi-check"
+      type="submit"
+      [loading]="submitted"
+    />
+  </div>
+</form>

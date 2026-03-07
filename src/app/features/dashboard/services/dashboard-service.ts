@@ -54,10 +54,10 @@ export class DashboardService {
         const data = response.data;
         
         return {
-          totalAnimals: data.total_animals,
-          sexStats: this.processSexStats(data.sex_stats),
-          breedStats: this.processBreedStats(data.breed_stats),
-          purityStats: this.processPurityStats(data.purity_stats)
+          totalAnimals: data.total || 0,
+          sexStats: this.processSexStatsFromObject(data.por_sexo),
+          breedStats: this.processBreedStatsFromArray(data.por_raza),
+          purityStats: this.processPurityStatsFromObject(data.por_pureza)
         };
       }),
       catchError(error => {
@@ -72,7 +72,60 @@ export class DashboardService {
     );
   }
 
-  private processSexStats(sexStats: any[]): SexStats[] {
+  // Métodos para procesar la estructura real del backend
+  private processSexStatsFromObject(sexStats: any): SexStats[] {
+    if (!sexStats || typeof sexStats !== 'object') {
+      return [];
+    }
+    
+    const total = Object.values(sexStats).reduce((sum: number, count: any) => sum + count, 0);
+    
+    return Object.entries(sexStats).map(([sexo, count], index) => ({
+      label: sexo === 'M' ? 'Machos' : sexo === 'H' ? 'Hembras' : `Sexo ${sexo}`,
+      value: sexo,
+      count: count as number,
+      percentage: total > 0 ? ((count as number / total) * 100) : 0,
+      color: this.sexColors[index % this.sexColors.length]
+    }));
+  }
+
+  private processBreedStatsFromArray(breedStats: any[] | undefined | null): BreedStats[] {
+    if (!breedStats || !Array.isArray(breedStats)) {
+      return [];
+    }
+    
+    const total = breedStats.reduce((sum, stat) => sum + stat.count, 0);
+    
+    return breedStats.map((stat, index) => ({
+      label: stat.descripcion || `Raza ${stat.cod_raza}`,
+      value: stat.cod_raza,
+      count: stat.count,
+      percentage: total > 0 ? ((stat.count / total) * 100) : 0,
+      color: this.breedColors[index % this.breedColors.length]
+    }));
+  }
+
+  private processPurityStatsFromObject(purityStats: any): PurityStats[] {
+    if (!purityStats || typeof purityStats !== 'object') {
+      return [];
+    }
+    
+    const total = Object.values(purityStats).reduce((sum: number, count: any) => sum + count, 0);
+    
+    return Object.entries(purityStats).map(([pureza, count], index) => ({
+      label: PurezaSangreLabels[pureza] || `Pureza ${pureza}`,
+      value: pureza,
+      count: count as number,
+      percentage: total > 0 ? ((count as number / total) * 100) : 0,
+      color: this.purityColors[index % this.purityColors.length]
+    }));
+  }
+
+  // Métodos legacy (mantener por compatibilidad)
+  private processSexStats(sexStats: any[] | undefined | null): SexStats[] {
+    if (!sexStats || !Array.isArray(sexStats)) {
+      return [];
+    }
     return sexStats.map((stat, index) => ({
       label: stat.sexo === 'M' ? 'Machos' : stat.sexo === 'H' ? 'Hembras' : `Sexo ${stat.sexo}`,
       value: stat.sexo,
@@ -82,7 +135,10 @@ export class DashboardService {
     }));
   }
 
-  private processBreedStats(breedStats: any[]): BreedStats[] {
+  private processBreedStats(breedStats: any[] | undefined | null): BreedStats[] {
+    if (!breedStats || !Array.isArray(breedStats)) {
+      return [];
+    }
     return breedStats.map((stat, index) => ({
       label: stat.raza,
       value: stat.raza,
@@ -92,7 +148,10 @@ export class DashboardService {
     }));
   }
 
-  private processPurityStats(purityStats: any[]): PurityStats[] {
+  private processPurityStats(purityStats: any[] | undefined | null): PurityStats[] {
+    if (!purityStats || !Array.isArray(purityStats)) {
+      return [];
+    }
     return purityStats.map((stat, index) => ({
       label: PurezaSangreLabels[stat.pureza] || `Pureza ${stat.pureza}`,
       value: stat.pureza,

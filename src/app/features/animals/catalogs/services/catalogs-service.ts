@@ -190,7 +190,7 @@ export class CatalogsService {
    */
   getAllColors$(): Observable<ColorDto[]> {
     return this.getColors$({ per_page: 100 }).pipe(
-      map(response => response.data)
+      map(response => response.data || [])
     );
   }
 
@@ -199,7 +199,7 @@ export class CatalogsService {
    */
   getAllRazas$(): Observable<RazaDto[]> {
     return this.getRazas$({ per_page: 100 }).pipe(
-      map(response => response.data)
+      map(response => response.data || [])
     );
   }
 
@@ -208,7 +208,7 @@ export class CatalogsService {
    */
   getAllCondicionesCorporales$(): Observable<CondicionCorporalDto[]> {
     return this.getCondicionesCorporales$({ per_page: 100 }).pipe(
-      map(response => response.data)
+      map(response => response.data || [])
     );
   }
 
@@ -217,7 +217,7 @@ export class CatalogsService {
    */
   getAllTiposPelo$(): Observable<TipoPeloDto[]> {
     return this.getTiposPelo$({ per_page: 100 }).pipe(
-      map(response => response.data)
+      map(response => response.data || [])
     );
   }
 }

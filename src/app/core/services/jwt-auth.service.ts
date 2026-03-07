@@ -210,11 +210,27 @@ export class JwtAuthService {
 
   /**
    * Establecer cookie
+   * NOTA: HttpOnly flag solo puede ser establecido por el servidor (backend)
+   * Para máxima seguridad, el backend debería enviar el token en una cookie HttpOnly
    */
   private setCookie(name: string, value: string, hours: number): void {
     const expires = new Date();
     expires.setTime(expires.getTime() + (hours * 60 * 60 * 1000));
-    document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Lax`;
+    
+    // Construir cookie con flags de seguridad
+    const cookieParts = [
+      `${name}=${value}`,
+      `expires=${expires.toUTCString()}`,
+      'path=/',
+      'SameSite=Strict' // Cambio de Lax a Strict para mayor seguridad
+    ];
+    
+    // Agregar Secure flag si estamos en HTTPS
+    if (window.location.protocol === 'https:') {
+      cookieParts.push('Secure');
+    }
+    
+    document.cookie = cookieParts.join(';');
   }
 
   /**
@@ -235,7 +251,18 @@ export class JwtAuthService {
    * Eliminar cookie
    */
   private deleteCookie(name: string): void {
-    document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
+    const cookieParts = [
+      `${name}=`,
+      'expires=Thu, 01 Jan 1970 00:00:00 UTC',
+      'path=/',
+      'SameSite=Strict'
+    ];
+    
+    if (window.location.protocol === 'https:') {
+      cookieParts.push('Secure');
+    }
+    
+    document.cookie = cookieParts.join(';');
   }
 
   /**

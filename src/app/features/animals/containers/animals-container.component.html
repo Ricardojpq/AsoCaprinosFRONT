@@ -1,0 +1,110 @@
+<div class="card">
+  <p-toast />
+  <p-confirmDialog />
+
+  <!-- Toolbar -->
+  <p-toolbar class="mb-6">
+    <ng-template #start>
+      <app-animal-toolbar (onNew)="onNewAnimal()" />
+    </ng-template>
+    <ng-template #end>
+      <app-animal-search
+        [value]="state.globalFilter()"
+        (onSearchChange)="onSearchChange($event)"
+        (onClear)="onClearSearch()"
+      />
+    </ng-template>
+  </p-toolbar>
+
+  <!-- Lista de Animales -->
+  <app-animal-list
+    [animals]="state.animals()"
+    [loading]="state.loading()"
+    [totalRecords]="state.totalRecords()"
+    [rows]="state.perPage()"
+    [sortField]="state.sortField()"
+    [sortOrder]="state.sortOrder()"
+    (onLazyLoad)="onTableLazyLoad($event)"
+    (onEdit)="onEditAnimal($event)"
+    (onDelete)="onDeleteAnimal($event)"
+  />
+
+  <!-- Dialog para Formulario -->
+  @if (state.dialogVisible()) {
+    <p-dialog
+      [(visible)]="dialogVisible"
+      [header]="state.isEditMode() ? 'Editar Animal' : 'Nuevo Animal'"
+      [modal]="true"
+      [style]="{ width: '90vw', maxWidth: '1200px' }"
+      [draggable]="false"
+      [resizable]="false"
+      (onHide)="onCancelDialog()"
+    >
+      <app-animal-form
+        [animal]="state.selectedAnimal()"
+        [isEditMode]="state.isEditMode()"
+        [catalogOptions]="state.catalogOptions()"
+        [selectedPadre]="selectedPadre"
+        [selectedMadre]="selectedMadre"
+        (onSave)="onSaveAnimal($event)"
+        (onCancel)="onCancelDialog()"
+        (onSelectCriador)="onSelectCriador()"
+        (onSelectPropietario)="onSelectPropietario()"
+        (onSelectPadre)="onSelectPadre()"
+        (onSelectMadre)="onSelectMadre()"
+      />
+    </p-dialog>
+  }
+
+  <!-- Dialog de Selección de Finca Criadora -->
+  @if (showFincaCriadorDialog) {
+    <p-dialog
+      [visible]="true"
+      header="Seleccionar Finca Criadora"
+      [modal]="true"
+      [style]="{ width: '80vw', maxWidth: '900px' }"
+      [draggable]="false"
+      [resizable]="false"
+      (onHide)="closeFincaCriadorDialog()"
+    >
+      <app-farms-table
+        (fincaSelected)="onFincaCriadorSelected($event)"
+      />
+    </p-dialog>
+  }
+
+  <!-- Dialog de Selección de Finca Propietaria -->
+  @if (showFincaPropietarioDialog) {
+    <p-dialog
+      [visible]="true"
+      header="Seleccionar Finca Propietaria"
+      [modal]="true"
+      [style]="{ width: '80vw', maxWidth: '900px' }"
+      [draggable]="false"
+      [resizable]="false"
+      (onHide)="closeFincaPropietarioDialog()"
+    >
+      <app-farms-table
+        (fincaSelected)="onFincaPropietarioSelected($event)"
+      />
+    </p-dialog>
+  }
+
+  <!-- Dialog de Selección de Padre -->
+  <app-animal-selection-table
+    [visible]="showPadreDialog"
+    [title]="'Seleccionar Padre (Macho)'"
+    [sexFilter]="'M'"
+    (visibleChange)="showPadreDialog = $event"
+    (animalSelected)="onPadreSelected($event)"
+  />
+
+  <!-- Dialog de Selección de Madre -->
+  <app-animal-selection-table
+    [visible]="showMadreDialog"
+    [title]="'Seleccionar Madre (Hembra)'"
+    [sexFilter]="'H'"
+    (visibleChange)="showMadreDialog = $event"
+    (animalSelected)="onMadreSelected($event)"
+  />
+</div>
