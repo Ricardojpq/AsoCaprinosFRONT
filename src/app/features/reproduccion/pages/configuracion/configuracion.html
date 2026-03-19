@@ -1,0 +1,184 @@
+<div class="card">
+  <p-toast />
+  <p-confirmDialog [style]="{ width: '450px' }" />
+  
+  <p-toolbar class="mb-6">
+    <ng-template #start>
+      <div class="flex gap-1">
+        <p-button
+          styleClass="btn btn-primary btn-sm"
+          label="Nuevo Parámetro"
+          (onClick)="openCreateDialog()">
+          <lucide-icon [img]="plusIcon" size="16"></lucide-icon>
+        </p-button>
+      </div>
+    </ng-template>
+  </p-toolbar>
+
+  <p-table
+    #dt
+    [value]="parametros()"
+    [rows]="perPage"
+    [paginator]="true"
+    [rowsPerPageOptions]="[10, 25, 50, 100]"
+    [tableStyle]="{ 'min-width': '50rem' }"
+    [rowHover]="true"
+    dataKey="id"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} parámetros"
+    [showCurrentPageReport]="true"
+    [totalRecords]="totalRecords()"
+    [lazy]="true"
+    [loading]="loading()"
+    (onLazyLoad)="onTableLazyLoad($event)"
+    [sortField]="sortField"
+    [sortOrder]="sortOrder === 'asc' ? 1 : -1"
+    [filterDelay]="300">
+    
+    <ng-template #caption>
+      <div class="flex items-center justify-between">
+        <h5 class="m-0">Configuración del Sistema</h5>
+        <div class="flex items-center gap-2">
+          <p-iconfield>
+            <p-inputicon>
+              <lucide-angular [img]="searchIcon" size="16"></lucide-angular>
+            </p-inputicon>
+            <input
+              pInputText
+              type="text"
+              placeholder="Buscar parámetro..."
+              (input)="onGlobalFilter($event)"
+              class="focus:border-golden-500"
+              [value]="globalFilterValue" />
+            @if (globalFilterValue) {
+              <p-inputicon>
+                <lucide-angular [img]="xIcon" size="16" (click)="clearSearch()" class="cursor-pointer"></lucide-angular>
+              </p-inputicon>
+            }
+          </p-iconfield>
+        </div>
+      </div>
+    </ng-template>
+    
+    <ng-template #header>
+      <tr>
+        <th pSortableColumn="nombre" style="min-width: 12rem">
+          <div class="flex items-center gap-2">
+            Nombre
+            <p-sortIcon field="nombre" />
+          </div>
+        </th>
+        <th pSortableColumn="descripcion" style="min-width: 18rem">
+          <div class="flex items-center gap-2">
+            Descripción
+            <p-sortIcon field="descripcion" />
+          </div>
+        </th>
+        <th pSortableColumn="valor" style="min-width: 8rem">
+          <div class="flex items-center gap-2">
+            Valor
+            <p-sortIcon field="valor" />
+          </div>
+        </th>
+        <th style="min-width: 8rem">Acciones</th>
+      </tr>
+    </ng-template>
+    
+    <ng-template #body let-parametro>
+      <tr>
+        <td>
+          <span class="font-mono text-sm">{{ parametro.nombre }}</span>
+        </td>
+        <td>{{ parametro.descripcion || '-' }}</td>
+        <td>
+          <span class="font-semibold">{{ parametro.valor }}</span>
+        </td>
+        <td>
+          <p-button
+            class="mr-2"
+            [rounded]="true"
+            [outlined]="true"
+            (click)="openEditDialog(parametro)"
+            styleClass="p-button-sm">
+            <lucide-icon [img]="pencilIcon" size="18"></lucide-icon>
+          </p-button>
+          <p-button
+            severity="danger"
+            [rounded]="true"
+            [outlined]="true"
+            (click)="deleteParametro(parametro)"
+            styleClass="p-button-sm">
+            <lucide-icon [img]="trashIcon" size="18"></lucide-icon>
+          </p-button>
+        </td>
+      </tr>
+    </ng-template>
+    
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="4" class="text-center p-4 text-gray-500">
+          No se encontraron parámetros
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- Dialog Crear/Editar -->
+<p-dialog 
+  [header]="isEditing() ? 'Editar Parámetro' : 'Nuevo Parámetro'" 
+  [(visible)]="showDialog"
+  [modal]="true"
+  [style]="{width: '500px'}">
+  <ng-template #content>
+    <div class="flex flex-col gap-4">
+      <div class="field">
+        <label for="nombre" class="block text-sm font-medium mb-2">Nombre *</label>
+        <input 
+          pInputText 
+          id="nombre"
+          [ngModel]="formData().nombre"
+          (ngModelChange)="updateFormField('nombre', $event)"
+          placeholder="Ej: DIAS_GESTACION_PROMEDIO"
+          class="w-full font-mono"
+          [disabled]="isEditing()" />
+        <small class="text-gray-500">Use MAYUSCULAS_CON_GUIONES</small>
+      </div>
+      
+      <div class="field">
+        <label for="descripcion" class="block text-sm font-medium mb-2">Descripción</label>
+        <textarea 
+          pInputTextarea 
+          id="descripcion"
+          [ngModel]="formData().descripcion"
+          (ngModelChange)="updateFormField('descripcion', $event)"
+          rows="2"
+          placeholder="Descripción del parámetro"
+          class="w-full">
+        </textarea>
+      </div>
+      
+      <div class="field">
+        <label for="valor" class="block text-sm font-medium mb-2">Valor *</label>
+        <input 
+          pInputText 
+          id="valor"
+          [ngModel]="formData().valor"
+          (ngModelChange)="updateFormField('valor', $event)"
+          placeholder="Valor del parámetro"
+          class="w-full" />
+      </div>
+    </div>
+  </ng-template>
+  
+  <ng-template #footer>
+    <p-button 
+      label="Cancelar" 
+      icon="pi pi-times"
+      [text]="true" 
+      (click)="showDialog.set(false)" />
+    <p-button 
+      [label]="isEditing() ? 'Actualizar' : 'Crear'"
+      icon="pi pi-check"
+      (click)="saveParametro()" />
+  </ng-template>
+</p-dialog>

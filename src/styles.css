@@ -821,3 +821,30 @@ p:last-child {
     }
 }
 
+/* Custom Pink Button for Reproductive Module */
+.p-button-pink {
+  background-color: transparent !important;
+  border-color: #ec4899 !important;
+  color: #ec4899 !important;
+}
+
+.p-button-pink:hover {
+  background-color: rgba(236, 72, 153, 0.1) !important;
+  border-color: #db2777 !important;
+  color: #db2777 !important;
+}
+
+.p-button-pink:focus {
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px rgba(236, 72, 153, 0.5) !important;
+}
+
+.p-button-pink.p-button-outlined {
+  background-color: transparent !important;
+  border-color: #ec4899 !important;
+  color: #ec4899 !important;
+}
+
+.p-button-pink.p-button-outlined:hover {
+  background-color: rgba(236, 72, 153, 0.1) !important;
+}
+

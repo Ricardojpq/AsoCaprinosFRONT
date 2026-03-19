@@ -1,0 +1,775 @@
+<div class="card">
+  <p-toast />
+  <p-confirmDialog [style]="{ width: '450px' }" />
+
+  <p-toolbar class="mb-6">
+    <ng-template #start>
+      <div class="flex gap-2 items-center">
+        <div class="flex flex-col">
+          <label class="text-sm font-medium text-gray-600 mb-1">Finca</label>
+          <p-select 
+            [options]="fincas()" 
+            [(ngModel)]="selectedFinca"
+            optionLabel="nomb_finca"
+            optionValue="cod_finca"
+            placeholder="Seleccione una finca"
+            (onChange)="onFincaChange()"
+            class="w-64">
+          </p-select>
+        </div>
+        <p-button
+          styleClass="btn btn-primary btn-sm mt-5"
+          label="Nueva Temporada"
+          (onClick)="openCreateDialog()"
+          [disabled]="!selectedFinca()">
+          <lucide-icon [img]="plusIcon" size="16"></lucide-icon>
+        </p-button>
+      </div>
+    </ng-template>
+    <ng-template #end>
+      <p-button
+        styleClass="p-button-pink mt-5"
+        label="Buscar Hembra"
+        severity="help"
+        pTooltip="Buscar en qué temporada está una hembra"
+        (onClick)="openBuscarHembraDialog()">
+        <lucide-icon [img]="searchIcon" size="16" class="mr-2"></lucide-icon>
+      </p-button>
+    </ng-template>
+  </p-toolbar>
+
+  <!-- Table -->
+  <p-card>
+    @if (loading()) {
+      <div class="flex justify-center p-8">
+        <p-progressSpinner></p-progressSpinner>
+      </div>
+    } @else {
+      <p-table 
+        [value]="temporadas()" 
+        [paginator]="true" 
+        [rows]="10"
+        [rowsPerPageOptions]="[10, 25, 50]"
+        [totalRecords]="totalRecords()"
+        [loading]="loading()"
+        [rowHover]="true"
+        currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} temporadas"
+        [showCurrentPageReport]="true"
+        styleClass="p-datatable-striped">
+        <ng-template pTemplate="caption">
+          <div class="flex items-center justify-between">
+            <h5 class="m-0">Temporadas de Monta</h5>
+          </div>
+        </ng-template>
+        <ng-template pTemplate="header">
+          <tr>
+            <th pSortableColumn="id">ID <p-sortIcon field="id" /></th>
+            <th>Finca</th>
+            <th>Macho</th>
+            <th pSortableColumn="fechaInicio">Fecha Inicio <p-sortIcon field="fechaInicio" /></th>
+            <th pSortableColumn="fechaFin">Fecha Fin <p-sortIcon field="fechaFin" /></th>
+            <th>Estado</th>
+            <th>Hembras</th>
+            <th style="width: 14rem">Acciones</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-temporada>
+          <tr>
+            <td>{{ temporada.id }}</td>
+            <td>{{ temporada.finca?.nombFinca || temporada.codFinca }}</td>
+            <td>{{ temporada.macho?.nombAnimal || temporada.macho?.codAnimal }}</td>
+            <td>{{ temporada.fechaInicio | date:'dd/MM/yyyy' }}</td>
+            <td>{{ temporada.fechaFin ? (temporada.fechaFin | date:'dd/MM/yyyy') : '-' }}</td>
+            <td>
+              <p-tag [value]="temporada.estado" [severity]="getEstadoSeverity(temporada.estado)"></p-tag>
+            </td>
+            <td>{{ temporada.hembras?.length || 0 }}</td>
+            <td>
+              <div class="flex gap-1">
+                @if (temporada.estado === 'ACTIVA') {
+                  <!-- Botón Agregar Hembras - Rosado -->
+                  <p-button 
+                    pTooltip="Agregar Hembras"
+                    [rounded]="true" 
+                    [outlined]="true"
+                    styleClass="p-button-sm p-button-pink"
+                    (onClick)="openAddHembrasDialog(temporada)">
+                    <lucide-icon [img]="plusIcon" size="16"></lucide-icon>
+                  </p-button>
+                  <p-button 
+                    pTooltip="Finalizar"
+                    [rounded]="true" 
+                    [outlined]="true"
+                    severity="success"
+                    styleClass="p-button-sm"
+                    (onClick)="finalizarTemporada(temporada)">
+                    <lucide-icon [img]="checkIcon" size="16"></lucide-icon>
+                  </p-button>
+                  <p-button 
+                    pTooltip="Cancelar"
+                    [rounded]="true" 
+                    [outlined]="true"
+                    severity="danger"
+                    styleClass="p-button-sm"
+                    (onClick)="cancelarTemporada(temporada)">
+                    <lucide-icon [img]="xIcon" size="16"></lucide-icon>
+                  </p-button>
+                }
+                <!-- Ver Detalles - siempre visible -->
+                <p-button 
+                  pTooltip="Ver Detalles"
+                  [rounded]="true" 
+                  [outlined]="true"
+                  styleClass="p-button-sm"
+                  (onClick)="openDetalleDialog(temporada)">
+                  <lucide-icon [img]="eyeIcon" size="16"></lucide-icon>
+                </p-button>
+                <!-- Ver Resultado - solo cuando está finalizada -->
+                @if (temporada.estado === 'FINALIZADA') {
+                  <p-button 
+                    pTooltip="Ver Resultado"
+                    [rounded]="true" 
+                    [outlined]="true"
+                    severity="info"
+                    styleClass="p-button-sm"
+                    (onClick)="openResultadoDialog(temporada)">
+                    <lucide-icon [img]="clipboardListIcon" size="16"></lucide-icon>
+                  </p-button>
+                }
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="8" class="text-center p-4 text-gray-500">
+              No se encontraron temporadas de monta
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    }
+  </p-card>
+</div>
+
+<!-- Create Dialog -->
+<p-dialog 
+  header="Nueva Temporada de Monta" 
+  [(visible)]="showCreateDialog"
+  [modal]="true"
+  [style]="{width: '1100px', maxHeight: '95vh'}"
+  [contentStyle]="{'overflow': 'visible'}">
+  <div class="grid grid-cols-2 gap-6">
+    <!-- Columna Izquierda: Datos básicos -->
+    <div class="flex flex-col gap-4">
+      <h4 class="text-lg font-semibold text-gray-700 border-b pb-2">Datos de la Temporada</h4>
+      
+      <!-- Finca seleccionada -->
+      <div>
+        <label class="block text-sm font-medium text-gray-600 mb-1">Finca</label>
+        <div class="p-3 bg-gray-100 rounded-lg">
+          @for (f of fincas(); track f.cod_finca) {
+            @if (f.cod_finca === selectedFinca()) {
+              <span class="font-semibold">{{ f.nomb_finca }}</span>
+            }
+          }
+        </div>
+      </div>
+
+      <!-- Macho Reproductor con botón de selección -->
+      <div>
+        <label class="block text-sm font-medium text-gray-600 mb-1">Macho Reproductor *</label>
+        @if (selectedMacho()) {
+          <div class="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div>
+              <span class="font-semibold text-blue-800">{{ selectedMacho().nombAnimal || selectedMacho().codAnimal }}</span>
+              <span class="text-sm text-blue-600 ml-2">({{ selectedMacho().codAnimal }})</span>
+              @if (selectedMacho().raza) {
+                <span class="text-sm text-gray-500 ml-2">| {{ selectedMacho().raza.descripcion }}</span>
+              }
+            </div>
+            <p-button 
+              [rounded]="true" 
+              [text]="true"
+              severity="danger"
+              pTooltip="Quitar selección"
+              (onClick)="clearSelectedMacho()">
+              <lucide-icon [img]="xIcon" size="16"></lucide-icon>
+            </p-button>
+          </div>
+        } @else {
+          <p-button 
+            label="Seleccionar Macho"
+            [outlined]="true"
+            styleClass="w-full"
+            (onClick)="openSelectMachoDialog()">
+            <lucide-icon [img]="searchIcon" size="16" class="mr-2"></lucide-icon>
+          </p-button>
+        }
+      </div>
+
+      <!-- Fecha de Inicio -->
+      <div>
+        <label class="block text-sm font-medium text-gray-600 mb-1">Fecha de Inicio *</label>
+        <p-datepicker 
+          [(ngModel)]="newTemporada.fecha_inicio"
+          dateFormat="dd/mm/yy"
+          [showIcon]="true"
+          appendTo="body"
+          class="w-full">
+        </p-datepicker>
+      </div>
+
+      <!-- Observaciones -->
+      <div>
+        <label class="block text-sm font-medium text-gray-600 mb-1">Observaciones</label>
+        <textarea 
+          pInputTextarea 
+          [(ngModel)]="newTemporada.observaciones"
+          rows="3"
+          placeholder="Observaciones opcionales..."
+          class="w-full">
+        </textarea>
+      </div>
+
+      <!-- Lista de Hembras Seleccionadas -->
+      <div>
+        <label class="block text-sm font-medium text-gray-600 mb-1">
+          Hembras Seleccionadas ({{ selectedHembras().length }})
+        </label>
+        @if (selectedHembras().length > 0) {
+          <div class="max-h-48 overflow-y-auto border rounded-lg">
+            @for (hembra of selectedHembras(); track hembra.id) {
+              <div class="flex items-center justify-between p-2 border-b last:border-b-0 hover:bg-pink-50">
+                <div>
+                  <span class="font-medium text-pink-800">{{ hembra.nombAnimal || hembra.codAnimal }}</span>
+                  <span class="text-sm text-gray-500 ml-2">{{ hembra.raza?.descripcion || '' }}</span>
+                </div>
+                <p-button 
+                  [rounded]="true" 
+                  [text]="true"
+                  size="small"
+                  severity="danger"
+                  pTooltip="Quitar"
+                  (onClick)="toggleHembraSelection(hembra)">
+                  <lucide-icon [img]="xIcon" size="14"></lucide-icon>
+                </p-button>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="p-3 bg-gray-50 rounded-lg text-center text-gray-500 text-sm">
+            Seleccione hembras de la tabla →
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Columna Derecha: Selección de Hembras -->
+    <div class="flex flex-col gap-3">
+      <h4 class="text-lg font-semibold text-pink-700 border-b pb-2">Seleccionar Hembras</h4>
+      
+      <div class="mb-4 p-3 bg-pink-50 border border-pink-200 rounded-lg">
+        <p class="text-pink-800 text-sm">
+          <strong>Nota:</strong> Solo se muestran hembras con estado reproductivo <strong>CELO</strong>, etapa evolutiva (OVEJA/BORREGA) y estatus general ACTIVO.
+        </p>
+      </div>
+
+      <!-- Búsqueda -->
+      <div class="flex gap-2">
+        <p-iconfield iconPosition="left" class="flex-1">
+          <p-inputicon>
+            <lucide-icon [img]="searchIcon" size="16"></lucide-icon>
+          </p-inputicon>
+          <input 
+            type="text" 
+            pInputText 
+            placeholder="Buscar hembra..." 
+            [(ngModel)]="hembraSearchTerm"
+            class="w-full">
+        </p-iconfield>
+        <p-button 
+          label="Todas" 
+          size="small" 
+          [outlined]="true"
+          pTooltip="Seleccionar todas"
+          (onClick)="selectAllHembras()">
+        </p-button>
+        <p-button 
+          size="small" 
+          severity="secondary"
+          [outlined]="true"
+          pTooltip="Limpiar selección"
+          (onClick)="clearHembraSelection()">
+          <lucide-icon [img]="xIcon" size="14"></lucide-icon>
+        </p-button>
+      </div>
+
+      <!-- Tabla de hembras -->
+      @if (loadingHembras()) {
+        <div class="flex justify-center p-8">
+          <p-progressSpinner></p-progressSpinner>
+        </div>
+      } @else if (filteredHembras.length === 0) {
+        <div class="text-center p-6 text-gray-500 bg-gray-50 rounded-lg">
+          <p>No hay hembras disponibles</p>
+          <p class="text-sm">Verifique que existan hembras elegibles para monta</p>
+        </div>
+      } @else {
+        <p-table 
+          [value]="filteredHembras" 
+          [(selection)]="selectedHembras"
+          [paginator]="true" 
+          [rows]="5"
+          [rowsPerPageOptions]="[5, 10, 15]"
+          [rowHover]="true"
+          dataKey="id"
+          styleClass="p-datatable-sm"
+          [tableStyle]="{'font-size': '0.85rem'}">
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="width: 3rem">
+                <p-tableHeaderCheckbox />
+              </th>
+              <th>Nombre</th>
+              <th>Raza</th>
+              <th>Edad</th>
+              <th>Peso</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-hembra>
+            <tr>
+              <td>
+                <p-tableCheckbox [value]="hembra" />
+              </td>
+              <td class="font-medium">{{ hembra.nombAnimal || hembra.codAnimal }}</td>
+              <td class="text-sm">{{ hembra.raza?.descripcion || '-' }}</td>
+              <td class="text-sm">{{ calcularEdad(hembra.fecNacim) }}</td>
+              <td class="text-sm">{{ hembra.pesoActual || '-' }} kg</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      }
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <div class="flex justify-between items-center w-full">
+      <span class="text-sm text-gray-600">
+        {{ selectedHembras().length }} hembra(s) seleccionada(s)
+      </span>
+      <div class="flex gap-2">
+        <p-button label="Cancelar" [text]="true" (onClick)="showCreateDialog.set(false)"></p-button>
+        <p-button 
+          label="Crear Temporada" 
+          (onClick)="createTemporada()"
+          [disabled]="!selectedMacho() || !newTemporada.fecha_inicio || selectedHembras().length === 0">
+        </p-button>
+      </div>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<!-- Select Macho Dialog -->
+<p-dialog 
+  header="Seleccionar Macho Reproductor" 
+  [(visible)]="showSelectMachoDialog"
+  [modal]="true"
+  [style]="{width: '900px', maxHeight: '90vh'}">
+  <ng-template #content>
+    <!-- Búsqueda -->
+    <div class="mb-4">
+      <p-iconfield iconPosition="left">
+        <p-inputicon>
+          <lucide-icon [img]="searchIcon" size="16"></lucide-icon>
+        </p-inputicon>
+        <input 
+          type="text" 
+          pInputText 
+          placeholder="Buscar macho por nombre o código..." 
+          [(ngModel)]="machoSearchTerm"
+          class="w-full">
+      </p-iconfield>
+    </div>
+
+    <!-- Tabla de machos -->
+    @if (loadingMachos()) {
+      <div class="flex justify-center p-8">
+        <p-progressSpinner></p-progressSpinner>
+      </div>
+    } @else if (filteredMachos.length === 0) {
+      <div class="text-center p-8 text-gray-500">
+        <p class="text-lg mb-2">No hay machos reproductores disponibles</p>
+        <p class="text-sm">Verifique que existan machos activos con estado reproductivo adecuado</p>
+      </div>
+    } @else {
+      <p-table 
+        [value]="filteredMachos" 
+        [paginator]="true" 
+        [rows]="5"
+        [rowHover]="true"
+        selectionMode="single"
+        styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Código</th>
+            <th>Nombre</th>
+            <th>Raza</th>
+            <th>Edad</th>
+            <th>Peso</th>
+            <th>Acción</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-macho>
+          <tr>
+            <td>{{ macho.codAnimal }}</td>
+            <td class="font-semibold">{{ macho.nombAnimal || '-' }}</td>
+            <td>{{ macho.raza?.descripcion || '-' }}</td>
+            <td>{{ calcularEdad(macho.fecNacim) }}</td>
+            <td>{{ macho.pesoActual || '-' }} kg</td>
+            <td>
+              <p-button 
+                label="Seleccionar"
+                size="small"
+                (onClick)="selectMacho(macho)">
+              </p-button>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    }
+  </ng-template>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancelar" [text]="true" (onClick)="showSelectMachoDialog.set(false)"></p-button>
+  </ng-template>
+</p-dialog>
+
+<!-- Add Hembras Dialog -->
+<p-dialog 
+  header="Agregar Hembras a Temporada" 
+  [(visible)]="showAddHembrasDialog"
+  [modal]="true"
+  [style]="{width: '950px', maxHeight: '90vh'}">
+  <ng-template #content>
+    <div class="mb-4 p-3 bg-pink-50 border border-pink-200 rounded-lg">
+      <p class="text-pink-800 text-sm">
+        <strong>Nota:</strong> Solo se muestran hembras que cumplen con los criterios de selección:
+        etapa evolutiva (Oveja/Borrega), estado reproductivo CELO, y estatus ACTIVO.
+      </p>
+    </div>
+
+    <!-- Búsqueda y acciones -->
+    <div class="flex justify-between items-center mb-4">
+      <p-iconfield iconPosition="left" class="flex-1 mr-4">
+        <p-inputicon>
+          <lucide-icon [img]="searchIcon" size="16"></lucide-icon>
+        </p-inputicon>
+        <input 
+          type="text" 
+          pInputText 
+          placeholder="Buscar hembra por nombre o código..." 
+          [(ngModel)]="hembraSearchTerm"
+          class="w-full">
+      </p-iconfield>
+      <div class="flex gap-2">
+        <p-button 
+          label="Seleccionar Todas" 
+          size="small" 
+          [outlined]="true"
+          (onClick)="selectAllHembras()">
+        </p-button>
+        <p-button 
+          label="Limpiar" 
+          size="small" 
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="clearHembraSelection()">
+        </p-button>
+      </div>
+    </div>
+
+    <!-- Tabla de hembras con multiselect -->
+    @if (loadingHembras()) {
+      <div class="flex justify-center p-8">
+        <p-progressSpinner></p-progressSpinner>
+      </div>
+    } @else if (filteredHembras.length === 0) {
+      <div class="text-center p-8 text-gray-500">
+        <p class="text-lg mb-2">No hay hembras disponibles</p>
+        <p class="text-sm">No se encontraron hembras que cumplan los criterios de selección para monta</p>
+      </div>
+    } @else {
+      <p-table 
+        [value]="filteredHembras" 
+        [(selection)]="selectedHembras"
+        [paginator]="true" 
+        [rows]="10"
+        [rowHover]="true"
+        dataKey="id"
+        styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+          <tr>
+            <th style="width: 3rem">
+              <p-tableHeaderCheckbox />
+            </th>
+            <th>Código</th>
+            <th>Nombre</th>
+            <th>Raza</th>
+            <th>Etapa</th>
+            <th>Edad</th>
+            <th>Peso</th>
+            <th>Estado Rep.</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-hembra>
+          <tr>
+            <td>
+              <p-tableCheckbox [value]="hembra" />
+            </td>
+            <td>{{ hembra.codAnimal }}</td>
+            <td class="font-semibold">{{ hembra.nombAnimal || '-' }}</td>
+            <td>{{ hembra.raza?.descripcion || '-' }}</td>
+            <td>{{ hembra.etapaEvolutiva || '-' }}</td>
+            <td>{{ calcularEdad(hembra.fecNacim) }}</td>
+            <td>{{ hembra.pesoActual || '-' }} kg</td>
+            <td>
+              <p-tag value="CELO" severity="warn"></p-tag>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    }
+
+    <div class="mt-4 p-3 bg-gray-100 rounded-lg flex justify-between items-center">
+      <span class="text-gray-700">
+        <strong>{{ selectedHembras().length }}</strong> hembras seleccionadas
+      </span>
+    </div>
+  </ng-template>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancelar" [text]="true" (onClick)="showAddHembrasDialog.set(false)"></p-button>
+    <p-button 
+      label="Agregar Hembras"
+      styleClass="p-button-pink"
+      (onClick)="agregarHembras()"
+      [disabled]="selectedHembras().length === 0">
+      <lucide-icon [img]="plusIcon" size="16" class="mr-2"></lucide-icon>
+    </p-button>
+  </ng-template>
+</p-dialog>
+
+<!-- Ver Detalle Dialog - Simplificado -->
+<p-dialog 
+  header="Detalle de Temporada de Monta" 
+  [(visible)]="showDetalleDialog"
+  [modal]="true"
+  [style]="{width: '700px'}">
+  <ng-template #content>
+    @if (selectedTemporada()) {
+      <!-- Info del Macho -->
+      <div class="mb-6">
+        <h4 class="text-lg font-semibold mb-3 text-blue-800 flex items-center gap-2">
+          <span class="w-3 h-3 bg-blue-500 rounded-full"></span>
+          Macho Reproductor
+        </h4>
+        <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div class="flex items-center gap-4">
+            <div class="flex-1">
+              <p class="text-xl font-bold text-blue-900">{{ selectedTemporada()!.macho?.nombAnimal || selectedTemporada()!.macho?.codAnimal || '-' }}</p>
+              <p class="text-sm text-blue-700">Código: {{ selectedTemporada()!.macho?.codAnimal || '-' }}</p>
+              <p class="text-sm text-gray-600">Raza: {{ selectedTemporada()!.macho?.raza?.descripcion || '-' }}</p>
+            </div>
+            <p-tag [value]="selectedTemporada()!.estado" [severity]="getEstadoSeverity(selectedTemporada()!.estado)"></p-tag>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lista de Hembras Asignadas -->
+      <div>
+        <h4 class="text-lg font-semibold mb-3 text-pink-800 flex items-center gap-2">
+          <span class="w-3 h-3 bg-pink-500 rounded-full"></span>
+          Hembras Asignadas ({{ selectedTemporada()!.hembras?.length || 0 }})
+        </h4>
+        @if (selectedTemporada()!.hembras && selectedTemporada()!.hembras!.length > 0) {
+          <div class="border rounded-lg overflow-hidden">
+            @for (hembra of selectedTemporada()!.hembras; track hembra.id) {
+              <div class="flex items-center justify-between p-3 border-b last:border-b-0 hover:bg-pink-50">
+                <div class="flex-1">
+                  <span class="font-semibold text-gray-800">{{ hembra.hembra?.nombAnimal || hembra.hembra?.codAnimal || '-' }}</span>
+                  <span class="text-sm text-gray-500 ml-2">({{ hembra.hembra?.codAnimal }})</span>
+                </div>
+                <div class="flex items-center gap-3">
+                  <span class="text-sm text-gray-500">{{ hembra.fechaMonta | date:'dd/MM/yyyy' }}</span>
+                  <p-tag 
+                    [value]="hembra.estadoReproduccion" 
+                    [severity]="getEstadoReproduccionSeverity(hembra.estadoReproduccion)">
+                  </p-tag>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="text-center p-4 text-gray-500 bg-gray-50 rounded-lg">
+            No hay hembras asignadas a esta temporada
+          </div>
+        }
+      </div>
+    }
+  </ng-template>
+  <ng-template pTemplate="footer">
+    <p-button label="Cerrar" [text]="true" (onClick)="showDetalleDialog.set(false)"></p-button>
+  </ng-template>
+</p-dialog>
+
+<!-- Ver Resultado Dialog (solo para temporadas finalizadas) -->
+<p-dialog 
+  header="Resultado de Temporada de Monta" 
+  [(visible)]="showResultadoDialog"
+  [modal]="true"
+  [style]="{width: '900px'}">
+  <ng-template #content>
+    @if (selectedTemporada()) {
+      <!-- Resumen -->
+      <div class="mb-6">
+        <h4 class="text-lg font-semibold mb-3">Resumen de Resultados</h4>
+        <div class="grid grid-cols-4 gap-4">
+          <div class="p-4 bg-gray-100 rounded-lg text-center">
+            <p class="text-2xl font-bold text-gray-800">{{ getResumenResultados().total }}</p>
+            <p class="text-sm text-gray-600">Total Hembras</p>
+          </div>
+          <div class="p-4 bg-green-100 rounded-lg text-center">
+            <p class="text-2xl font-bold text-green-800">{{ getResumenResultados().prenadas }}</p>
+            <p class="text-sm text-green-600">Preñadas</p>
+          </div>
+          <div class="p-4 bg-gray-200 rounded-lg text-center">
+            <p class="text-2xl font-bold text-gray-700">{{ getResumenResultados().vacias }}</p>
+            <p class="text-sm text-gray-600">Vacías</p>
+          </div>
+          <div class="p-4 bg-yellow-100 rounded-lg text-center">
+            <p class="text-2xl font-bold text-yellow-800">{{ getResumenResultados().enMonta }}</p>
+            <p class="text-sm text-yellow-600">Sin Confirmar</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detalle por hembra -->
+      <div>
+        <h4 class="text-lg font-semibold mb-3">Detalle por Hembra</h4>
+        @if (selectedTemporada()!.hembras && selectedTemporada()!.hembras!.length > 0) {
+          <p-table 
+            [value]="selectedTemporada()!.hembras!" 
+            [paginator]="selectedTemporada()!.hembras!.length > 10"
+            [rows]="10"
+            styleClass="p-datatable-sm p-datatable-striped">
+            <ng-template pTemplate="header">
+              <tr>
+                <th>Nombre</th>
+                <th>Código</th>
+                <th>Fecha Monta</th>
+                <th>Estado Reproductivo</th>
+                <th>Fecha Confirmación</th>
+                <th>Observaciones</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-hembra>
+              <tr>
+                <td class="font-semibold">{{ hembra.hembra?.nombAnimal || '-' }}</td>
+                <td>{{ hembra.hembra?.codAnimal || '-' }}</td>
+                <td>{{ hembra.fechaMonta | date:'dd/MM/yyyy' }}</td>
+                <td>
+                  <p-tag 
+                    [value]="hembra.estadoReproduccion" 
+                    [severity]="getEstadoReproduccionSeverity(hembra.estadoReproduccion)">
+                  </p-tag>
+                </td>
+                <td>{{ hembra.fechaConfirmacionPrenez ? (hembra.fechaConfirmacionPrenez | date:'dd/MM/yyyy') : '-' }}</td>
+                <td>{{ hembra.observaciones || '-' }}</td>
+              </tr>
+            </ng-template>
+          </p-table>
+        } @else {
+          <div class="text-center p-4 text-gray-500 bg-gray-50 rounded-lg">
+            No hay hembras registradas en esta temporada
+          </div>
+        }
+      </div>
+    }
+  </ng-template>
+  <ng-template pTemplate="footer">
+    <p-button label="Cerrar" [text]="true" (onClick)="showResultadoDialog.set(false)"></p-button>
+  </ng-template>
+</p-dialog>
+
+<!-- Buscar Hembra Dialog -->
+<p-dialog 
+  header="Buscar Hembra en Temporadas Activas" 
+  [(visible)]="showBuscarHembraDialog"
+  [modal]="true"
+  [style]="{width: '600px'}">
+  <ng-template #content>
+    <div class="flex flex-col gap-4">
+      <!-- Campo de búsqueda -->
+      <div class="flex gap-2">
+        <p-iconfield iconPosition="left" class="flex-1">
+          <p-inputicon>
+            <lucide-icon [img]="searchIcon" size="16"></lucide-icon>
+          </p-inputicon>
+          <input 
+            type="text" 
+            pInputText 
+            placeholder="Nombre o código de la hembra..." 
+            [(ngModel)]="buscarHembraTerm"
+            (keyup.enter)="buscarHembra()"
+            class="w-full">
+        </p-iconfield>
+        <p-button 
+          label="Buscar"
+          (onClick)="buscarHembra()"
+          [loading]="loadingBusqueda()">
+        </p-button>
+      </div>
+
+      <!-- Resultado de búsqueda -->
+      @if (hembraEncontrada()) {
+        <div class="border rounded-lg overflow-hidden">
+          <!-- Info de la hembra -->
+          <div class="p-4 bg-pink-50 border-b">
+            <h5 class="font-semibold text-pink-800 mb-2">Hembra Encontrada</h5>
+            <div class="flex items-center gap-4">
+              <div class="flex-1">
+                <p class="text-lg font-bold">{{ hembraEncontrada().hembra?.nombAnimal || hembraEncontrada().hembra?.codAnimal }}</p>
+                <p class="text-sm text-gray-600">Código: {{ hembraEncontrada().hembra?.codAnimal }}</p>
+              </div>
+              <p-tag 
+                [value]="hembraEncontrada().estadoReproduccion" 
+                [severity]="getEstadoReproduccionSeverity(hembraEncontrada().estadoReproduccion)">
+              </p-tag>
+            </div>
+          </div>
+          
+          <!-- Info del macho asignado -->
+          <div class="p-4 bg-blue-50">
+            <h5 class="font-semibold text-blue-800 mb-2">Asignada al Macho</h5>
+            <div class="flex items-center gap-4">
+              <div class="flex-1">
+                <p class="text-lg font-bold text-blue-900">{{ hembraEncontrada().macho?.nombAnimal || hembraEncontrada().macho?.codAnimal }}</p>
+                <p class="text-sm text-gray-600">Código: {{ hembraEncontrada().macho?.codAnimal }}</p>
+                <p class="text-sm text-gray-500">Temporada #{{ hembraEncontrada().temporada?.id }}</p>
+              </div>
+              <div class="text-right">
+                <p class="text-sm text-gray-600">Fecha de Monta</p>
+                <p class="font-semibold">{{ hembraEncontrada().fechaMonta | date:'dd/MM/yyyy' }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      } @else if (buscarHembraTerm && !loadingBusqueda()) {
+        <div class="text-center p-6 bg-gray-50 rounded-lg">
+          <p class="text-gray-500">Ingrese el nombre o código de una hembra y presione buscar</p>
+        </div>
+      }
+    </div>
+  </ng-template>
+  <ng-template pTemplate="footer">
+    <p-button label="Cerrar" [text]="true" (onClick)="showBuscarHembraDialog.set(false)"></p-button>
+  </ng-template>
+</p-dialog>

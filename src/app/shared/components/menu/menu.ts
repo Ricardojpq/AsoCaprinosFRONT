@@ -21,6 +21,8 @@ import {
   Building2,
   NotebookPen,
   Tractor,
+  Baby,
+  Dna,
 } from 'lucide-angular';
 @Component({
   selector: 'app-menu',
@@ -45,6 +47,8 @@ export class Menu {
   readonly building2Icon = Building2;
   readonly notebookPenIcon = NotebookPen;
   readonly tractorIcon = Tractor;
+  readonly babyIcon = Baby;
+  readonly dnaIcon = Dna;
 
   ngOnInit() {
     this.menuModel = [
@@ -82,6 +86,7 @@ export class Menu {
             icon: this.pawPrintIcon,
             items: [
               { label: 'Registrar Animal', routerLink: ['Animals'] },
+              { label: 'Gestión de Estados', routerLink: ['Animals/Estados'] },
               {
                 label: 'Catálogos',
                 routerLink: ['AnimalCatalogs'],
@@ -138,6 +143,33 @@ export class Menu {
             label: 'Fincas',
             icon: this.tractorIcon,
             routerLink: ['Farms'],
+          },
+        ],
+      },
+      {
+        items: [
+          {
+            label: 'Reproducción',
+            icon: this.dnaIcon,
+            items: [
+              { label: 'Temporadas de Monta', routerLink: ['Reproduccion/temporadas-monta'] },
+              { label: 'Diagnóstico de Preñez', routerLink: ['Reproduccion/diagnostico-prenez'] },
+              { label: 'Partos', routerLink: ['Reproduccion/partos'] },
+              { label: 'Lactancia', routerLink: ['Reproduccion/lactancia'] },
+              { label: 'Estados Reproductivos', routerLink: ['Reproduccion/estados-reproductivos'] },
+            ],
+          },
+        ],
+      },
+      {
+        separator: true,
+      },
+      {
+        items: [
+          {
+            label: 'Configuración',
+            icon: this.settingsIcon,
+            routerLink: ['Reproduccion/configuracion'],
           },
         ],
       },

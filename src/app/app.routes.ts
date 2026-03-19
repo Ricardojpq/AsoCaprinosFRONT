@@ -61,6 +61,13 @@ export const routes: Routes = [
           ).then((c) => c.PhysicalCondition),
       },
       {
+        path: 'Animals/Estados',
+        loadComponent: () =>
+          import('@features/animals/pages/estados/estados').then(
+            (c) => c.EstadosComponent
+          ),
+      },
+      {
         path: 'PoliticalDivision',
         loadComponent: () =>
           import('@features/political-division/political-division').then(
@@ -107,6 +114,13 @@ export const routes: Routes = [
           import(
             '@features/certificates/components/certificate-page2/certificate-page2'
           ).then((c) => c.CertificatePage2),
+      },
+      {
+        path: 'Reproduccion',
+        loadChildren: () =>
+          import('@features/reproduccion/reproduccion.routes').then(
+            (r) => r.REPRODUCCION_ROUTES
+          ),
       },
     ],
   },
