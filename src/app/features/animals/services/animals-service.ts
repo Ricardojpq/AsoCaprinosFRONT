@@ -1,10 +1,12 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams, HttpErrorResponse } from '@angular/common/http';
-import { Observable, of, throwError } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
+import { Observable, of, throwError, timer } from 'rxjs';
+import { map, catchError, switchMap, filter, take } from 'rxjs/operators';
+import { toObservable } from '@angular/core/rxjs-interop';
 import { ApiAnimals } from '@core/infrastructure/Apis/api-animals';
 import { environment } from '@environments/environment';
 import { LaravelApiResponse, LaravelSingleItemResponse, LaravelPaginationResponse } from '../../../core/models/DTOs';
+import { AuthService } from '@features/auth/services/auth.service';
 import { AnimalCreateDto } from '@features/animals/models/DTOs/animal-create';
 import { AnimalUpdateDto } from '@features/animals/models/DTOs/animal-update';
 import { AnimalDto } from '@features/animals/models/DTOs/animal';
@@ -33,6 +35,8 @@ export interface AnimalQueryParams {
 @Injectable({ providedIn: 'root' })
 export class AnimalsService {
   private animalsURL: string = environment.apiUrl;
+  private authService = inject(AuthService);
+  private user$ = toObservable(this.authService.user);
 
   constructor(private httpClient: HttpClient) {}
 
@@ -107,8 +111,34 @@ export class AnimalsService {
   }
 
   getAnimals$(query: AnimalQueryParams = {}): Observable<LaravelPaginationResponse<AnimalDto>> {
+    // Primero verificar si ya hay finca en localStorage
+    const storedFinca = localStorage.getItem('selected_finca');
+    if (storedFinca) {
+      return this.fetchAnimals(query, storedFinca);
+    }
+
+    // Si no hay en localStorage, esperar a que el usuario esté disponible
+    return this.user$.pipe(
+      filter(user => !!user?.fincas?.length),
+      take(1),
+      switchMap(user => {
+        const fincas = user?.fincas || [];
+        const fincaPrincipal = fincas.find((f: any) => f.es_principal) || fincas[0];
+        const codFinca = fincaPrincipal?.cod_finca?.toString();
+        return this.fetchAnimals(query, codFinca);
+      }),
+      catchError(() => this.fetchAnimals(query, undefined))
+    );
+  }
+
+  private fetchAnimals(query: AnimalQueryParams, codFinca?: string): Observable<LaravelPaginationResponse<AnimalDto>> {
     try {
       let params = new HttpParams();
+      
+      if (codFinca) {
+        params = params.set('cod_finca', codFinca);
+      }
+      
       Object.entries(query).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') {
           params = params.set(key, value as string);

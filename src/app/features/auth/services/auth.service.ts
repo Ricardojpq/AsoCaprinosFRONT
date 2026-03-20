@@ -5,6 +5,7 @@ import { LoadingService } from '@core/services/loading.service';
 import { interval, Subscription } from 'rxjs';
 import { switchMap, catchError, tap } from 'rxjs/operators';
 import { JwtAuthService } from '@core/services/jwt-auth.service';
+import { FincaContextService } from '@core/services/finca-context.service';
 import { User } from '../models/user';
 
 @Injectable({ providedIn: 'root' })
@@ -17,7 +18,8 @@ export class AuthService implements OnDestroy {
   constructor(
     private jwtAuthService: JwtAuthService,
     private router: Router, 
-    private loadingService: LoadingService
+    private loadingService: LoadingService,
+    private fincaContext: FincaContextService
   ) {
     this.initializeSession();
   }
@@ -30,16 +32,18 @@ export class AuthService implements OnDestroy {
     this.jwtAuthService.currentUser$.subscribe((user: any) => {
       this.userSignal.set(user);
       this.isAuthenticatedSignal.set(!!user);
+      
+      // Inicializar finca en localStorage cuando el usuario se carga
+      if (user) {
+        this.initializeFincaFromUser(user);
+      }
     });
 
-    // Verificar sesión inicial
+    // Verificar sesión inicial y cargar perfil inmediatamente
     const isAuth = this.jwtAuthService.isAuthenticated();
     if (isAuth) {
       this.isAuthenticatedSignal.set(true);
-      // Cargar perfil del usuario si es necesario (sin causar dependencia circular)
-      setTimeout(() => {
-        this.jwtAuthService.loadUserProfileIfNeeded();
-      }, 100);
+      this.jwtAuthService.loadUserProfileIfNeeded();
     }
   }
 
@@ -127,6 +131,26 @@ export class AuthService implements OnDestroy {
     this.userSignal.set(null);
     this.isAuthenticatedSignal.set(false);
     this.errorSignal.set(null);
+    this.fincaContext.clear();
+  }
+
+  /**
+   * Inicializa la finca seleccionada en localStorage basándose en el usuario
+   */
+  private initializeFincaFromUser(user: any): void {
+    const fincas = user.fincas || [];
+    if (fincas.length === 0) return;
+
+    // Si ya hay una finca válida en localStorage, no cambiarla
+    const storedFinca = this.fincaContext.getSelectedFinca();
+    if (storedFinca && fincas.some((f: any) => f.cod_finca === storedFinca)) {
+      return;
+    }
+
+    // Seleccionar finca principal o la primera
+    const principal = fincas.find((f: any) => f.es_principal);
+    const defaultFinca = principal || fincas[0];
+    this.fincaContext.setSelectedFinca(defaultFinca.cod_finca);
   }
 
   validateSession(): Promise<boolean> {

@@ -14,7 +14,7 @@
           class="w-80" />
       </span>
       <p-button 
-        icon="pi pi-search" 
+         severity="secondary"
         (onClick)="onSearch()"
         pTooltip="Buscar"
         tooltipPosition="bottom">
@@ -33,6 +33,7 @@
     <div class="flex gap-2">
       @if (canCreate) {
         <p-button 
+          styleClass="btn btn-sm btn-primary"
           label="Nueva Ciudad"
           (onClick)="openCreateModal()"
           pTooltip="Crear nueva ciudad"
@@ -106,26 +107,32 @@
         </td>
         @if (canUpdate || canDelete) {
           <td>
-            <div class="flex gap-1">
+            <div class="flex gap-2 justify-content-center">
               @if (canUpdate) {
-                <p-button 
-                  severity="info"
-                  size="small"
-                  (onClick)="openEditModal(city)"
-                  pTooltip="Editar"
-                  tooltipPosition="top">
-                   <lucide-icon [img]="pencilIcon" size="16"></lucide-icon>
-                </p-button>
+                <button 
+                  pButton
+                  [rounded]="true" 
+                  [text]="true"
+                  severity="warn"
+                  pTooltip="Editar Ciudad"
+                  tooltipPosition="top"
+                  (click)="openEditModal(city)"
+                  class="p-button-icon-only btn-action btn-action-edit">
+                  <lucide-icon [img]="pencilIcon" [size]="18"></lucide-icon>
+                </button>
               }
               @if (canDelete) {
-                <p-button 
+                <button 
+                  pButton
+                  [rounded]="true" 
+                  [text]="true"
                   severity="danger"
-                  size="small"
-                  (onClick)="confirmDelete(city)"
-                  pTooltip="Eliminar"
-                  tooltipPosition="top">
-                   <lucide-icon [img]="trashIcon" size="16"></lucide-icon>
-                </p-button>
+                  pTooltip="Eliminar Ciudad"
+                  tooltipPosition="top"
+                  (click)="confirmDelete(city)"
+                  class="p-button-icon-only btn-action btn-action-delete">
+                  <lucide-icon [img]="trashIcon" [size]="18"></lucide-icon>
+                </button>
               }
             </div>
           </td>

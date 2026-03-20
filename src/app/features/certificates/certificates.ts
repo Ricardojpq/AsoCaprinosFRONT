@@ -4,7 +4,9 @@ import {
   ElementRef,
   OnInit,
   ViewChild,
+  inject,
 } from '@angular/core';
+import { FincaContextService } from '@core/services/finca-context.service';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { TableModule } from 'primeng/table';
 import { DialogModule } from 'primeng/dialog';
@@ -159,6 +161,9 @@ export class Certificates implements OnInit {
   selectedAnimalData: AnimalSelectionDto | null = null;
   selectedClasificadorData: ClasificadorSelectionDto | null = null;
 
+  // Servicio de contexto de finca
+  private fincaContext = inject(FincaContextService);
+
   constructor(
     private messageService: MessageService,
     private confirmationService: ConfirmationService,
@@ -181,6 +186,7 @@ export class Certificates implements OnInit {
     const searchFilters = {
       ...this.filters,
       search: this.searchTerm || undefined,
+      ...this.fincaContext.getFincaQueryParamsString(),
     };
 
     this.certificatesService

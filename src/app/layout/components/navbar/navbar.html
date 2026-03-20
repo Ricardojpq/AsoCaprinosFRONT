@@ -38,19 +38,17 @@
         enterActiveClass="animate-scalein"
         leaveActiveClass="animate-fadeout"
         leaveToClass="hidden"
+        [hideOnOutsideClick]="true"
         class="z-50"
       >
         <p-avatar
-        class="!w-10 !h-10"
-          data-pc-name="avatar"
           class="!h-10 !w-10 p-avatar p-component cursor-pointer bg-golden-100 dark:bg-[#27272a] hover:bg-golden-500 transition-colors !rounded-b-md"
-          pc5=""
         >
           <img src="assets/logos/logo.png" />
         </p-avatar>
       </a>
       <div
-        class="list-none p-2 m-0 rounded-2xl border border-surface overflow-hidden absolute bg-surface-0 dark:bg-surface-900 origin-top w-52 mt-1 right-0 z-[999] top-auto hidden"
+        class="list-none p-2 m-0 rounded-2xl border border-surface overflow-hidden absolute bg-surface-0 dark:bg-surface-900 origin-top min-w-52 w-max max-w-xs mt-1 right-0 z-[999] top-auto hidden"
       >
         <ul class="flex flex-col gap-1">
           <li>
@@ -74,6 +72,17 @@
               <span>Cuenta</span>
             </a>
           </li>
+          @if (currentUser?.is_super_admin) {
+            <li>
+              <a
+                routerLink="Users"
+                class="label-small dark:text-surface-400 flex gap-2 py-2 px-2.5 rounded-lg items-center hover:bg-emphasis transition-colors duration-150 cursor-pointer"
+              >
+                <lucide-icon [img]="usersIcon" size="14"></lucide-icon>
+                <span>Gestión de Usuarios</span>
+              </a>
+            </li>
+          }
           <li>
             <a
               (click)="onLogout()"

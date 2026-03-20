@@ -83,8 +83,7 @@ export class AnimalsContainerComponent implements OnInit, OnDestroy, CanComponen
 
   ngOnInit(): void {
     this.setupSearchPipe();
-    // Solo cargar animales al inicio, los catálogos se cargan cuando se necesitan
-    this.loadAnimals();
+    // Los animales se cargan automáticamente por el lazy loading de la tabla
   }
 
   ngOnDestroy(): void {

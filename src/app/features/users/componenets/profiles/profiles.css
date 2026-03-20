@@ -1,0 +1,63 @@
+.profiles-container {
+  padding: 1.5rem;
+}
+
+.card {
+  background: var(--surface-card);
+  border-radius: 10px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.permisos-treetable-container {
+  padding: 0.5rem;
+}
+
+/* TreeTable Styles */
+.permisos-treetable-container ::ng-deep .p-treetable {
+  font-size: 0.9rem;
+}
+
+.permisos-treetable-container ::ng-deep .p-treetable .p-treetable-thead > tr > th {
+  background: var(--surface-100);
+  font-weight: 600;
+  padding: 0.75rem 0.5rem;
+  white-space: nowrap;
+}
+
+.permisos-treetable-container ::ng-deep .p-treetable .p-treetable-tbody > tr > td {
+  padding: 0.5rem;
+  vertical-align: middle;
+}
+
+.permisos-treetable-container ::ng-deep .p-treetable .p-treetable-tbody > tr:hover {
+  background: var(--surface-50);
+}
+
+/* Celda del módulo - evitar corte de palabras */
+.modulo-cell {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.modulo-nombre {
+  margin-left: 0.5rem;
+  white-space: nowrap;
+}
+
+/* Botones de acción en tabla */
+.p-button-icon-only {
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Ajustes para botones btn de Tailwind en diálogos */
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

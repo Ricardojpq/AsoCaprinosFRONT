@@ -12,6 +12,9 @@
   --p-primary-700:#e6890f;
   --p-primary-hover-color:#b4770d;
   --p-form-field-focus-border-color:var(--primary-color);
+  --p-tabs-tab-active-border-color:var(--primary-color);
+  --p-tabs-tab-active-color: var(--primary-color);
+  --p-tabs-active-bar-background: var(--primary-color);
   /* Common */
   --radius:.5rem;
   --primary-contrast-color: var(--p-primary-contrast-color);
@@ -846,5 +849,40 @@ p:last-child {
 
 .p-button-pink.p-button-outlined:hover {
   background-color: rgba(236, 72, 153, 0.1) !important;
+}
+
+/* ========== Action Buttons for Tables ========== */
+/* Botones de acción estándar para tablas con hover */
+.btn-action {
+  transition: all 0.2s ease-in-out !important;
+}
+
+.btn-action:hover {
+  transform: scale(1.1);
+}
+
+/* Botón Ver/Visualizar - Info */
+.btn-action-view:hover {
+  background-color: rgba(59, 130, 246, 0.15) !important;
+}
+
+/* Botón Editar - Warning/Amber */
+.btn-action-edit:hover {
+  background-color: rgba(245, 158, 11, 0.15) !important;
+}
+
+/* Botón Eliminar - Danger/Red */
+.btn-action-delete:hover {
+  background-color: rgba(239, 68, 68, 0.15) !important;
+}
+
+/* Botón Permisos/Shield - Info */
+.btn-action-permissions:hover {
+  background-color: rgba(59, 130, 246, 0.15) !important;
+}
+
+/* Botón Success/Confirmar */
+.btn-action-success:hover {
+  background-color: rgba(34, 197, 94, 0.15) !important;
 }
 

@@ -88,13 +88,14 @@ export class AnimalSelectionTable implements OnInit, OnChanges, OnDestroy {
         takeUntil(this.destroy$),
         debounceTime(300),
         distinctUntilChanged(),
-        // Solo buscar si tiene al menos 2 caracteres o está vacío (para limpiar)
-        // filter(searchTerm => !searchTerm || searchTerm.length >= 2)
       )
       .subscribe(searchTerm => {
         this.globalFilterValue = searchTerm;
-        this.page = 1; // Reset pagination on search
-        this.loadAnimals();
+        this.page = 1;
+        // Solo cargar si el diálogo está visible
+        if (this.visible) {
+          this.loadAnimals();
+        }
       });
 
     // Aplicar filtro por sexo si se especifica
@@ -107,6 +108,7 @@ export class AnimalSelectionTable implements OnInit, OnChanges, OnDestroy {
     // Detectar cuando el modal se abre
     if (changes['visible'] && changes['visible'].currentValue === true) {
       this.loadFincas();
+      this.loadAnimals();
     }
   }
 

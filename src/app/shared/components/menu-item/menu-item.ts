@@ -99,17 +99,15 @@ export class AppMenuItem {
             return;
         }
 
-        // execute command
-        // if (this.item.command) {
-        //     this.item.command({ originalEvent: event, item: this.item });
-        // }
+        // Si tiene routerLink y no tiene items hijos, dejar que Angular maneje la navegación
+        if (this.item.routerLink && !this.item.items) {
+            return;
+        }
 
-        // toggle active state
+        // toggle active state solo para items con subitems
         if (this.item.items) {
             this.active = !this.active;
         }
-
-        // this.layoutService.onMenuStateChange({ key: this.key });
     }
 
     get submenuAnimation() {

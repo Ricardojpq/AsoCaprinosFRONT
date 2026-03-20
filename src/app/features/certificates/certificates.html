@@ -164,27 +164,30 @@
           {{ formatDate(certificate.fecha_emision || "") }}
         </td>
         <td class="text-center">
-          <!-- Botón para visualizar PDF -->
-          <p-button
-            class="mr-2"
-            [rounded]="true"
-            [outlined]="true"
-            (click)="viewCertificate(certificate)"
-            severity="info"
-            pTooltip="Ver certificado"
-          >
-            <lucide-icon [img]="eyeIcon" size="18"></lucide-icon>
-          </p-button>
-          <!-- Botón para eliminar certificado -->
-          <p-button
-            severity="danger"
-            [rounded]="true"
-            [outlined]="true"
-            (click)="deleteCertificate(certificate)"
-            styleClass="p-button-sm"
-          >
-            <lucide-icon [img]="trashIcon" size="18"></lucide-icon>
-          </p-button>
+          <div class="flex gap-2 justify-content-center">
+            <button 
+              pButton
+              [rounded]="true" 
+              [text]="true"
+              severity="info"
+              pTooltip="Ver Certificado"
+              tooltipPosition="top"
+              (click)="viewCertificate(certificate)"
+              class="p-button-icon-only btn-action btn-action-view">
+              <lucide-icon [img]="eyeIcon" [size]="18"></lucide-icon>
+            </button>
+            <button 
+              pButton
+              [rounded]="true" 
+              [text]="true"
+              severity="danger"
+              pTooltip="Eliminar Certificado"
+              tooltipPosition="top"
+              (click)="deleteCertificate(certificate)"
+              class="p-button-icon-only btn-action btn-action-delete">
+              <lucide-icon [img]="trashIcon" [size]="18"></lucide-icon>
+            </button>
+          </div>
         </td>
       </tr>
     </ng-template>

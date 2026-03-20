@@ -433,6 +433,7 @@ export class Animals implements OnInit, OnDestroy {
       sort_dir: this.sortOrder,
       ...this.filters,
     };
+    
     this.animalsService.getAnimals$(query).subscribe({
       next: (res) => {
         this.animals = res.data || [];

@@ -13,6 +13,11 @@ export interface MenuItem {
     disabled?: boolean;
     visible?: boolean;
     styleClass?: string;
+    /**
+     * Vista/ruta del módulo para verificar permisos.
+     * Si no se especifica, se usa el routerLink.
+     */
+    moduleVista?: string;
 
     /**
     * Sets the hash fragment for the URL.

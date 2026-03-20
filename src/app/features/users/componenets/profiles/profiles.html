@@ -1,1 +1,245 @@
-<p>profiles works!</p>
+<div class="profiles-container">
+  <p-toast></p-toast>
+  <p-confirmDialog></p-confirmDialog>
+
+  <!-- Header -->
+  <div class="flex justify-between align-items-center mb-4">
+    <h2 class="m-0 text-2xl font-semibold">Gestión de Perfiles</h2>
+    <p-button
+      styleClass="btn btn-primary btn-sm"
+      label="Nuevo Perfil"
+      (onClick)="openNewPerfilDialog()">
+      <lucide-icon [img]="plusIcon" [size]="16"></lucide-icon>
+    </p-button>
+  </div>
+
+  <!-- Tabla de Perfiles -->
+  <div class="card">
+    <p-table 
+      [value]="perfiles()" 
+      [loading]="loading()"
+      [paginator]="true"
+      [rows]="rows"
+      [totalRecords]="totalRecords()"
+      [lazy]="true"
+      (onLazyLoad)="onPageChange($event)"
+      [first]="first"
+      styleClass="p-datatable-sm p-datatable-striped"
+      [tableStyle]="{'min-width': '50rem'}">
+      
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="width: 80px">ID</th>
+          <th>Nombre del Perfil</th>
+          <th style="width: 150px">Tipo</th>
+          <th style="width: 200px" class="text-center">Acciones</th>
+        </tr>
+      </ng-template>
+      
+      <ng-template pTemplate="body" let-perfil>
+        <tr>
+          <td>{{ perfil.id_perfil }}</td>
+          <td>
+            <span class="font-medium">{{ perfil.descripcion }}</span>
+          </td>
+          <td>
+            <p-tag 
+              [severity]="getPerfilTag(perfil).severity" 
+              [value]="getPerfilTag(perfil).label">
+            </p-tag>
+          </td>
+          <td class="text-center">
+            <div class="flex gap-2 justify-content-center">
+              <button 
+                pButton
+                [rounded]="true" 
+                [text]="true"
+                severity="info"
+                pTooltip="Gestionar Permisos"
+                tooltipPosition="top"
+                [disabled]="!canEditPerfil(perfil)"
+                (click)="openPermisosDialog(perfil)"
+                class="p-button-icon-only btn-action btn-action-permissions">
+                <lucide-icon [img]="shieldIcon" [size]="18"></lucide-icon>
+              </button>
+              <button 
+                pButton
+                [rounded]="true" 
+                [text]="true"
+                severity="warn"
+                pTooltip="Editar Perfil"
+                tooltipPosition="top"
+                [disabled]="!canEditPerfil(perfil)"
+                (click)="openEditPerfilDialog(perfil)"
+                class="p-button-icon-only btn-action btn-action-edit">
+                <lucide-icon [img]="pencilIcon" [size]="18"></lucide-icon>
+              </button>
+              <button 
+                pButton
+                [rounded]="true" 
+                [text]="true"
+                severity="danger"
+                pTooltip="Eliminar Perfil"
+                tooltipPosition="top"
+                [disabled]="!canDeletePerfil(perfil)"
+                (click)="confirmDeletePerfil(perfil)"
+                class="p-button-icon-only btn-action btn-action-delete">
+                <lucide-icon [img]="trash2Icon" [size]="18"></lucide-icon>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+      
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="4" class="text-center p-4">
+            No hay perfiles registrados
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <!-- Diálogo Crear/Editar Perfil -->
+  <p-dialog 
+    [header]="dialogTitle()" 
+    [(visible)]="showPerfilDialog" 
+    [modal]="true"
+    [style]="{width: '400px'}"
+    [closable]="!savingPerfil()">
+    
+    <div class="flex flex-column gap-3 pt-3">
+      <div class="flex flex-column gap-2">
+        <label for="perfilNombre" class="font-medium">Nombre del Perfil *</label>
+        <input 
+          pInputText 
+          id="perfilNombre" 
+          [ngModel]="perfilNombre()"
+          (ngModelChange)="perfilNombre.set($event)"
+          placeholder="Ej: Operador de Campo"
+          [disabled]="savingPerfil()"
+          class="w-full" />
+      </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+      <div class="flex gap-2 justify-content-end">
+        <p-button
+          styleClass="btn btn-sm btn-secondary"
+          label="Cancelar"
+          [disabled]="savingPerfil()"
+          (onClick)="showPerfilDialog.set(false)">
+          <lucide-icon [img]="xIcon" [size]="16"></lucide-icon>
+        </p-button>
+        <p-button
+          styleClass="btn btn-sm btn-primary"
+          label="Guardar"
+          [disabled]="savingPerfil()"
+          (onClick)="savePerfil()">
+          <lucide-icon [img]="checkIcon" [size]="16"></lucide-icon>
+        </p-button>
+      </div>
+    </ng-template>
+  </p-dialog>
+
+  <!-- Diálogo de Permisos -->
+  <p-dialog 
+    [header]="'Permisos de: ' + (selectedPerfil()?.descripcion || '')" 
+    [(visible)]="showPermisosDialog" 
+    [modal]="true"
+    [style]="{width: '900px', maxHeight: '90vh'}"
+    [closable]="!savingPermisos()">
+    
+    @if (loadingPermisos()) {
+      <div class="flex flex-column gap-3 p-3">
+        @for (i of [1,2,3,4,5]; track i) {
+          <p-skeleton height="2rem"></p-skeleton>
+        }
+      </div>
+    } @else {
+      <div class="permisos-treetable-container">
+        <p-treeTable 
+          [value]="permisosTreeNodes()" 
+          [scrollable]="true" 
+          scrollHeight="400px"
+          styleClass="p-treetable-sm permisos-treetable">
+          
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="width: 45%">Módulo/Página</th>
+              <th style="width: 13.75%" class="text-center">Ver</th>
+              <th style="width: 13.75%" class="text-center">Crear</th>
+              <th style="width: 13.75%" class="text-center">Editar</th>
+              <th style="width: 13.75%" class="text-center">Eliminar</th>
+            </tr>
+          </ng-template>
+          
+          <ng-template pTemplate="body" let-rowNode let-rowData="rowData">
+            <tr [ttRow]="rowNode">
+              <td style="width: 45%">
+                <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
+                <span class="ml-2">{{ rowData.nombre }}</span>
+              </td>
+              <td style="width: 13.75%" class="text-center">
+                <p-checkbox 
+                  [(ngModel)]="rowData.puede_ver" 
+                  [binary]="true"
+                  (onChange)="onPuedeVerChange(rowData)">
+                </p-checkbox>
+              </td>
+              <td style="width: 13.75%" class="text-center">
+                <p-checkbox 
+                  [(ngModel)]="rowData.puede_crear" 
+                  [binary]="true"
+                  [disabled]="!rowData.puede_ver">
+                </p-checkbox>
+              </td>
+              <td style="width: 13.75%" class="text-center">
+                <p-checkbox 
+                  [(ngModel)]="rowData.puede_editar" 
+                  [binary]="true"
+                  [disabled]="!rowData.puede_ver">
+                </p-checkbox>
+              </td>
+              <td style="width: 13.75%" class="text-center">
+                <p-checkbox 
+                  [(ngModel)]="rowData.puede_eliminar" 
+                  [binary]="true"
+                  [disabled]="!rowData.puede_ver">
+                </p-checkbox>
+              </td>
+            </tr>
+          </ng-template>
+          
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="5" class="text-center p-4">
+                No hay módulos disponibles
+              </td>
+            </tr>
+          </ng-template>
+        </p-treeTable>
+      </div>
+    }
+
+    <ng-template pTemplate="footer">
+      <div class="flex gap-2 justify-content-end">
+        <p-button
+          styleClass="btn btn-sm btn-secondary"
+          label="Cancelar"
+          [disabled]="savingPermisos()"
+          (onClick)="showPermisosDialog.set(false)">
+          <lucide-icon [img]="xIcon" [size]="16"></lucide-icon>
+        </p-button>
+        <p-button
+          styleClass="btn btn-sm btn-primary"
+          label="Guardar Permisos"
+          [disabled]="savingPermisos()"
+          (onClick)="savePermisos()">
+          <lucide-icon [img]="saveIcon" [size]="16"></lucide-icon>
+        </p-button>
+      </div>
+    </ng-template>
+  </p-dialog>
+</div>

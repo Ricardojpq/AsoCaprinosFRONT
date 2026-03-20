@@ -52,8 +52,8 @@
     </ng-template>
     <ng-template #end>
       <p-button
+        styleClass="btn btn-sm btn-primary"
         label="Cambiar Estado"
-        icon="pi pi-refresh"
         (onClick)="openCambiarEstadoDialog()"
         [disabled]="selectedAnimales().length === 0">
         <lucide-icon [img]="refreshIcon" size="16" class="mr-2"></lucide-icon>
@@ -65,16 +65,14 @@
   <div class="flex gap-2 mb-4 flex-wrap">
     <p-button 
       [label]="'Todos (' + animales().length + ')'"
-      [outlined]="activeTipoEstadoTab() !== null"
-      [severity]="activeTipoEstadoTab() === null ? 'primary' : 'secondary'"
+      [styleClass]="'btn btn-sm ' + (activeTipoEstadoTab() === null ? ' btn-primary' : 'btn-secondary')"
       size="small"
       (onClick)="setActiveTipoEstadoTab(null)">
     </p-button>
     @for (tipo of tiposEstado(); track tipo.id) {
       <p-button 
+        [styleClass]="'btn btn-sm ' + (activeTipoEstadoTab() === tipo.nombre ? ' btn-primary' : 'btn-secondary')"
         [label]="humanizarNombreTipo(tipo.nombre) + ' (' + getConteoEstado(tipo.nombre) + ')'"
-        [outlined]="activeTipoEstadoTab() !== tipo.nombre"
-        [severity]="activeTipoEstadoTab() === tipo.nombre ? 'primary' : 'secondary'"
         size="small"
         (onClick)="setActiveTipoEstadoTab(tipo.nombre)">
       </p-button>

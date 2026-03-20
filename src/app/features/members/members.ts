@@ -1,4 +1,5 @@
-import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
+import { Component, OnInit, ViewChild, OnDestroy, inject } from '@angular/core';
+import { FincaContextService } from '@core/services/finca-context.service';
 import { firstValueFrom, BehaviorSubject, Subject } from 'rxjs';
 import {
   takeUntil,
@@ -110,6 +111,9 @@ export class Members implements OnInit, OnDestroy {
 
   // Current member for editing
   currentMember: MemberDto | null = null;
+
+  // Servicio de contexto de finca
+  private fincaContext = inject(FincaContextService);
 
   constructor(
     private fb: FormBuilder,
@@ -241,6 +245,8 @@ export class Members implements OnInit, OnDestroy {
       sort_by: this.sortField as 'ced_socio' | 'cod_finca' | 'estatus_socio' | 'fec_ingreso' | 'created_at' | 'nom_persona' | 'ape_persona' | 'tel_persona' | 'email_persona',
       sort_dir: this.sortOrder,
       ...this.filters,
+      // Filtrar por finca seleccionada
+      ...this.fincaContext.getFincaQueryParams(),
     };
     this.membersService.getMembers$(query).subscribe({
       next: (res) => {

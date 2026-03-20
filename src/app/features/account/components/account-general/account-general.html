@@ -67,37 +67,49 @@
         </p>
       </div>
 
-      <!-- Finca Asignada -->
+      <!-- Fincas Asignadas -->
       <div class="space-y-2">
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Finca Asignada
+          Fincas Asignadas
         </label>
-        <div class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
-          <lucide-angular [img]="mapPinIcon" size="16" class="text-gray-500 dark:text-gray-400"></lucide-angular>
-          <span class="text-gray-900 dark:text-white">
-            {{ currentUser?.finca?.nomb_finca || 'Sin finca asignada' }}
-          </span>
-        </div>
+        @if (currentUser?.fincas?.length) {
+          <div class="flex flex-wrap gap-2">
+            @for (finca of currentUser?.fincas ?? []; track finca.cod_finca) {
+              <div class="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                <lucide-angular [img]="mapPinIcon" size="14" class="text-gray-500 dark:text-gray-400"></lucide-angular>
+                <span class="text-sm text-gray-900 dark:text-white">{{ finca.nomb_finca }}</span>
+                @if (finca.es_principal) {
+                  <span class="text-xs bg-golden-100 dark:bg-golden-900/30 text-golden-700 dark:text-golden-300 px-2 py-0.5 rounded-full">Principal</span>
+                }
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+            <lucide-angular [img]="mapPinIcon" size="16" class="text-gray-500 dark:text-gray-400"></lucide-angular>
+            <span class="text-gray-500 dark:text-gray-400">Sin fincas asignadas</span>
+          </div>
+        }
         <p class="text-xs text-gray-500 dark:text-gray-400">
-          Finca a la que perteneces
+          Fincas a las que tienes acceso
         </p>
       </div>
     </div>
   </div>
 
   <!-- Información Adicional -->
-  @if (currentUser?.cod_finca) {
+  @if (currentUser?.fincas?.length) {
     <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-6">
       <div class="flex items-center gap-2 mb-4">
         <lucide-angular [img]="mapPinIcon" size="20" class="text-amber-600 dark:text-amber-400"></lucide-angular>
-        <h3 class="text-lg font-medium text-amber-900 dark:text-amber-100">Información de Ubicación</h3>
+        <h3 class="text-lg font-medium text-amber-900 dark:text-amber-100">Información de Acceso</h3>
       </div>
       
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="flex items-center gap-2">
-          <span class="text-sm font-medium text-amber-800 dark:text-amber-200">Código de Finca:</span>
+          <span class="text-sm font-medium text-amber-800 dark:text-amber-200">Total de Fincas:</span>
           <span class="text-sm text-amber-700 dark:text-amber-300 font-mono bg-amber-100 dark:bg-amber-800/50 px-2 py-1 rounded">
-            {{ currentUser?.cod_finca }}
+            {{ currentUser?.fincas?.length || 0 }}
           </span>
         </div>
         

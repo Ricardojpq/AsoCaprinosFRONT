@@ -14,6 +14,7 @@ import { CommonModule } from '@angular/common';
 import { Sidebar } from '@layout/components/sidebar/sidebar';
 import { Navbar } from './components/navbar/navbar';
 import { Footer } from './components/footer/footer';
+import { FincaSelectorComponent } from './components/finca-selector/finca-selector';
 import { StyleClassModule } from 'primeng/styleclass';
 import { ButtonModule } from 'primeng/button';
 import { AppLoading } from '@shared/components/loading/loading';
@@ -28,6 +29,7 @@ import { AuthService } from '@features/auth/services/auth.service';
     Sidebar,
     Navbar,
     Footer,
+    FincaSelectorComponent,
     StyleClassModule,
     ButtonModule,
     AppLoading,

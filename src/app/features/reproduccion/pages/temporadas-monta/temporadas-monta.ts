@@ -1,4 +1,5 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { FincaContextService } from '@core/services/finca-context.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ReproduccionService } from '../../services/reproduccion.service';
@@ -57,6 +58,7 @@ export class TemporadasMonta implements OnInit {
   private reproduccionService = inject(ReproduccionService);
   private messageService = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
+  private fincaContext = inject(FincaContextService);
 
   // Lucide icons
   readonly plusIcon = Plus;
@@ -128,18 +130,20 @@ export class TemporadasMonta implements OnInit {
   loadFincas(): void {
     this.reproduccionService.getFincas().subscribe({
       next: (response) => {
-        // La respuesta puede ser paginada o un array directo
         const data = response.data;
         if (Array.isArray(data)) {
           this.fincas.set(data);
         } else if (data && 'data' in data) {
           this.fincas.set((data as any).data);
         }
-        // Auto-seleccionar primera finca si hay fincas
-        if (this.fincas().length > 0 && !this.selectedFinca()) {
+        // Usar finca del contexto si existe
+        const storedFinca = this.fincaContext.getSelectedFinca();
+        if (storedFinca) {
+          this.selectedFinca.set(storedFinca);
+        } else if (this.fincas().length > 0) {
           this.selectedFinca.set(this.fincas()[0].cod_finca);
-          this.loadTemporadas();
         }
+        this.loadTemporadas();
       },
       error: () => {
         this.messageService.add({
@@ -152,6 +156,8 @@ export class TemporadasMonta implements OnInit {
   }
 
   onFincaChange(): void {
+    // Guardar la finca seleccionada en el contexto
+    this.fincaContext.setSelectedFinca(this.selectedFinca());
     this.loadTemporadas();
     if (this.selectedFinca()) {
       this.loadMachosDisponibles(this.selectedFinca()!);
@@ -161,8 +167,10 @@ export class TemporadasMonta implements OnInit {
   loadTemporadas(): void {
     this.loading.set(true);
     const filters: any = {};
-    if (this.selectedFinca()) {
-      filters.cod_finca = this.selectedFinca();
+    // Usar finca del contexto global
+    const fincaId = this.fincaContext.getSelectedFinca();
+    if (fincaId) {
+      filters.cod_finca = fincaId;
     }
 
     this.reproduccionService.getTemporadasMonta(filters).subscribe({
@@ -254,8 +262,8 @@ export class TemporadasMonta implements OnInit {
     if (!this.machoSearchTerm) return machos;
     const term = this.machoSearchTerm.toLowerCase();
     return machos.filter(m => 
-      m.nombAnimal?.toLowerCase().includes(term) ||
-      m.codAnimal?.toLowerCase().includes(term)
+      m.nomb_animal?.toLowerCase().includes(term) ||
+      m.cod_animal?.toLowerCase().includes(term)
     );
   }
 
@@ -314,7 +322,7 @@ export class TemporadasMonta implements OnInit {
     this.selectedTemporada.set(temporada);
     this.selectedHembras.set([]);
     this.hembraSearchTerm = '';
-    this.loadHembrasDisponibles(temporada.codFinca);
+    this.loadHembrasDisponibles(temporada.cod_finca);
     this.showAddHembrasDialog.set(true);
   }
 
@@ -341,8 +349,8 @@ export class TemporadasMonta implements OnInit {
     if (!this.hembraSearchTerm) return hembras;
     const term = this.hembraSearchTerm.toLowerCase();
     return hembras.filter(h => 
-      h.nombAnimal?.toLowerCase().includes(term) ||
-      h.codAnimal?.toLowerCase().includes(term)
+      h.nomb_animal?.toLowerCase().includes(term) ||
+      h.cod_animal?.toLowerCase().includes(term)
     );
   }
 
@@ -420,9 +428,9 @@ export class TemporadasMonta implements OnInit {
     }
     const hembras = temporada.hembras;
     return {
-      prenadas: hembras.filter(h => h.estadoReproduccion === 'PREÑADA').length,
-      vacias: hembras.filter(h => h.estadoReproduccion === 'VACIA').length,
-      enMonta: hembras.filter(h => h.estadoReproduccion === 'EN_MONTA').length,
+      prenadas: hembras.filter(h => h.estado_reproduccion === 'PREÑADA').length,
+      vacias: hembras.filter(h => h.estado_reproduccion === 'VACIA').length,
+      enMonta: hembras.filter(h => h.estado_reproduccion === 'EN_MONTA').length,
       total: hembras.length
     };
   }
@@ -606,16 +614,16 @@ export class TemporadasMonta implements OnInit {
         for (const temporada of temporadasActivas) {
           if (temporada.hembras) {
             const hembra = temporada.hembras.find((h: any) => 
-              h.hembra?.nombAnimal?.toLowerCase().includes(term) ||
-              h.hembra?.codAnimal?.toLowerCase().includes(term)
+              h.hembra?.nomb_animal?.toLowerCase().includes(term) ||
+              h.hembra?.cod_animal?.toLowerCase().includes(term)
             );
             if (hembra) {
               encontrada = {
                 hembra: hembra.hembra,
                 temporada: temporada,
                 macho: temporada.macho,
-                fechaMonta: hembra.fechaMonta,
-                estadoReproduccion: hembra.estadoReproduccion
+                fechaMonta: hembra.fecha_monta,
+                estadoReproduccion: hembra.estado_reproduccion
               };
               break;
             }

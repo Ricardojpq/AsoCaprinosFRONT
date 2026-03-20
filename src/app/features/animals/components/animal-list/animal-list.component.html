@@ -86,25 +86,29 @@
       <td>{{ getTipoPartoLabel(animal.tipo_parto) }}</td>
       <td>{{ animal.comp_racial || 'N/A' }}</td>
       <td>
-        <div class="flex gap-2">
-          <p-button
-            icon="pi pi-pencil"
-            styleClass="p-button-rounded p-button-text p-button-sm"
-            (onClick)="editAnimal(animal)"
-            pTooltip="Editar"
+        <div class="flex gap-2 justify-content-center">
+          <button 
+            pButton
+            [rounded]="true" 
+            [text]="true"
+            severity="warn"
+            pTooltip="Editar Animal"
             tooltipPosition="top"
-          >
-            <lucide-icon [img]="pencilIcon" size="16"></lucide-icon>
-          </p-button>
-          <p-button
-            icon="pi pi-trash"
-            styleClass="p-button-rounded p-button-text p-button-danger p-button-sm"
-            (onClick)="deleteAnimal(animal)"
-            pTooltip="Eliminar"
+            (click)="editAnimal(animal)"
+            class="p-button-icon-only btn-action btn-action-edit">
+            <lucide-icon [img]="pencilIcon" [size]="18"></lucide-icon>
+          </button>
+          <button 
+            pButton
+            [rounded]="true" 
+            [text]="true"
+            severity="danger"
+            pTooltip="Eliminar Animal"
             tooltipPosition="top"
-          >
-            <lucide-icon [img]="trashIcon" size="16"></lucide-icon>
-          </p-button>
+            (click)="deleteAnimal(animal)"
+            class="p-button-icon-only btn-action btn-action-delete">
+            <lucide-icon [img]="trashIcon" [size]="18"></lucide-icon>
+          </button>
         </div>
       </td>
     </tr>

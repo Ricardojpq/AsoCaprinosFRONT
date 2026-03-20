@@ -15,6 +15,7 @@
         />
       </span>
       <p-button
+        severity="secondary"
         (onClick)="onSearch()"
         pTooltip="Buscar"
         tooltipPosition="bottom"
@@ -27,7 +28,7 @@
         pTooltip="Limpiar búsqueda"
         tooltipPosition="bottom"
       >
-        <lucide-icon [img]="trashIcon" size="16"></lucide-icon>
+       <lucide-icon [img]="brushCleaningIcon" size="16"></lucide-icon>
       </p-button>
     </div>
 
@@ -35,6 +36,7 @@
     <div class="flex gap-2">
       @if (canCreate) {
       <p-button
+        styleClass="btn btn-sm btn-primary"
         label="Nueva Parroquia"
         (onClick)="openCreateModal()"
         pTooltip="Crear nueva parroquia"
@@ -49,7 +51,7 @@
         pTooltip="Actualizar"
         tooltipPosition="bottom"
       >
-        <lucide-icon [img]="brushCleaningIcon" size="16"></lucide-icon>
+        <lucide-icon [img]="rotateCcwIcon" size="16"></lucide-icon>
       </p-button>
     </div>
   </div>
@@ -111,28 +113,31 @@
         </td>
         @if (canUpdate || canDelete) {
         <td>
-          <div class="flex gap-1">
+          <div class="flex gap-2 justify-content-center">
             @if (canUpdate) {
-            <p-button
-              severity="info"
-              size="small"
-              (onClick)="openEditModal(parish)"
-              pTooltip="Editar"
+            <button 
+              pButton
+              [rounded]="true" 
+              [text]="true"
+              severity="warn"
+              pTooltip="Editar Parroquia"
               tooltipPosition="top"
-            >
-              <lucide-icon [img]="pencilIcon" size="16"></lucide-icon>
-            </p-button>
+              (click)="openEditModal(parish)"
+              class="p-button-icon-only btn-action btn-action-edit">
+              <lucide-icon [img]="pencilIcon" [size]="18"></lucide-icon>
+            </button>
             } @if (canDelete) {
-            <p-button
-              icon="pi pi-trash"
+            <button 
+              pButton
+              [rounded]="true" 
+              [text]="true"
               severity="danger"
-              size="small"
-              (onClick)="confirmDelete(parish)"
-              pTooltip="Eliminar"
+              pTooltip="Eliminar Parroquia"
               tooltipPosition="top"
-            >
-              <lucide-icon [img]="trashIcon" size="16"></lucide-icon>
-            </p-button>
+              (click)="confirmDelete(parish)"
+              class="p-button-icon-only btn-action btn-action-delete">
+              <lucide-icon [img]="trashIcon" [size]="18"></lucide-icon>
+            </button>
             }
           </div>
         </td>

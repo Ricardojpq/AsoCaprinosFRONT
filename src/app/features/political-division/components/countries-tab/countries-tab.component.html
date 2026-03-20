@@ -15,6 +15,7 @@
         />
       </span>
       <p-button
+       severity="secondary"
         (onClick)="onSearch()"
         pTooltip="Buscar"
         tooltipPosition="bottom"
@@ -35,6 +36,7 @@
     <div class="flex gap-2">
       @if (canCreate) {
       <p-button
+        styleClass="btn btn-sm btn-primary"
         label="Nuevo País"
         (onClick)="openCreateModal()"
         pTooltip="Crear nuevo país"
@@ -118,29 +120,31 @@
         </td>
         @if (canUpdate || canDelete) {
         <td>
-          <div class="flex gap-1">
+          <div class="flex gap-2 justify-content-center">
             @if (canUpdate) {
-            <p-button
-              icon="pi pi-pencil"
-              severity="info"
-              size="small"
-              (onClick)="openEditModal(country)"
-              pTooltip="Editar"
+            <button 
+              pButton
+              [rounded]="true" 
+              [text]="true"
+              severity="warn"
+              pTooltip="Editar País"
               tooltipPosition="top"
-            >
-              <lucide-icon [img]="pencilIcon" size="16"></lucide-icon>
-            </p-button>
+              (click)="openEditModal(country)"
+              class="p-button-icon-only btn-action btn-action-edit">
+              <lucide-icon [img]="pencilIcon" [size]="18"></lucide-icon>
+            </button>
             } @if (canDelete) {
-            <p-button
-              icon="pi pi-trash"
+            <button 
+              pButton
+              [rounded]="true" 
+              [text]="true"
               severity="danger"
-              size="small"
-              (onClick)="confirmDelete(country)"
-              pTooltip="Eliminar"
+              pTooltip="Eliminar País"
               tooltipPosition="top"
-            >
-              <lucide-icon [img]="trashIcon" size="16"></lucide-icon>
-            </p-button>
+              (click)="confirmDelete(country)"
+              class="p-button-icon-only btn-action btn-action-delete">
+              <lucide-icon [img]="trashIcon" [size]="18"></lucide-icon>
+            </button>
             }
           </div>
         </td>

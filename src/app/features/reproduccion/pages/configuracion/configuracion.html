@@ -93,22 +93,30 @@
           <span class="font-semibold">{{ parametro.valor }}</span>
         </td>
         <td>
-          <p-button
-            class="mr-2"
-            [rounded]="true"
-            [outlined]="true"
-            (click)="openEditDialog(parametro)"
-            styleClass="p-button-sm">
-            <lucide-icon [img]="pencilIcon" size="18"></lucide-icon>
-          </p-button>
-          <p-button
-            severity="danger"
-            [rounded]="true"
-            [outlined]="true"
-            (click)="deleteParametro(parametro)"
-            styleClass="p-button-sm">
-            <lucide-icon [img]="trashIcon" size="18"></lucide-icon>
-          </p-button>
+          <div class="flex gap-2 justify-content-center">
+            <button 
+              pButton
+              [rounded]="true" 
+              [text]="true"
+              severity="warn"
+              pTooltip="Editar Parámetro"
+              tooltipPosition="top"
+              (click)="openEditDialog(parametro)"
+              class="p-button-icon-only btn-action btn-action-edit">
+              <lucide-icon [img]="pencilIcon" [size]="18"></lucide-icon>
+            </button>
+            <button 
+              pButton
+              [rounded]="true" 
+              [text]="true"
+              severity="danger"
+              pTooltip="Eliminar Parámetro"
+              tooltipPosition="top"
+              (click)="deleteParametro(parametro)"
+              class="p-button-icon-only btn-action btn-action-delete">
+              <lucide-icon [img]="trashIcon" [size]="18"></lucide-icon>
+            </button>
+          </div>
         </td>
       </tr>
     </ng-template>

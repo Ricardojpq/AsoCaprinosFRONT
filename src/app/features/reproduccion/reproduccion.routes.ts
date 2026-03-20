@@ -30,12 +30,7 @@ export const REPRODUCCION_ROUTES: Routes = [
     loadComponent: () =>
       import('./pages/lactancia/lactancia').then((c) => c.Lactancia),
   },
-  {
-    path: 'configuracion',
-    loadComponent: () =>
-      import('./pages/configuracion/configuracion').then((c) => c.Configuracion),
-  },
-  {
+    {
     path: 'estados-animal',
     loadComponent: () =>
       import('./pages/estados-animal/estados-animal').then((c) => c.EstadosAnimal),

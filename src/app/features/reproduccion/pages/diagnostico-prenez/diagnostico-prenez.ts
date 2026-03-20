@@ -195,8 +195,8 @@ export class DiagnosticoPrenezComponent implements OnInit {
   }
 
   private procesarHembra(hembra: TemporadaMontaHembra): HembraDiagnostico {
-    const fechaFin = hembra.temporadaMonta?.fechaFin 
-      ? new Date(hembra.temporadaMonta.fechaFin) 
+    const fechaFin = (hembra as any).temporada_monta?.fecha_fin 
+      ? new Date((hembra as any).temporada_monta.fecha_fin) 
       : null;
     
     let diasDesdeFinMonta = 0;

@@ -13,6 +13,9 @@ export interface User {
   perfil_name?: string;
   cod_finca?: number | null;
   token_expires_at?: string;
+  is_super_admin?: boolean;
+  is_admin_finca?: boolean;
+  is_usuario_basico?: boolean;
   
   // Relaciones
   perfil?: {
@@ -23,6 +26,15 @@ export interface User {
     cod_finca: number;
     nomb_finca: string;
   };
+  // Multi-tenant
+  fincas?: Array<{
+    cod_finca: number;
+    nomb_finca: string;
+    es_principal?: boolean;
+  }>;
+  fincas_ids?: number[];
+  // Permisos
+  permisos?: { [page: string]: { ver: boolean; crear: boolean; editar: boolean; eliminar: boolean } };
 }
 
 export interface AuthResponse {

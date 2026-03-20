@@ -1,4 +1,5 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { FincaContextService } from '@core/services/finca-context.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ReproduccionService } from '../../services/reproduccion.service';
@@ -56,6 +57,7 @@ export class Partos implements OnInit {
   private reproduccionService = inject(ReproduccionService);
   private messageService = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
+  private fincaContext = inject(FincaContextService);
 
   // Lucide icons
   readonly plusIcon = Plus;
@@ -175,12 +177,15 @@ export class Partos implements OnInit {
         } else if (data && 'data' in data) {
           this.fincas.set((data as any).data);
         }
-        // Auto-seleccionar primera finca
-        if (this.fincas().length > 0 && !this.selectedFinca()) {
+        // Usar finca del contexto si existe
+        const storedFinca = this.fincaContext.getSelectedFinca();
+        if (storedFinca) {
+          this.selectedFinca.set(storedFinca);
+        } else if (this.fincas().length > 0) {
           this.selectedFinca.set(this.fincas()[0].cod_finca);
-          this.loadPartos();
-          this.loadHembrasPregnadas();
         }
+        this.loadPartos();
+        this.loadHembrasPregnadas();
       },
       error: () => {
         this.messageService.add({
@@ -193,6 +198,8 @@ export class Partos implements OnInit {
   }
 
   onFincaChange(): void {
+    // Guardar la finca seleccionada en el contexto
+    this.fincaContext.setSelectedFinca(this.selectedFinca());
     this.loadPartos();
     this.loadHembrasPregnadas();
   }
@@ -200,8 +207,10 @@ export class Partos implements OnInit {
   loadPartos(): void {
     this.loading.set(true);
     const filters: any = {};
-    if (this.selectedFinca()) {
-      filters.cod_finca = this.selectedFinca();
+    // Usar finca del contexto global
+    const fincaId = this.fincaContext.getSelectedFinca();
+    if (fincaId) {
+      filters.cod_finca = fincaId;
     }
     if (this.fechaInicio()) {
       filters.fecha_inicio = this.formatDate(this.fechaInicio()!);

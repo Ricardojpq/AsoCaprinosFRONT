@@ -1,12 +1,9 @@
-import { animate } from '@angular/animations';
 import { Routes } from '@angular/router';
-import { App } from './app';
 import { Layout } from '@layout/layout';
 import { AuthGuard } from '@core/guards/auth-guard';
 import { NoAuthGuard } from '@core/guards/no-auth-guard';
-import { CanDeactivateGuard } from '@core/guards/can-deactivate-guard';
 import { CanDeactivateAnimalFormGuard } from '@core/guards/can-deactivate-animal-form.guard';
-import { CertificatePage1 } from '@features/certificates/components/certificate-page1/certificate-page1';
+import { SuperAdminGuard } from '@core/guards/role-guard';
 
 export const routes: Routes = [
   {
@@ -109,6 +106,29 @@ export const routes: Routes = [
           import('@features/account/account').then((c) => c.Account),
       },
       {
+        path: 'Users',
+        canActivate: [SuperAdminGuard],
+        loadComponent: () =>
+          import('@features/users/pages/user-management/user-management').then(
+            (c) => c.UserManagementComponent
+          ),
+      },
+      {
+        path: 'Settings/Profiles',
+        canActivate: [SuperAdminGuard],
+        loadComponent: () =>
+          import('@features/users/componenets/profiles/profiles').then(
+            (c) => c.Profiles
+          ),
+      },
+      {
+        path: 'Settings/Parameters',
+        loadComponent: () =>
+          import('@features/reproduccion/pages/configuracion/configuracion').then(
+            (c) => c.Configuracion
+          ),
+      },
+      {
         path: 'test',
         loadComponent: () =>
           import(
@@ -132,13 +152,6 @@ export const routes: Routes = [
         canActivate: [NoAuthGuard],
         loadComponent: () =>
           import('@features/auth/components/login/login').then((c) => c.Login),
-      },
-      {
-        path: 'JwtTest',
-        loadComponent: () =>
-          import('@features/auth/components/oauth-test/oauth-test').then(
-            (c) => c.JwtTest
-          ),
       },
     ],
   },

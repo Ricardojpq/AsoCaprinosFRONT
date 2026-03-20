@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Output, inject } from '@angular/core';
-import { LucideAngularModule, Menu, User, Settings, LogOut, Home, Award, PawPrint,ScrollText  } from 'lucide-angular';
+import { LucideAngularModule, Menu, User, Users, Settings, LogOut, Home, Award, PawPrint, ScrollText } from 'lucide-angular';
 import { ThemeToggle } from "../theme-toggle/theme-toggle";
 import { RouterModule } from '@angular/router';
 import { MenuItem } from 'primeng/api';
@@ -12,7 +12,7 @@ import { AuthService } from '@features/auth/services/auth.service';
 
 @Component({
   selector: 'app-navbar',
-  imports: [CommonModule, RouterModule, StyleClassModule, LucideAngularModule, ThemeToggle,AvatarModule,ButtonModule],
+  imports: [CommonModule, RouterModule, StyleClassModule, LucideAngularModule, ThemeToggle, AvatarModule, ButtonModule],
   templateUrl: './navbar.html',
   styleUrl: './navbar.css'
 })
@@ -20,6 +20,7 @@ export class Navbar {
   readonly menuIcon = Menu;
   readonly homeIcon = Home;
   readonly userIcon = User;
+  readonly usersIcon = Users;
   readonly awardIcon = Award;
   readonly pawPrintIcon = PawPrint;
   readonly settingsIcon = Settings;

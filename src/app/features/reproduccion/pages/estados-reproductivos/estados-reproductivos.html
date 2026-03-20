@@ -57,6 +57,7 @@
     </ng-template>
     <ng-template #end>
       <p-button
+        styleClass="btn btn-sm btn-primary"
         label="Cambiar Estado"
         (onClick)="openCambiarEstadoDialog()"
         [disabled]="selectedAnimales().length === 0">

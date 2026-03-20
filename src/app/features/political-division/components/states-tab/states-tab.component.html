@@ -15,6 +15,7 @@
           class="w-80" />
       </span>
       <p-button 
+        severity="secondary"
         (onClick)="onSearch()"
         pTooltip="Buscar"
         tooltipPosition="bottom">
@@ -34,7 +35,7 @@
     <div class="flex gap-2">
       @if (canCreate) {
         <p-button 
-          icon="pi pi-plus" 
+          styleClass="btn btn-sm btn-primary"
           label="Nuevo Estado"
           (onClick)="openCreateModal()"
           pTooltip="Crear nuevo estado"
@@ -117,28 +118,32 @@
         </td>
         @if (canUpdate || canDelete) {
           <td>
-            <div class="flex gap-1">
+            <div class="flex gap-2 justify-content-center">
               @if (canUpdate) {
-                <p-button 
-                  icon="pi pi-pencil" 
-                  severity="info"
-                  size="small"
-                  (onClick)="openEditModal(state)"
-                  pTooltip="Editar"
-                  tooltipPosition="top">
-                  <lucide-icon [img]="pencilIcon" size="16"></lucide-icon>
-                </p-button>
+                <button 
+                  pButton
+                  [rounded]="true" 
+                  [text]="true"
+                  severity="warn"
+                  pTooltip="Editar Estado"
+                  tooltipPosition="top"
+                  (click)="openEditModal(state)"
+                  class="p-button-icon-only btn-action btn-action-edit">
+                  <lucide-icon [img]="pencilIcon" [size]="18"></lucide-icon>
+                </button>
               }
               @if (canDelete) {
-                <p-button 
-                  icon="pi pi-trash" 
+                <button 
+                  pButton
+                  [rounded]="true" 
+                  [text]="true"
                   severity="danger"
-                  size="small"
-                  (onClick)="confirmDelete(state)"
-                  pTooltip="Eliminar"
-                  tooltipPosition="top">
-                    <lucide-icon [img]="trashIcon" size="16"></lucide-icon>
-                </p-button>
+                  pTooltip="Eliminar Estado"
+                  tooltipPosition="top"
+                  (click)="confirmDelete(state)"
+                  class="p-button-icon-only btn-action btn-action-delete">
+                  <lucide-icon [img]="trashIcon" [size]="18"></lucide-icon>
+                </button>
               }
             </div>
           </td>
