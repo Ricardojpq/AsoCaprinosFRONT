@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import { LaravelPaginationResponse as PaginatedResponse } from '@core/models/DTOs/laravel-response';
 
 export interface Usuario {
   id_usuario: number;
@@ -59,14 +60,6 @@ export interface UpdateUserRequest {
   is_active?: boolean;
   fincas?: number[];
   finca_principal?: number;
-}
-
-export interface PaginatedResponse<T> {
-  current_page: number;
-  data: T[];
-  per_page: number;
-  total: number;
-  last_page: number;
 }
 
 export interface PermisosPagina {

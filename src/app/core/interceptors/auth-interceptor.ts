@@ -10,46 +10,30 @@ export const authInterceptor: HttpInterceptorFn = (
 ) => {
   const router = inject(Router);
 
-  // Solo interceptar peticiones a la API que no sean de autenticación
   const isApiRequest = request.url.includes('/api/');
-  const isAuthRequest = request.url.includes('/auth/login') || 
-                       request.url.includes('/auth/register') ||
-                       request.url.includes('/auth/me');
 
-  // Si no es una petición a la API o es una petición de autenticación, no interceptar
-  if (!isApiRequest || isAuthRequest) {
+  // Si no es una petición a la API, no interceptar
+  if (!isApiRequest) {
     return next(request);
   }
 
-  // Agregar token si existe
-  const token = getCookie('access_token');
-  let authReq = request;
-  
-  if (token) {
-    authReq = request.clone({
-      setHeaders: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-  }
+  // Agregar withCredentials para que el browser envíe la cookie HttpOnly automáticamente
+  const authReq = request.clone({
+    withCredentials: true,
+  });
 
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
-      // Si es un error de autenticación
       if (error.status === 401) {
         const isLoginRequest = request.url.includes('/auth/login');
         const isRegisterRequest = request.url.includes('/auth/register');
         const isLogoutRequest = request.url.includes('/auth/logout');
         const isAlreadyOnLogin = router.url.includes('/Auth/Login');
 
-        // Si no es una petición de autenticación y no estamos ya en login
         if (!isLoginRequest && !isRegisterRequest && !isLogoutRequest && !isAlreadyOnLogin) {
-          console.log('🔒 Interceptor: Error 401, limpiando sesión y redirigiendo al login');
-          
-          // Limpiar token de la cookie
-          deleteCookie('access_token');
-          
-          // Redirigir al login
+          // Limpiar expiración local
+          try { localStorage.removeItem('auth_expires_at'); } catch {}
+
           router.navigate(['/Auth/Login']);
         }
       }
@@ -57,35 +41,3 @@ export const authInterceptor: HttpInterceptorFn = (
     })
   );
 };
-
-/**
- * Obtener cookie
- */
-function getCookie(name: string): string | null {
-  const nameEQ = name + "=";
-  const ca = document.cookie.split(';');
-  for (let i = 0; i < ca.length; i++) {
-    let c = ca[i];
-    while (c.charAt(0) === ' ') c = c.substring(1, c.length);
-    if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
-  }
-  return null;
-}
-
-/**
- * Eliminar cookie
- */
-function deleteCookie(name: string): void {
-  const cookieParts = [
-    `${name}=`,
-    'expires=Thu, 01 Jan 1970 00:00:00 UTC',
-    'path=/',
-    'SameSite=Strict'
-  ];
-  
-  if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
-    cookieParts.push('Secure');
-  }
-  
-  document.cookie = cookieParts.join(';');
-} 

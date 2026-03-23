@@ -19,20 +19,10 @@ import {
   LactanciaEstadisticas
 } from '../models/parto.interface';
 import { Parametro } from '../models/estado-animal.interface';
-
-export interface ApiResponse<T> {
-  status: string;
-  message: string;
-  data: T;
-}
-
-export interface PaginatedResponse<T> {
-  current_page: number;
-  data: T[];
-  per_page: number;
-  total: number;
-  last_page: number;
-}
+import {
+  LaravelPaginationResponse as PaginatedResponse,
+  LaravelSingleItemResponse as ApiResponse
+} from '@core/models/DTOs/laravel-response';
 
 export interface DiagnosticoResponse {
   hembras: TemporadaMontaHembra[];

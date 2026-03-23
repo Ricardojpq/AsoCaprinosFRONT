@@ -67,14 +67,14 @@ export class JwtAuthService {
   }
 
   /**
-   * Verificar autenticación inicial - Solo verifica token, no hace peticiones HTTP
+   * Verificar autenticación inicial - Solo verifica expiración local, no hace peticiones HTTP
    */
   private checkInitialAuth(): void {
-    const token = this.getAccessToken();
-    if (token && this.isTokenValid(token)) {
+    const expiresAt = this.getStoredExpiration();
+    if (expiresAt && Date.now() < expiresAt) {
       this.isAuthenticatedSubject.next(true);
     } else {
-      this.isAuthenticatedSubject.next(false);
+      this.clearLocalAuth();
     }
   }
 
@@ -82,14 +82,13 @@ export class JwtAuthService {
    * Cargar perfil del usuario - Método público para llamar cuando sea necesario
    */
   loadUserProfileIfNeeded(): void {
-    const token = this.getAccessToken();
-    if (token && this.isTokenValid(token) && !this.currentUserSubject.value) {
+    const expiresAt = this.getStoredExpiration();
+    if (expiresAt && Date.now() < expiresAt && !this.currentUserSubject.value) {
       this.loadUserProfile().subscribe({
         error: (error: any) => {
           console.error('❌ Error al cargar perfil:', error);
           // Si falla, limpiar la sesión
-          this.clearTokens();
-          this.isAuthenticatedSubject.next(false);
+          this.clearLocalAuth();
         }
       });
     }
@@ -101,17 +100,20 @@ export class JwtAuthService {
   login(email: string, password: string): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(
       `${environment.apiUrl}${environment.apiPrefix}/${environment.apiVersion}/auth/login`,
-      { email, password }
+      { email, password },
+      { withCredentials: true }
     ).pipe(
       tap((response: AuthResponse) => {
         if (response.status === 'success') {
-          this.setAccessToken(response.data.access_token);
+          // Guardar solo la expiración localmente (NO el JWT)
+          // La cookie HttpOnly la maneja el browser automáticamente
+          this.storeExpiration(response.data.expires_at);
           this.currentUserSubject.next(response.data.user);
           this.isAuthenticatedSubject.next(true);
         }
       }),
       catchError(error => {
-        console.error('❌ Error en login:', error);
+        console.error('Error en login:', error);
         return throwError(() => error);
       })
     );
@@ -121,21 +123,15 @@ export class JwtAuthService {
    * Logout
    */
   logout(): void {
-    const accessToken = this.getAccessToken();
+    this.http.post(
+      `${environment.apiUrl}${environment.apiPrefix}/${environment.apiVersion}/auth/logout`,
+      {},
+      { withCredentials: true }
+    ).subscribe({
+      error: (error: any) => console.error('Error en logout:', error)
+    });
 
-    if (accessToken) {
-      this.http.post(
-        `${environment.apiUrl}${environment.apiPrefix}/${environment.apiVersion}/auth/logout`,
-        {},
-        { headers: this.getAuthHeaders() }
-      ).subscribe({
-        error: (error: any) => console.error('❌ Error en logout:', error)
-      });
-    }
-
-    this.clearTokens();
-    this.currentUserSubject.next(null);
-    this.isAuthenticatedSubject.next(false);
+    this.clearLocalAuth();
     this.router.navigate(['/Auth/Login']);
   }
 
@@ -145,7 +141,7 @@ export class JwtAuthService {
   loadUserProfile(): Observable<User> {
     return this.http.get<{ status: string; message: string; data: User }>(
       `${environment.apiUrl}${environment.apiPrefix}/${environment.apiVersion}/auth/me`,
-      { headers: this.getAuthHeaders() }
+      { withCredentials: true }
     ).pipe(
       map((response: { status: string; message: string; data: User }) => response.data),
       tap((user: User) => {
@@ -153,7 +149,7 @@ export class JwtAuthService {
         this.isAuthenticatedSubject.next(true);
       }),
       catchError(error => {
-        console.error('❌ Error al cargar perfil:', error);
+        console.error('Error al cargar perfil:', error);
         if (error.status === 401) {
           this.logout();
         }
@@ -166,8 +162,8 @@ export class JwtAuthService {
    * Verificar si el usuario está autenticado
    */
   isAuthenticated(): boolean {
-    const token = this.getAccessToken();
-    return token ? this.isTokenValid(token) : false;
+    const expiresAt = this.getStoredExpiration();
+    return expiresAt ? Date.now() < expiresAt : false;
   }
 
   /**
@@ -178,113 +174,55 @@ export class JwtAuthService {
   }
 
   /**
-   * Obtener headers de autorización
+   * Obtener headers de autorización (legacy - ya no necesario con HttpOnly cookies)
    */
   getAuthHeaders(): { [key: string]: string } {
-    const token = this.getAccessToken();
-    return token ? { 'Authorization': `Bearer ${token}` } : {};
+    return {};
   }
 
   /**
-   * Verificar si el token es válido
+   * Obtener expiración almacenada localmente
    */
-  private isTokenValid(token: string): boolean {
+  private getStoredExpiration(): number | null {
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      const expirationTime = payload.exp * 1000; // Convertir a milisegundos
-      return Date.now() < expirationTime;
-    } catch (error) {
-      console.error('❌ Error al validar token:', error);
-      return false;
+      const val = localStorage.getItem('auth_expires_at');
+      return val ? parseInt(val, 10) : null;
+    } catch {
+      return null;
     }
   }
 
   /**
-   * Obtener access token desde cookie
+   * Almacenar solo la expiración (NO el JWT — ese va en cookie HttpOnly)
    */
-  private getAccessToken(): string | null {
-    return this.getCookie('access_token');
-  }
-
-  /**
-   * Establecer access token en cookie
-   */
-  private setAccessToken(token: string): void {
-    this.setCookie('access_token', token, 12); // 12 horas (configuración del backend)
-  }
-
-  /**
-   * Limpiar tokens
-   */
-  private clearTokens(): void {
-    this.deleteCookie('access_token');
-  }
-
-  /**
-   * Establecer cookie
-   * NOTA: HttpOnly flag solo puede ser establecido por el servidor (backend)
-   * Para máxima seguridad, el backend debería enviar el token en una cookie HttpOnly
-   */
-  private setCookie(name: string, value: string, hours: number): void {
-    const expires = new Date();
-    expires.setTime(expires.getTime() + (hours * 60 * 60 * 1000));
-    
-    // Construir cookie con flags de seguridad
-    const cookieParts = [
-      `${name}=${value}`,
-      `expires=${expires.toUTCString()}`,
-      'path=/',
-      'SameSite=Strict' // Cambio de Lax a Strict para mayor seguridad
-    ];
-    
-    // Agregar Secure flag si estamos en HTTPS
-    if (window.location.protocol === 'https:') {
-      cookieParts.push('Secure');
+  private storeExpiration(expiresAt: string): void {
+    try {
+      const ms = new Date(expiresAt).getTime();
+      localStorage.setItem('auth_expires_at', ms.toString());
+    } catch {
+      // localStorage no disponible
     }
-    
-    document.cookie = cookieParts.join(';');
   }
 
   /**
-   * Obtener cookie
+   * Limpiar estado de autenticación local
    */
-  private getCookie(name: string): string | null {
-    const nameEQ = name + "=";
-    const ca = document.cookie.split(';');
-    for (let i = 0; i < ca.length; i++) {
-      let c = ca[i];
-      while (c.charAt(0) === ' ') c = c.substring(1, c.length);
-      if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+  private clearLocalAuth(): void {
+    try {
+      localStorage.removeItem('auth_expires_at');
+      localStorage.removeItem('auth_token'); // Limpiar residuo legacy
+    } catch {
+      // localStorage no disponible
     }
-    return null;
-  }
-
-  /**
-   * Eliminar cookie
-   */
-  private deleteCookie(name: string): void {
-    const cookieParts = [
-      `${name}=`,
-      'expires=Thu, 01 Jan 1970 00:00:00 UTC',
-      'path=/',
-      'SameSite=Strict'
-    ];
-    
-    if (window.location.protocol === 'https:') {
-      cookieParts.push('Secure');
-    }
-    
-    document.cookie = cookieParts.join(';');
+    this.currentUserSubject.next(null);
+    this.isAuthenticatedSubject.next(false);
   }
 
   /**
    * Manejar error 401
    */
   handleUnauthorized(): void {
-    console.log('🔒 Error 401 - Redirigiendo al login');
-    this.clearTokens();
-    this.currentUserSubject.next(null);
-    this.isAuthenticatedSubject.next(false);
+    this.clearLocalAuth();
     this.router.navigate(['/Auth/Login']);
   }
-} 
+}

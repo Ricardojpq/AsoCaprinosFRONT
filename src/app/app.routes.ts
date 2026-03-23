@@ -4,6 +4,7 @@ import { AuthGuard } from '@core/guards/auth-guard';
 import { NoAuthGuard } from '@core/guards/no-auth-guard';
 import { CanDeactivateAnimalFormGuard } from '@core/guards/can-deactivate-animal-form.guard';
 import { SuperAdminGuard } from '@core/guards/role-guard';
+import { modulePermissionGuard } from '@core/guards/module-permission.guard';
 
 export const routes: Routes = [
   {
@@ -23,6 +24,7 @@ export const routes: Routes = [
       },
       {
         path: 'Animals',
+        canActivate: [modulePermissionGuard('Animals')],
         loadComponent: () =>
           import('@features/animals/containers/animals-container.component').then(
             (c) => c.AnimalsContainerComponent
@@ -31,6 +33,7 @@ export const routes: Routes = [
       },
       {
         path: 'Animals/Breeds',
+        canActivate: [modulePermissionGuard('Animals/Breeds')],
         loadComponent: () =>
           import('@features/animals/catalogs/breeds/breeds').then(
             (c) => c.Breeds
@@ -38,6 +41,7 @@ export const routes: Routes = [
       },
       {
         path: 'Animals/HairTypes',
+        canActivate: [modulePermissionGuard('Animals/HairTypes')],
         loadComponent: () =>
           import('@features/animals/catalogs/hair-type/hair-type').then(
             (c) => c.HairType
@@ -45,6 +49,7 @@ export const routes: Routes = [
       },
       {
         path: 'Animals/Colors',
+        canActivate: [modulePermissionGuard('Animals/Colors')],
         loadComponent: () =>
           import('@features/animals/catalogs/colors/colors').then(
             (c) => c.Colors
@@ -52,6 +57,7 @@ export const routes: Routes = [
       },
       {
         path: 'Animals/PhysicalConditions',
+        canActivate: [modulePermissionGuard('Animals/PhysicalConditions')],
         loadComponent: () =>
           import(
             '@features/animals/catalogs/physical-condition/physical-condition'
@@ -59,6 +65,7 @@ export const routes: Routes = [
       },
       {
         path: 'Animals/Estados',
+        canActivate: [modulePermissionGuard('Animals')],
         loadComponent: () =>
           import('@features/animals/pages/estados/estados').then(
             (c) => c.EstadosComponent
@@ -66,6 +73,7 @@ export const routes: Routes = [
       },
       {
         path: 'PoliticalDivision',
+        canActivate: [modulePermissionGuard('PoliticalDivision')],
         loadComponent: () =>
           import('@features/political-division/political-division').then(
             (c) => c.PoliticalDivisionComponent
@@ -73,6 +81,7 @@ export const routes: Routes = [
       },
       {
         path: 'Certificates',
+        canActivate: [modulePermissionGuard('Certificates')],
         loadComponent: () =>
           import('@features/certificates/certificates').then(
             (c) => c.Certificates
@@ -80,11 +89,13 @@ export const routes: Routes = [
       },
       {
         path: 'Members',
+        canActivate: [modulePermissionGuard('Members')],
         loadComponent: () =>
           import('@features/members/members').then((c) => c.Members),
       },
       {
         path: 'Classifiers',
+        canActivate: [modulePermissionGuard('Classifiers')],
         loadComponent: () =>
           import('@features/classifiers/classifiers').then(
             (c) => c.Classifiers
@@ -92,11 +103,13 @@ export const routes: Routes = [
       },
       {
         path: 'Companies',
+        canActivate: [modulePermissionGuard('Classifiers')],
         loadComponent: () =>
           import('@features/companies/companies').then((c) => c.Companies),
       },
       {
         path: 'Farms',
+        canActivate: [modulePermissionGuard('Farms')],
         loadComponent: () =>
           import('@features/farms/farms').then((c) => c.Farms),
       },
@@ -117,23 +130,17 @@ export const routes: Routes = [
         path: 'Settings/Profiles',
         canActivate: [SuperAdminGuard],
         loadComponent: () =>
-          import('@features/users/componenets/profiles/profiles').then(
+          import('@features/users/components/profiles/profiles').then(
             (c) => c.Profiles
           ),
       },
       {
         path: 'Settings/Parameters',
+        canActivate: [modulePermissionGuard('Settings/Parameters')],
         loadComponent: () =>
           import('@features/reproduccion/pages/configuracion/configuracion').then(
             (c) => c.Configuracion
           ),
-      },
-      {
-        path: 'test',
-        loadComponent: () =>
-          import(
-            '@features/certificates/components/certificate-page2/certificate-page2'
-          ).then((c) => c.CertificatePage2),
       },
       {
         path: 'Reproduccion',
