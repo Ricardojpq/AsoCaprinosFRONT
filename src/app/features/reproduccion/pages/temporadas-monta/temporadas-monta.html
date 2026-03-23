@@ -5,30 +5,18 @@
   <p-toolbar class="mb-6">
     <ng-template #start>
       <div class="flex gap-2 items-center">
-        <div class="flex flex-col">
-          <label class="text-sm font-medium text-gray-600 mb-1">Finca</label>
-          <p-select 
-            [options]="fincas()" 
-            [(ngModel)]="selectedFinca"
-            optionLabel="nomb_finca"
-            optionValue="cod_finca"
-            placeholder="Seleccione una finca"
-            (onChange)="onFincaChange()"
-            class="w-64">
-          </p-select>
-        </div>
         <p-button
-          styleClass="btn btn-primary btn-sm mt-5"
+          styleClass="btn btn-primary btn-sm"
           label="Nueva Temporada"
           (onClick)="openCreateDialog()"
-          [disabled]="!selectedFinca()">
+          [disabled]="!selectedFinca">
           <lucide-icon [img]="plusIcon" size="16"></lucide-icon>
         </p-button>
       </div>
     </ng-template>
     <ng-template #end>
       <p-button
-        styleClass="p-button-pink mt-5"
+        styleClass="p-button-pink"
         label="Buscar Hembra"
         severity="help"
         pTooltip="Buscar en qué temporada está una hembra"
@@ -37,6 +25,30 @@
       </p-button>
     </ng-template>
   </p-toolbar>
+
+  <!-- Filtros de búsqueda -->
+  <div class="grid grid-cols-5 gap-4 mb-4 p-4 bg-gray-50 rounded-lg">
+    <div>
+      <label class="block text-sm font-medium text-gray-600 mb-1">Buscar</label>
+      <input type="text" pInputText [(ngModel)]="filterBuscar" placeholder="ID, nombre o código macho" class="w-full">
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-600 mb-1">Fecha Inicio</label>
+      <p-datepicker [(ngModel)]="filterFechaInicio" dateFormat="dd/mm/yy" [showIcon]="true" placeholder="Desde" class="w-full"></p-datepicker>
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-600 mb-1">Fecha Fin</label>
+      <p-datepicker [(ngModel)]="filterFechaFin" dateFormat="dd/mm/yy" [showIcon]="true" placeholder="Hasta" class="w-full"></p-datepicker>
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-600 mb-1">Estado</label>
+      <p-select [options]="estadoOptions" [(ngModel)]="filterEstado" optionLabel="label" optionValue="value" placeholder="Todos" class="w-full"></p-select>
+    </div>
+    <div class="flex items-end gap-2">
+      <p-button label="Filtrar" (onClick)="applyFilters()" styleClass="p-button-sm"></p-button>
+      <p-button label="Limpiar" (onClick)="clearFilters()" severity="secondary" styleClass="p-button-sm" [outlined]="true"></p-button>
+    </div>
+  </div>
 
   <!-- Table -->
   <p-card>
@@ -168,11 +180,8 @@
       <div>
         <label class="block text-sm font-medium text-gray-600 mb-1">Finca</label>
         <div class="p-3 bg-gray-100 rounded-lg">
-          @for (f of fincas(); track f.cod_finca) {
-            @if (f.cod_finca === selectedFinca()) {
-              <span class="font-semibold">{{ f.nomb_finca }}</span>
-            }
-          }
+          <span class="font-semibold">Finca #{{ selectedFinca }}</span>
+          <span class="text-sm text-gray-500 ml-2">(Seleccionada desde el menú superior)</span>
         </div>
       </div>
 

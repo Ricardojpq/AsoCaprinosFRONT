@@ -24,6 +24,7 @@ import { TextareaModule } from 'primeng/textarea';
 import { ToolbarModule } from 'primeng/toolbar';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
+import { InputNumberModule } from 'primeng/inputnumber';
 import { LucideAngularModule, Plus, Search, Check, X, Eye, UserPlus, ClipboardList } from 'lucide-angular';
 
 @Component({
@@ -49,6 +50,7 @@ import { LucideAngularModule, Plus, Search, Check, X, Eye, UserPlus, ClipboardLi
     ToolbarModule,
     IconFieldModule,
     InputIconModule,
+    InputNumberModule,
     LucideAngularModule
   ],
   providers: [MessageService, ConfirmationService],
@@ -110,9 +112,11 @@ export class TemporadasMonta implements OnInit {
   loadingMachos = signal(false);
   loadingHembras = signal(false);
 
-  // Filters
-  selectedFinca = signal<number | null>(null);
-  fincas = signal<any[]>([]);
+  // Filters - usando finca del contexto global
+  filterBuscar = signal<string>(''); // Busca por ID, nombre macho, código macho
+  filterFechaInicio = signal<Date | null>(null);
+  filterFechaFin = signal<Date | null>(null);
+  filterEstado = signal<string | null>(null);
 
   // Computed
   estadoOptions = [
@@ -123,45 +127,23 @@ export class TemporadasMonta implements OnInit {
   ];
 
   ngOnInit(): void {
-    this.loadFincas();
     this.loadTemporadas();
   }
 
-  loadFincas(): void {
-    this.reproduccionService.getFincas().subscribe({
-      next: (response) => {
-        const data = response.data;
-        if (Array.isArray(data)) {
-          this.fincas.set(data);
-        } else if (data && 'data' in data) {
-          this.fincas.set((data as any).data);
-        }
-        // Usar finca del contexto si existe
-        const storedFinca = this.fincaContext.getSelectedFinca();
-        if (storedFinca) {
-          this.selectedFinca.set(storedFinca);
-        } else if (this.fincas().length > 0) {
-          this.selectedFinca.set(this.fincas()[0].cod_finca);
-        }
-        this.loadTemporadas();
-      },
-      error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'Error al cargar fincas'
-        });
-      }
-    });
+  get selectedFinca(): number | null {
+    return this.fincaContext.getSelectedFinca();
   }
 
-  onFincaChange(): void {
-    // Guardar la finca seleccionada en el contexto
-    this.fincaContext.setSelectedFinca(this.selectedFinca());
+  applyFilters(): void {
     this.loadTemporadas();
-    if (this.selectedFinca()) {
-      this.loadMachosDisponibles(this.selectedFinca()!);
-    }
+  }
+
+  clearFilters(): void {
+    this.filterBuscar.set('');
+    this.filterFechaInicio.set(null);
+    this.filterFechaFin.set(null);
+    this.filterEstado.set(null);
+    this.loadTemporadas();
   }
 
   loadTemporadas(): void {
@@ -172,12 +154,26 @@ export class TemporadasMonta implements OnInit {
     if (fincaId) {
       filters.cod_finca = fincaId;
     }
+    
+    // Aplicar filtros de búsqueda
+    if (this.filterBuscar()) {
+      filters.buscar = this.filterBuscar();
+    }
+    if (this.filterFechaInicio()) {
+      filters.fecha_inicio = this.filterFechaInicio()?.toISOString().split('T')[0];
+    }
+    if (this.filterFechaFin()) {
+      filters.fecha_fin = this.filterFechaFin()?.toISOString().split('T')[0];
+    }
+    if (this.filterEstado()) {
+      filters.estado = this.filterEstado();
+    }
 
     this.reproduccionService.getTemporadasMonta(filters).subscribe({
       next: (response) => {
-        const responseData = response.data || { data: [], pagination: { total: 0 } };
+        const responseData = response.data || { data: [], total: 0 };
         this.temporadas.set(responseData.data || []);
-        this.totalRecords.set(responseData.pagination?.total || 0);
+        this.totalRecords.set(responseData.total || 0);
         this.loading.set(false);
       },
       error: (error) => {
@@ -193,7 +189,7 @@ export class TemporadasMonta implements OnInit {
 
   openCreateDialog(): void {
     this.newTemporada = {
-      cod_finca: this.selectedFinca() || 0,
+      cod_finca: this.selectedFinca || 0,
       macho_id: 0,
       fecha_inicio: new Date().toISOString().split('T')[0]
     };
@@ -202,9 +198,9 @@ export class TemporadasMonta implements OnInit {
     this.hembraSearchTerm = '';
     
     // Cargar machos y hembras disponibles
-    if (this.selectedFinca()) {
-      this.loadMachosDisponibles(this.selectedFinca()!);
-      this.loadHembrasDisponibles(this.selectedFinca()!);
+    if (this.selectedFinca) {
+      this.loadMachosDisponibles(this.selectedFinca);
+      this.loadHembrasDisponibles(this.selectedFinca);
     }
     
     this.showCreateDialog.set(true);
@@ -215,16 +211,16 @@ export class TemporadasMonta implements OnInit {
   // =====================================================
   
   openSelectMachoDialog(): void {
-    if (!this.selectedFinca()) {
+    if (!this.selectedFinca) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Advertencia',
-        detail: 'Seleccione una finca primero'
+        detail: 'Seleccione una finca desde el menú superior'
       });
       return;
     }
     this.machoSearchTerm = '';
-    this.loadMachosDisponibles(this.selectedFinca()!);
+    this.loadMachosDisponibles(this.selectedFinca);
     this.showSelectMachoDialog.set(true);
   }
 

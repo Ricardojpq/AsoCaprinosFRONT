@@ -62,13 +62,11 @@ export interface UpdateUserRequest {
 }
 
 export interface PaginatedResponse<T> {
-  usuarios: T[];
-  pagination: {
-    current_page: number;
-    last_page: number;
-    per_page: number;
-    total: number;
-  };
+  current_page: number;
+  data: T[];
+  per_page: number;
+  total: number;
+  last_page: number;
 }
 
 export interface PermisosPagina {
@@ -112,7 +110,7 @@ export class UserManagementService {
     return this.http.get<{ status: string; data: PaginatedResponse<Usuario> }>(
       `${this.baseUrl}/users`,
       { params: httpParams }
-    ).pipe(map(response => response.data));
+    ).pipe(map(response => response.data));  
   }
 
   /**

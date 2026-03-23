@@ -86,15 +86,11 @@ export class FincaSelectorComponent {
   private loadFincasFromUser(user: any): void {
     const fincas = user.fincas || [];
     
+    // Crear opciones de fincas (sin opción "Todas" - todos deben seleccionar una finca específica)
     const options: FincaOption[] = fincas.map((f: any) => ({
-      label: f.nomb_finca,
+      label: f.nomb_finca || f.nom_finca,
       value: f.cod_finca
     }));
-
-    // Si es SuperAdmin, agregar opción "Todas las fincas"
-    if (user.is_super_admin) {
-      options.unshift({ label: 'Todas las fincas', value: null });
-    }
 
     this.fincaOptions.set(options);
 
@@ -104,7 +100,8 @@ export class FincaSelectorComponent {
     if (storedFinca && fincas.some((f: any) => f.cod_finca === storedFinca)) {
       this.selectedFincaId.set(storedFinca);
     } else if (fincas.length > 0) {
-      const principal = fincas.find((f: any) => f.es_principal);
+      // Buscar finca principal o usar la primera
+      const principal = fincas.find((f: any) => f.es_principal || f.es_finca_principal);
       const defaultFinca = principal || fincas[0];
       this.selectedFincaId.set(defaultFinca.cod_finca);
       this.fincaContext.setSelectedFinca(defaultFinca.cod_finca);

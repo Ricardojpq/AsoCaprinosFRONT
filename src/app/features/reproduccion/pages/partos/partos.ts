@@ -80,9 +80,7 @@ export class Partos implements OnInit {
   selectedParto = signal<Parto | null>(null);
   editParto: any = {};
   
-  // Filtros
-  selectedFinca = signal<number | null>(null);
-  fincas = signal<any[]>([]);
+  // Filtros - usando finca del contexto global
   fechaInicio = signal<Date | null>(null);
   fechaFin = signal<Date | null>(null);
 
@@ -165,43 +163,12 @@ export class Partos implements OnInit {
   });
 
   ngOnInit(): void {
-    this.loadFincas();
-  }
-
-  loadFincas(): void {
-    this.reproduccionService.getFincas().subscribe({
-      next: (response) => {
-        const data = response.data;
-        if (Array.isArray(data)) {
-          this.fincas.set(data);
-        } else if (data && 'data' in data) {
-          this.fincas.set((data as any).data);
-        }
-        // Usar finca del contexto si existe
-        const storedFinca = this.fincaContext.getSelectedFinca();
-        if (storedFinca) {
-          this.selectedFinca.set(storedFinca);
-        } else if (this.fincas().length > 0) {
-          this.selectedFinca.set(this.fincas()[0].cod_finca);
-        }
-        this.loadPartos();
-        this.loadHembrasPregnadas();
-      },
-      error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'Error al cargar fincas'
-        });
-      }
-    });
-  }
-
-  onFincaChange(): void {
-    // Guardar la finca seleccionada en el contexto
-    this.fincaContext.setSelectedFinca(this.selectedFinca());
     this.loadPartos();
     this.loadHembrasPregnadas();
+  }
+
+  get selectedFinca(): number | null {
+    return this.fincaContext.getSelectedFinca();
   }
 
   loadPartos(): void {
@@ -473,7 +440,7 @@ export class Partos implements OnInit {
   // =====================================================
 
   loadHembrasPregnadas(): void {
-    const codFinca = this.selectedFinca();
+    const codFinca = this.selectedFinca;
     if (!codFinca) return;
 
     this.loadingHembrasPregnadas.set(true);
@@ -506,7 +473,7 @@ export class Partos implements OnInit {
 
   openCreateDialog(): void {
     this.newParto = {
-      cod_finca: this.selectedFinca() || 0,
+      cod_finca: this.selectedFinca || 0,
       fecha: new Date().toISOString().split('T')[0],
       detalles: []
     };
@@ -577,7 +544,7 @@ export class Partos implements OnInit {
   // =====================================================
 
   loadHembrasParaParto(): void {
-    const codFinca = this.selectedFinca();
+    const codFinca = this.selectedFinca;
     if (!codFinca) return;
 
     this.loadingHembrasParaParto.set(true);

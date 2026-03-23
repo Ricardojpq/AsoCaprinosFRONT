@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ReproduccionService } from '../../services/reproduccion.service';
+import { FincaContextService } from '@core/services/finca-context.service';
 import { ControlLactancia, LactanciaEstadisticas } from '../../models';
 
 import { TableModule } from 'primeng/table';
@@ -16,6 +17,8 @@ import { MessageService, ConfirmationService } from 'primeng/api';
 import { TooltipModule } from 'primeng/tooltip';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { DatePickerModule } from 'primeng/datepicker';
+import { SelectModule } from 'primeng/select';
 import { LucideAngularModule, ArrowRight, Check } from 'lucide-angular';
 
 @Component({
@@ -35,6 +38,8 @@ import { LucideAngularModule, ArrowRight, Check } from 'lucide-angular';
     TooltipModule,
     InputNumberModule,
     ConfirmDialogModule,
+    DatePickerModule,
+    SelectModule,
     LucideAngularModule
   ],
   providers: [MessageService, ConfirmationService],
@@ -49,12 +54,19 @@ export class Lactancia implements OnInit {
   readonly arrowRightIcon = ArrowRight;
   readonly checkIcon = Check;
 
+  private fincaContext = inject(FincaContextService);
+
   controles = signal<ControlLactancia[]>([]);
   estadisticas = signal<LactanciaEstadisticas | null>(null);
   loading = signal(false);
   totalRecords = signal(0);
-  selectedFinca = signal<number | null>(null);
-  selectedEstado = signal<string | null>(null);
+  
+  // Filtros
+  filterCria = signal<string>('');
+  filterMadre = signal<string>('');
+  filterFechaInicio = signal<Date | null>(null);
+  filterFechaFin = signal<Date | null>(null);
+  filterEstado = signal<string | null>(null);
 
   showDesteteDialog = signal(false);
   selectedControl = signal<ControlLactancia | null>(null);
@@ -72,11 +84,37 @@ export class Lactancia implements OnInit {
     this.loadEstadisticas();
   }
 
+  get selectedFinca(): number | null {
+    return this.fincaContext.getSelectedFinca();
+  }
+
+  applyFilters(): void {
+    this.loadControles();
+  }
+
+  clearFilters(): void {
+    this.filterCria.set('');
+    this.filterMadre.set('');
+    this.filterFechaInicio.set(null);
+    this.filterFechaFin.set(null);
+    this.filterEstado.set(null);
+    this.loadControles();
+  }
+
   loadControles(): void {
     this.loading.set(true);
     const filters: any = {};
-    if (this.selectedFinca()) filters.cod_finca = this.selectedFinca();
-    if (this.selectedEstado()) filters.estado = this.selectedEstado();
+    
+    // Usar finca del contexto global
+    const fincaId = this.fincaContext.getSelectedFinca();
+    if (fincaId) filters.cod_finca = fincaId;
+    
+    // Aplicar filtros de búsqueda
+    if (this.filterCria()) filters.cria = this.filterCria();
+    if (this.filterMadre()) filters.madre = this.filterMadre();
+    if (this.filterFechaInicio()) filters.fecha_inicio = this.filterFechaInicio()?.toISOString().split('T')[0];
+    if (this.filterFechaFin()) filters.fecha_fin = this.filterFechaFin()?.toISOString().split('T')[0];
+    if (this.filterEstado()) filters.estado = this.filterEstado();
 
     this.reproduccionService.getControlesLactancia(filters).subscribe({
       next: (response) => {
@@ -96,7 +134,7 @@ export class Lactancia implements OnInit {
   }
 
   loadEstadisticas(): void {
-    this.reproduccionService.getLactanciaEstadisticas(this.selectedFinca() || undefined).subscribe({
+    this.reproduccionService.getLactanciaEstadisticas(this.selectedFinca || undefined).subscribe({
       next: (response) => {
         this.estadisticas.set(response.data);
       },

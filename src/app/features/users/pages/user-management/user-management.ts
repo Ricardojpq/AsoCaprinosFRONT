@@ -171,9 +171,9 @@ export class UserManagementComponent implements OnInit {
       const response = await this.userService.getUsers(params).toPromise();
 
       if (response) {
-        this.usuarios.set(response.usuarios);
-        this.totalPages.set(response.pagination.last_page);
-        this.totalItems.set(response.pagination.total);
+        this.usuarios.set(response.data);
+        this.totalPages.set(response.last_page);
+        this.totalItems.set(response.total);
       }
     } catch (err: any) {
       this.error.set(err.error?.message || 'Error al cargar usuarios');

@@ -5,18 +5,6 @@
     <ng-template #start>
       <div class="flex gap-4 items-end flex-wrap">
         <div class="flex flex-col">
-          <label class="text-sm font-medium text-gray-600 mb-1">Finca</label>
-          <p-select 
-            [options]="fincas()" 
-            [(ngModel)]="selectedFinca"
-            optionLabel="nomb_finca"
-            optionValue="cod_finca"
-            placeholder="Seleccione una finca"
-            (onChange)="onFincaChange()"
-            class="w-48">
-          </p-select>
-        </div>
-        <div class="flex flex-col">
           <label class="text-sm font-medium text-gray-600 mb-1">Fecha Inicio</label>
           <p-datepicker 
             [(ngModel)]="fechaInicio"
@@ -58,7 +46,7 @@
         styleClass="btn btn-primary btn-sm"
         label="Nuevo Parto"
         (onClick)="openCreateDialog()"
-        [disabled]="!selectedFinca()">
+        [disabled]="!selectedFinca">
         <lucide-icon [img]="plusIcon" size="16"></lucide-icon>
       </p-button>
     </ng-template>
@@ -86,9 +74,9 @@
       </ng-template>
       <ng-template pTemplate="header">
         <tr>
-          <th>ID</th>
-          <th>Fecha</th>
-          <th>Finca</th>
+          <th pSortableColumn="id">ID <p-sortIcon field="id"></p-sortIcon></th>
+          <th pSortableColumn="fecha">Fecha <p-sortIcon field="fecha"></p-sortIcon></th>
+          <th pSortableColumn="finca.nomb_finca">Finca <p-sortIcon field="finca.nomb_finca"></p-sortIcon></th>
           <th>Responsable</th>
           <th>Hembras</th>
           <th>Total Crías</th>
@@ -156,8 +144,9 @@
           <tr>
             <th>Código</th>
             <th>Nombre</th>
-            <th>Fecha Parto Estimada</th>
-            <th>Días Restantes</th>
+            <th pSortableColumn="fecha_parto_estimada">Fecha Parto Estimada <p-sortIcon field="fecha_parto_estimada" /></th>
+            <th pSortableColumn="dias_restantes_parto">Días Restantes <p-sortIcon field="dias_restantes_parto" /></th>
+            <th>Estado</th>
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-hembra>
@@ -167,12 +156,25 @@
             <td>{{ hembra.fecha_parto_estimada | date:'dd/MM/yyyy' }}</td>
             <td>
               @if (hembra.dias_restantes_parto !== null) {
-                <p-tag 
-                  [value]="hembra.dias_restantes_parto + ' días'"
-                  [severity]="getDiasPartoSeverity(hembra.dias_restantes_parto)">
-                </p-tag>
+                @if (hembra.dias_restantes_parto < 0) {
+                  <p-tag value="Vencido" severity="danger"></p-tag>
+                } @else {
+                  <p-tag 
+                    [value]="hembra.dias_restantes_parto + ' días'"
+                    [severity]="getDiasPartoSeverity(hembra.dias_restantes_parto)">
+                  </p-tag>
+                }
               } @else {
                 <span class="text-gray-400">-</span>
+              }
+            </td>
+            <td>
+              @if (hembra.dias_restantes_parto !== null && hembra.dias_restantes_parto < 0) {
+                <span class="text-red-600 text-sm font-medium">⚠️ Registrar parto</span>
+              } @else if (hembra.dias_restantes_parto !== null && hembra.dias_restantes_parto <= 7) {
+                <span class="text-yellow-600 text-sm">Próximo</span>
+              } @else {
+                <span class="text-green-600 text-sm">Normal</span>
               }
             </td>
           </tr>
@@ -612,7 +614,7 @@
               <!-- Header del detalle -->
               <div class="flex items-center justify-between p-3 bg-pink-50 border-b">
                 <div class="flex items-center gap-3">
-                  <span class="font-semibold text-pink-800">{{ detalle.hembra?.nomb_animal || detalle.hembra?.cod_animal || '-' }}</span>
+                  <span class="font-semibold text-pink-800">{{ detalle.hembra?.cod_animal }} - {{ detalle.hembra?.nomb_animal || 'Sin nombre' }}</span>
                   <p-tag [value]="getTipoParto(detalle.tipo_parto)" severity="info" />
                   <p-tag [value]="detalle.estado_madre_post_parto || 'N/A'" [severity]="getEstadoMadreSeverity(detalle.estado_madre_post_parto)" />
                 </div>

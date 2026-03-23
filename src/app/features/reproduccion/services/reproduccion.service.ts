@@ -34,6 +34,15 @@ export interface PaginatedResponse<T> {
   last_page: number;
 }
 
+export interface DiagnosticoResponse {
+  hembras: TemporadaMontaHembra[];
+  diasEspera: number;
+  current_page: number;
+  per_page: number;
+  total: number;
+  last_page: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -102,15 +111,21 @@ export class ReproduccionService {
   getTemporadasMonta(filters?: {
     cod_finca?: number;
     estado?: string;
+    buscar?: string;
+    fecha_inicio?: string;
+    fecha_fin?: string;
     per_page?: number;
     page?: number;
-  }): Observable<ApiResponse<{ data: TemporadaMonta[]; pagination: { currentPage: number; perPage: number; total: number; lastPage: number } }>> {
+  }): Observable<ApiResponse<PaginatedResponse<TemporadaMonta>>> {
     let params = new HttpParams();
     if (filters?.cod_finca) params = params.set('cod_finca', filters.cod_finca.toString());
     if (filters?.estado) params = params.set('estado', filters.estado);
+    if (filters?.buscar) params = params.set('buscar', filters.buscar);
+    if (filters?.fecha_inicio) params = params.set('fecha_inicio', filters.fecha_inicio);
+    if (filters?.fecha_fin) params = params.set('fecha_fin', filters.fecha_fin);
     if (filters?.per_page) params = params.set('per_page', filters.per_page.toString());
     if (filters?.page) params = params.set('page', filters.page.toString());
-    return this.http.get<ApiResponse<{ data: TemporadaMonta[]; pagination: { currentPage: number; perPage: number; total: number; lastPage: number } }>>(`${this.apiUrl}/reproduccion/temporadas-monta`, { params });
+    return this.http.get<ApiResponse<PaginatedResponse<TemporadaMonta>>>(`${this.apiUrl}/reproduccion/temporadas-monta`, { params });
   }
 
   getTemporadasActivas(codFinca?: number): Observable<ApiResponse<TemporadaMonta[]>> {
@@ -251,12 +266,20 @@ export class ReproduccionService {
   getControlesLactancia(filters?: {
     cod_finca?: number;
     estado?: string;
+    cria?: string;
+    madre?: string;
+    fecha_inicio?: string;
+    fecha_fin?: string;
     per_page?: number;
     page?: number;
   }): Observable<ApiResponse<PaginatedResponse<ControlLactancia>>> {
     let params = new HttpParams();
     if (filters?.cod_finca) params = params.set('cod_finca', filters.cod_finca.toString());
     if (filters?.estado) params = params.set('estado', filters.estado);
+    if (filters?.cria) params = params.set('cria', filters.cria);
+    if (filters?.madre) params = params.set('madre', filters.madre);
+    if (filters?.fecha_inicio) params = params.set('fecha_inicio', filters.fecha_inicio);
+    if (filters?.fecha_fin) params = params.set('fecha_fin', filters.fecha_fin);
     if (filters?.per_page) params = params.set('per_page', filters.per_page.toString());
     if (filters?.page) params = params.set('page', filters.page.toString());
     return this.http.get<ApiResponse<PaginatedResponse<ControlLactancia>>>(`${this.apiUrl}/reproduccion/lactancia`, { params });
@@ -339,36 +362,40 @@ export class ReproduccionService {
   // DIAGNÓSTICO DE PREÑEZ
   // =====================================================
 
-  getHembrasParaDiagnostico(codFinca?: number, perPage: number = 10, page: number = 1): Observable<ApiResponse<{ 
-    hembras: TemporadaMontaHembra[]; 
-    diasEspera: number;
-    pagination: { currentPage: number; perPage: number; total: number; lastPage: number };
-  }>> {
+  getHembrasParaDiagnostico(filters?: {
+    cod_finca?: number;
+    busqueda?: string;
+    fecha_inicio?: string;
+    fecha_fin?: string;
+    per_page?: number;
+    page?: number;
+  }): Observable<ApiResponse<DiagnosticoResponse>> {
     let params = new HttpParams();
-    if (codFinca) params = params.set('cod_finca', codFinca.toString());
-    params = params.set('per_page', perPage.toString());
-    params = params.set('page', page.toString());
-    return this.http.get<ApiResponse<{ 
-      hembras: TemporadaMontaHembra[]; 
-      diasEspera: number;
-      pagination: { currentPage: number; perPage: number; total: number; lastPage: number };
-    }>>(`${this.apiUrl}/reproduccion/diagnostico-prenez`, { params });
+    if (filters?.cod_finca) params = params.set('cod_finca', filters.cod_finca.toString());
+    if (filters?.busqueda) params = params.set('busqueda', filters.busqueda);
+    if (filters?.fecha_inicio) params = params.set('fecha_inicio', filters.fecha_inicio);
+    if (filters?.fecha_fin) params = params.set('fecha_fin', filters.fecha_fin);
+    if (filters?.per_page) params = params.set('per_page', filters.per_page.toString());
+    if (filters?.page) params = params.set('page', filters.page.toString());
+    return this.http.get<ApiResponse<DiagnosticoResponse>>(`${this.apiUrl}/reproduccion/diagnostico-prenez`, { params });
   }
 
-  getHembrasPendientesDiagnostico(codFinca?: number, perPage: number = 10, page: number = 1): Observable<ApiResponse<{ 
-    hembras: TemporadaMontaHembra[]; 
-    diasEspera: number;
-    pagination: { currentPage: number; perPage: number; total: number; lastPage: number };
-  }>> {
+  getHembrasPendientesDiagnostico(filters?: {
+    cod_finca?: number;
+    busqueda?: string;
+    fecha_inicio?: string;
+    fecha_fin?: string;
+    per_page?: number;
+    page?: number;
+  }): Observable<ApiResponse<DiagnosticoResponse>> {
     let params = new HttpParams();
-    if (codFinca) params = params.set('cod_finca', codFinca.toString());
-    params = params.set('per_page', perPage.toString());
-    params = params.set('page', page.toString());
-    return this.http.get<ApiResponse<{ 
-      hembras: TemporadaMontaHembra[]; 
-      diasEspera: number;
-      pagination: { currentPage: number; perPage: number; total: number; lastPage: number };
-    }>>(`${this.apiUrl}/reproduccion/diagnostico-prenez/pendientes`, { params });
+    if (filters?.cod_finca) params = params.set('cod_finca', filters.cod_finca.toString());
+    if (filters?.busqueda) params = params.set('busqueda', filters.busqueda);
+    if (filters?.fecha_inicio) params = params.set('fecha_inicio', filters.fecha_inicio);
+    if (filters?.fecha_fin) params = params.set('fecha_fin', filters.fecha_fin);
+    if (filters?.per_page) params = params.set('per_page', filters.per_page.toString());
+    if (filters?.page) params = params.set('page', filters.page.toString());
+    return this.http.get<ApiResponse<DiagnosticoResponse>>(`${this.apiUrl}/reproduccion/diagnostico-prenez/pendientes`, { params });
   }
 
   registrarDiagnosticoPrenez(data: { temporada_monta_hembra_id: number; resultado: 'PREÑADA' | 'VACIA' }): Observable<ApiResponse<TemporadaMontaHembra>> {

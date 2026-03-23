@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MessageService, ConfirmationService } from 'primeng/api';
+import { FincaContextService } from '@core/services/finca-context.service';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
@@ -15,6 +16,9 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TabsModule } from 'primeng/tabs';
 import { BadgeModule } from 'primeng/badge';
 import { ToolbarModule } from 'primeng/toolbar';
+import { InputTextModule } from 'primeng/inputtext';
+import { InputNumberModule } from 'primeng/inputnumber';
+import { DatePickerModule } from 'primeng/datepicker';
 import { LucideAngularModule } from 'lucide-angular';
 import { Check, CheckCircle, Clock, RefreshCw, Heart, XCircle, CheckSquare, Inbox } from 'lucide-angular';
 import { ReproduccionService } from '../../services/reproduccion.service';
@@ -51,6 +55,9 @@ interface Finca {
     TabsModule,
     BadgeModule,
     ToolbarModule,
+    InputTextModule,
+    InputNumberModule,
+    DatePickerModule,
     LucideAngularModule
   ],
   providers: [MessageService, ConfirmationService],
@@ -71,15 +78,25 @@ export class DiagnosticoPrenezComponent implements OnInit {
   readonly checkSquareIcon = CheckSquare;
   readonly inboxIcon = Inbox;
 
+  private fincaContext = inject(FincaContextService);
+
   // Signals
-  fincas = signal<Finca[]>([]);
   diasEsperaDiagnostico = signal<number>(30);
-  selectedFinca = signal<number | null>(null);
   hembrasElegibles = signal<HembraDiagnostico[]>([]);
   hembrasPendientes = signal<HembraDiagnostico[]>([]);
   loading = signal(false);
   loadingPendientes = signal(false);
   procesando = signal(false);
+  
+  // Filtros
+  filterBusqueda = '';
+  filterFechaInicio: Date | null = null;
+  filterFechaFin: Date | null = null;
+  
+  // Filtros para pendientes
+  filterBusquedaPendientes = '';
+  filterFechaInicioPendientes: Date | null = null;
+  filterFechaFinPendientes: Date | null = null;
 
   // Computed
   hembrasSeleccionadas = computed(() => 
@@ -104,37 +121,41 @@ export class DiagnosticoPrenezComponent implements OnInit {
   ];
 
   ngOnInit(): void {
-    this.loadFincas();
-  }
-
-  loadFincas(): void {
-    this.reproduccionService.getFincas().subscribe({
-      next: (response) => {
-        // La respuesta puede ser paginada o un array directo
-        const data = response.data;
-        if (Array.isArray(data)) {
-          this.fincas.set(data);
-        } else if (data && 'data' in data) {
-          this.fincas.set((data as any).data);
-        }
-        // Auto-seleccionar primera finca si hay fincas
-        if (this.fincas().length > 0 && !this.selectedFinca()) {
-          this.selectedFinca.set(this.fincas()[0].cod_finca);
-          this.loadData();
-        }
-      },
-      error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'Error al cargar fincas'
-        });
-      }
-    });
-  }
-
-  onFincaChange(): void {
     this.loadData();
+  }
+
+  get selectedFinca(): number | null {
+    return this.fincaContext.getSelectedFinca();
+  }
+
+  applyFilters(): void {
+    this.loadData();
+  }
+
+  clearFilters(): void {
+    this.filterBusqueda = '';
+    this.filterFechaInicio = null;
+    this.filterFechaFin = null;
+    this.loadData();
+  }
+
+  clearFiltersPendientes(): void {
+    this.filterBusquedaPendientes = '';
+    this.filterFechaInicioPendientes = null;
+    this.filterFechaFinPendientes = null;
+    this.loadHembrasPendientes();
+  }
+
+  applyFiltersPendientes(): void {
+    this.loadHembrasPendientes();
+  }
+
+  private formatDateForApi(date: Date | null): string | null {
+    if (!date) return null;
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   loadData(): void {
@@ -144,16 +165,20 @@ export class DiagnosticoPrenezComponent implements OnInit {
 
   loadHembrasElegibles(): void {
     this.loading.set(true);
-    const codFinca = this.selectedFinca() || undefined;
+    const filters: any = { per_page: 100 };
+    
+    if (this.selectedFinca) filters.cod_finca = this.selectedFinca;
+    if (this.filterBusqueda) filters.busqueda = this.filterBusqueda;
+    if (this.filterFechaInicio) filters.fecha_inicio = this.formatDateForApi(this.filterFechaInicio);
+    if (this.filterFechaFin) filters.fecha_fin = this.formatDateForApi(this.filterFechaFin);
 
-    this.reproduccionService.getHembrasParaDiagnostico(codFinca, 100).subscribe({
+    this.reproduccionService.getHembrasParaDiagnostico(filters).subscribe({
       next: (response) => {
-        const responseData = response.data || { hembras: [], diasEspera: 30, pagination: {} };
-        const hembrasData = responseData.hembras || [];
+        const responseData = response.data || { hembras: [], diasEspera: 30 };
         if (responseData.diasEspera !== undefined) {
           this.diasEsperaDiagnostico.set(responseData.diasEspera);
         }
-        const hembras = hembrasData.map((h: TemporadaMontaHembra) => this.procesarHembra(h));
+        const hembras = (responseData.hembras || []).map((h: TemporadaMontaHembra) => this.procesarHembra(h));
         this.hembrasElegibles.set(hembras);
         this.loading.set(false);
       },
@@ -170,16 +195,20 @@ export class DiagnosticoPrenezComponent implements OnInit {
 
   loadHembrasPendientes(): void {
     this.loadingPendientes.set(true);
-    const codFinca = this.selectedFinca() || undefined;
+    const filters: any = { per_page: 100 };
+    
+    if (this.selectedFinca) filters.cod_finca = this.selectedFinca;
+    if (this.filterBusquedaPendientes) filters.busqueda = this.filterBusquedaPendientes;
+    if (this.filterFechaInicioPendientes) filters.fecha_inicio = this.formatDateForApi(this.filterFechaInicioPendientes);
+    if (this.filterFechaFinPendientes) filters.fecha_fin = this.formatDateForApi(this.filterFechaFinPendientes);
 
-    this.reproduccionService.getHembrasPendientesDiagnostico(codFinca, 100).subscribe({
+    this.reproduccionService.getHembrasPendientesDiagnostico(filters).subscribe({
       next: (response) => {
-        const responseData = response.data || { hembras: [], diasEspera: 30, pagination: {} };
-        const hembrasData = responseData.hembras || [];
+        const responseData = response.data || { hembras: [], diasEspera: 30 };
         if (responseData.diasEspera !== undefined) {
           this.diasEsperaDiagnostico.set(responseData.diasEspera);
         }
-        const hembras = hembrasData.map((h: TemporadaMontaHembra) => this.procesarHembra(h));
+        const hembras = (responseData.hembras || []).map((h: TemporadaMontaHembra) => this.procesarHembra(h));
         this.hembrasPendientes.set(hembras);
         this.loadingPendientes.set(false);
       },
@@ -195,9 +224,9 @@ export class DiagnosticoPrenezComponent implements OnInit {
   }
 
   private procesarHembra(hembra: TemporadaMontaHembra): HembraDiagnostico {
-    const fechaFin = (hembra as any).temporada_monta?.fecha_fin 
-      ? new Date((hembra as any).temporada_monta.fecha_fin) 
-      : null;
+    // Usar fecha_fin de la temporada (maestro) para el cálculo
+    const fechaFinStr = (hembra as any).temporada_monta?.fecha_fin;
+    const fechaFin = fechaFinStr ? this.parseDateLocal(fechaFinStr) : null;
     
     let diasDesdeFinMonta = 0;
     let diasRestantes = 0;
@@ -209,7 +238,12 @@ export class DiagnosticoPrenezComponent implements OnInit {
       const fechaFinNorm = new Date(fechaFin);
       fechaFinNorm.setHours(0, 0, 0, 0);
       
+      // Días transcurridos desde el fin de la temporada
       diasDesdeFinMonta = Math.floor((hoy.getTime() - fechaFinNorm.getTime()) / (1000 * 60 * 60 * 24));
+      
+      // Días restantes para cumplir el parámetro
+      // Si diasDesdeFinMonta < diasEspera: faltan días (pendiente)
+      // Si diasDesdeFinMonta >= diasEspera: ya está lista (elegible)
       diasRestantes = Math.max(0, diasEspera - diasDesdeFinMonta);
     }
 
@@ -337,10 +371,18 @@ export class DiagnosticoPrenezComponent implements OnInit {
 
   formatDate(date: string | Date | undefined): string {
     if (!date) return 'N/A';
-    return new Date(date).toLocaleDateString('es-ES', {
+    // Parsear como fecha local para evitar desfase de timezone
+    const d = typeof date === 'string' ? this.parseDateLocal(date) : date;
+    return d.toLocaleDateString('es-ES', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric'
     });
+  }
+
+  private parseDateLocal(dateStr: string): Date {
+    // '2026-02-19' -> new Date(2026, 1, 19) en hora local (sin desfase UTC)
+    const parts = dateStr.split('-');
+    return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
   }
 }

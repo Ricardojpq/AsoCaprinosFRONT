@@ -10,37 +10,8 @@
     </div>
   </div>
 
-  <!-- Filtros -->
-  <p-card class="mb-4">
-    <div class="flex flex-wrap gap-4 items-center">
-      <div class="flex flex-col gap-1">
-        <label class="font-medium text-sm">Finca</label>
-        <p-select 
-          [options]="fincas()" 
-          [(ngModel)]="selectedFinca"
-          optionLabel="nomb_finca"
-          optionValue="cod_finca"
-          placeholder="Seleccione una finca"
-          (onChange)="onFincaChange()"
-          [appendTo]="'body'"
-          class="w-64">
-        </p-select>
-      </div>
-
-      <div class="flex items-end gap-2 ml-auto">
-        <p-button
-          styleClass="btn btn-sm btn-primary"
-          label="Actualizar"
-          [loading]="loading()"
-          (onClick)="loadData()">
-          <lucide-icon [img]="refreshIcon" size="16" class="mr-2"></lucide-icon>
-        </p-button>
-      </div>
-    </div>
-  </p-card>
- 
-  <!-- Resumen -->
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+  <!-- Resumen (Cards arriba de filtros) -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
     <p-card>
       <div class="flex items-center gap-3">
         <div class="bg-green-100 p-3 rounded-full">
@@ -59,24 +30,48 @@
           <lucide-icon [img]="clockIcon" size="24" class="text-yellow-600"></lucide-icon>
         </div>
         <div>
-          <p class="text-gray-600 text-sm m-0">Pendientes (esperando días)</p>
+          <p class="text-gray-600 text-sm m-0">Pendientes (esperando {{ diasEsperaDiagnostico() }} días)</p>
           <p class="text-2xl font-bold text-yellow-600 m-0">{{ hembrasPendientes().length }}</p>
         </div>
       </div>
     </p-card>
-
-    <p-card>
-      <div class="flex items-center gap-3">
-        <div class="bg-blue-100 p-3 rounded-full">
-          <lucide-icon [img]="checkSquareIcon" size="24" class="text-blue-600"></lucide-icon>
-        </div>
-        <div>
-          <p class="text-gray-600 text-sm m-0">Seleccionadas</p>
-          <p class="text-2xl font-bold text-blue-600 m-0">{{ totalSeleccionadas() }}</p>
-        </div>
-      </div>
-    </p-card>
   </div>
+
+  <!-- Filtros para Hembras Elegibles -->
+  <p-card class="mb-4">
+    <div class="flex flex-wrap gap-4 items-end">
+      <div class="flex flex-col gap-1 flex-1" style="min-width: 200px; max-width: 350px;">
+        <label class="font-medium text-sm">Buscar</label>
+        <input type="text" pInputText [(ngModel)]="filterBusqueda" 
+          placeholder="Código, nombre hembra/macho, ID temporada" 
+          class="w-full">
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="font-medium text-sm">Fecha Fin Desde</label>
+        <p-datePicker [(ngModel)]="filterFechaInicio" dateFormat="dd/mm/yy" 
+          [showIcon]="true" placeholder="Desde" [style]="{width: '150px'}"></p-datePicker>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="font-medium text-sm">Fecha Fin Hasta</label>
+        <p-datePicker [(ngModel)]="filterFechaFin" dateFormat="dd/mm/yy" 
+          [showIcon]="true" placeholder="Hasta" [style]="{width: '150px'}"></p-datePicker>
+      </div>
+      <div class="flex gap-2 items-center">
+        <p-button label="Filtrar" icon="pi pi-search" (onClick)="applyFilters()" styleClass="p-button-sm"></p-button>
+        <p-button label="Limpiar" icon="pi pi-times" (onClick)="clearFilters()" severity="secondary" styleClass="p-button-sm" [outlined]="true"></p-button>
+      </div>
+      <div class="flex items-center ml-auto">
+        <p-button
+          icon="pi pi-refresh"
+          [rounded]="true"
+          [text]="true"
+          [loading]="loading()"
+          pTooltip="Actualizar datos"
+          (onClick)="loadData()">
+        </p-button>
+      </div>
+    </div>
+  </p-card>
 
   <!-- Acciones Masivas -->
   @if (algunaSeleccionada()) {
@@ -148,8 +143,8 @@
             <th pSortableColumn="hembra.nomb_animal">Nombre <p-sortIcon field="hembra.nomb_animal"></p-sortIcon></th>
             <th>Temporada</th>
             <th>Macho</th>
-            <th>Fecha Fin Monta</th>
-            <th>Días desde Fin</th>
+            <th pSortableColumn="temporada_monta.fecha_fin">Fecha Fin Monta <p-sortIcon field="temporada_monta.fecha_fin"></p-sortIcon></th>
+            <th>Días Post-Monta</th>
             <th style="width: 180px">Diagnóstico</th>
             <th style="width: 100px">Acción</th>
           </tr>
@@ -219,13 +214,38 @@
   <!-- Tabla de Hembras Pendientes -->
   <p-card class="mt-4">
     <ng-template pTemplate="header">
-      <div class="flex justify-between items-center p-3 border-b">
+      <div class="flex flex-col p-3 border-b">
         <h3 class="m-0 text-lg font-semibold flex items-center gap-2">
           <lucide-icon [img]="clockIcon" size="20" class="text-yellow-600"></lucide-icon>
-          Hembras Pendientes (esperando {{ diasEsperaDiagnostico() }} días de diagnóstico)
+          Hembras en Espera
         </h3>
+        <p class="text-gray-500 text-sm m-0 mt-1">Esperando que pasen los {{ diasEsperaDiagnostico() }} días para el diagnóstico</p>
       </div>
     </ng-template>
+
+    <!-- Filtros para Pendientes -->
+    <div class="flex flex-wrap gap-4 items-end mb-4">
+      <div class="flex flex-col gap-1 flex-1" style="min-width: 200px; max-width: 350px;">
+        <label class="font-medium text-sm">Buscar</label>
+        <input type="text" pInputText [(ngModel)]="filterBusquedaPendientes" 
+          placeholder="Código, nombre hembra/macho, ID temporada" 
+          class="w-full">
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="font-medium text-sm">Fecha Fin Desde</label>
+        <p-datePicker [(ngModel)]="filterFechaInicioPendientes" dateFormat="dd/mm/yy" 
+          [showIcon]="true" placeholder="Desde" [style]="{width: '150px'}"></p-datePicker>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="font-medium text-sm">Fecha Fin Hasta</label>
+        <p-datePicker [(ngModel)]="filterFechaFinPendientes" dateFormat="dd/mm/yy" 
+          [showIcon]="true" placeholder="Hasta" [style]="{width: '150px'}"></p-datePicker>
+      </div>
+      <div class="flex gap-2 items-center">
+        <p-button label="Filtrar" icon="pi pi-search" (onClick)="applyFiltersPendientes()" styleClass="p-button-sm"></p-button>
+        <p-button label="Limpiar" icon="pi pi-times" (onClick)="clearFiltersPendientes()" severity="secondary" styleClass="p-button-sm" [outlined]="true"></p-button>
+      </div>
+    </div>
 
     @if (loadingPendientes()) {
       <div class="flex justify-center items-center p-8">
@@ -250,8 +270,8 @@
             <th pSortableColumn="hembra.nomb_animal">Nombre <p-sortIcon field="hembra.nomb_animal"></p-sortIcon></th>
             <th>Temporada</th>
             <th>Macho</th>
-            <th>Fecha Fin Monta</th>
-            <th>Días Restantes</th>
+            <th pSortableColumn="temporada_monta.fecha_fin">Fecha Fin Monta <p-sortIcon field="temporada_monta.fecha_fin"></p-sortIcon></th>
+            <th pSortableColumn="diasRestantes">Días Restantes <p-sortIcon field="diasRestantes"></p-sortIcon></th>
           </tr>
         </ng-template>
 
