@@ -42,7 +42,6 @@
           <p-sortIcon field="sexo_animal" />
         </div>
       </th>
-      <th style="min-width: 8rem">Imagen</th>
       <th style="min-width: 8rem">Raza</th>
       <th pSortableColumn="estatus" style="min-width: 8rem">
         <div class="flex items-center gap-2">
@@ -51,9 +50,6 @@
         </div>
       </th>
       <th style="min-width: 10rem">Origen</th>
-      <th style="min-width: 12rem">Tipo Concepción</th>
-      <th style="min-width: 10rem">Tipo Parto</th>
-      <th style="min-width: 8rem">C. Racial</th>
       <th style="min-width: 10rem">Acciones</th>
     </tr>
   </ng-template>
@@ -63,17 +59,6 @@
       <td>{{ animal.nomb_animal }}</td>
       <td>{{ animal.fec_nacim | date: 'dd/MM/yyyy' }}</td>
       <td>{{ animal.sexo_animal === 'M' ? 'Macho' : 'Hembra' }}</td>
-      <td>
-        @if (animal.imagen) {
-          <img 
-            [src]="animal.imagen" 
-            [alt]="animal.nomb_animal"
-            class="w-16 h-16 object-cover rounded"
-          />
-        } @else {
-          <span class="text-gray-400">Sin imagen</span>
-        }
-      </td>
       <td>{{ animal.raza?.nomb_raza || 'N/A' }}</td>
       <td>
         <p-tag 
@@ -82,9 +67,6 @@
         />
       </td>
       <td>{{ getOrigenLabel(animal.origen) }}</td>
-      <td>{{ getTipoConcepcionLabel(animal.tipo_concepcion) }}</td>
-      <td>{{ getTipoPartoLabel(animal.tipo_parto) }}</td>
-      <td>{{ animal.comp_racial || 'N/A' }}</td>
       <td>
         <div class="flex gap-2 justify-content-center">
           <button 
@@ -115,7 +97,7 @@
   </ng-template>
   <ng-template #emptymessage>
     <tr>
-      <td colspan="12" class="text-center py-8 text-gray-500">
+      <td colspan="8" class="text-center py-8 text-gray-500">
         No se encontraron animales
       </td>
     </tr>

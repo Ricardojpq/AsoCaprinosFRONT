@@ -105,8 +105,6 @@ export class JwtAuthService {
     ).pipe(
       tap((response: AuthResponse) => {
         if (response.status === 'success') {
-          // Guardar solo la expiración localmente (NO el JWT)
-          // La cookie HttpOnly la maneja el browser automáticamente
           this.storeExpiration(response.data.expires_at);
           this.currentUserSubject.next(response.data.user);
           this.isAuthenticatedSubject.next(true);
@@ -174,13 +172,6 @@ export class JwtAuthService {
   }
 
   /**
-   * Obtener headers de autorización (legacy - ya no necesario con HttpOnly cookies)
-   */
-  getAuthHeaders(): { [key: string]: string } {
-    return {};
-  }
-
-  /**
    * Obtener expiración almacenada localmente
    */
   private getStoredExpiration(): number | null {
@@ -193,7 +184,7 @@ export class JwtAuthService {
   }
 
   /**
-   * Almacenar solo la expiración (NO el JWT — ese va en cookie HttpOnly)
+   * Almacenar solo la expiración
    */
   private storeExpiration(expiresAt: string): void {
     try {
@@ -210,7 +201,6 @@ export class JwtAuthService {
   private clearLocalAuth(): void {
     try {
       localStorage.removeItem('auth_expires_at');
-      localStorage.removeItem('auth_token'); // Limpiar residuo legacy
     } catch {
       // localStorage no disponible
     }

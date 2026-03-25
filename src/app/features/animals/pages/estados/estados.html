@@ -276,7 +276,8 @@
     <p-button 
       label="Cambiar Estado"
       (onClick)="cambiarEstado()"
-      [disabled]="!selectedTipoEstado() || !selectedNuevoEstado()">
+      [disabled]="!selectedTipoEstado() || !selectedNuevoEstado() || savingEstado()"
+      [loading]="savingEstado()">
       <lucide-icon [img]="checkIcon" size="16" class="mr-2"></lucide-icon>
     </p-button>
   </ng-template>

@@ -76,6 +76,7 @@ export class EstadosComponent implements OnInit {
   selectedAnimales = signal<any[]>([]);
 
   // Dialog
+  savingEstado = signal(false);
   showCambiarEstadoDialog = signal(false);
   showHistorialDialog = signal(false);
   selectedAnimalForChange = signal<any | null>(null);
@@ -239,6 +240,7 @@ export class EstadosComponent implements OnInit {
       return;
     }
 
+    this.savingEstado.set(true);
     const animalIds = this.selectedAnimales().map(a => a.id);
 
     if (animalIds.length === 1) {
@@ -249,6 +251,7 @@ export class EstadosComponent implements OnInit {
         observaciones: this.observaciones || undefined
       }).subscribe({
         next: () => {
+          this.savingEstado.set(false);
           this.messageService.add({
             severity: 'success',
             summary: 'Éxito',
@@ -258,6 +261,7 @@ export class EstadosComponent implements OnInit {
           this.loadAnimales();
         },
         error: (error) => {
+          this.savingEstado.set(false);
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
@@ -273,6 +277,7 @@ export class EstadosComponent implements OnInit {
         observaciones: this.observaciones || undefined
       }).subscribe({
         next: (response) => {
+          this.savingEstado.set(false);
           this.messageService.add({
             severity: 'success',
             summary: 'Éxito',
@@ -282,6 +287,7 @@ export class EstadosComponent implements OnInit {
           this.loadAnimales();
         },
         error: (error) => {
+          this.savingEstado.set(false);
           this.messageService.add({
             severity: 'error',
             summary: 'Error',

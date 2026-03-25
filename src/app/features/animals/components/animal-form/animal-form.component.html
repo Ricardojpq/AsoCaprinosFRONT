@@ -26,7 +26,7 @@
     <!-- TAB 1: Información Básica -->
     <p-tabpanel header="Información Básica">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
-        <!-- Código Finca -->
+        <!-- Código Finca (tomado del selector global) -->
         <div class="field">
           <label for="cod_finca" class="block mb-2">Código Finca *</label>
           <input
@@ -34,12 +34,9 @@
             id="cod_finca"
             formControlName="cod_finca"
             type="number"
-            class="w-full"
-            [class.ng-invalid]="hasError('cod_finca')"
+            class="w-full bg-gray-100"
+            readonly
           />
-          @if (hasError('cod_finca')) {
-            <small class="text-red-500">{{ getErrorMessage('cod_finca') }}</small>
-          }
         </div>
 
         <!-- Código Animal -->

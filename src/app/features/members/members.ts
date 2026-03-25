@@ -343,7 +343,7 @@ export class Members implements OnInit, OnDestroy {
       accept: () => {
         this.loading = true;
         this.membersService
-          .deleteMember$(member.ced_socio)
+          .deleteMember$(member.ced_socio, member.cod_finca)
           .subscribe({
             next: () => {
               this.loadMembers();

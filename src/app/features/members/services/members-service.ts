@@ -205,7 +205,7 @@ export class MembersService {
    */
   deleteMember$(cedSocio: string, codFinca: number = 1): Observable<any> {
     try {
-      const uri = `${this.membersURL}/${cedSocio}`;
+      const uri = `${this.membersURL}/${cedSocio}/${codFinca}`;
       return this.httpClient.delete<LaravelApiResponse<any>>(uri).pipe(
         map(res => {
           if (res.status === 'success') {

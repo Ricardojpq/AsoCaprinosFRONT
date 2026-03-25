@@ -541,10 +541,11 @@ export class Farms implements OnInit, OnDestroy {
           error: (error) => {
             console.error('Error deleting farm:', error);
             this.loading = false;
+            const errorMessage = error?.error?.message || error?.message || 'Error al eliminar la finca';
             this.messageService.add({
               severity: 'error',
               summary: 'Error',
-              detail: 'Error al eliminar la finca',
+              detail: errorMessage,
               life: 3000,
             });
           },
@@ -574,10 +575,11 @@ export class Farms implements OnInit, OnDestroy {
         error: (error: any) => {
           console.error('Error deleting farm:', error);
           this.submitting = false;
+          const errorMessage = error?.error?.message || error?.message || 'Error al eliminar la finca';
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'Error al eliminar la finca',
+            detail: errorMessage,
             life: 3000,
           });
         },

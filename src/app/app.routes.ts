@@ -26,8 +26,8 @@ export const routes: Routes = [
         path: 'Animals',
         canActivate: [modulePermissionGuard('Animals')],
         loadComponent: () =>
-          import('@features/animals/containers/animals-container.component').then(
-            (c) => c.AnimalsContainerComponent
+          import('@features/animals/animals').then(
+            (c) => c.Animals
           ),
         canDeactivate: [CanDeactivateAnimalFormGuard],
       },
