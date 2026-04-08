@@ -75,7 +75,7 @@
           <th>Sexo</th>
           <th>Raza</th>
           @for (tipo of statusType(); track tipo.id) {
-            <th>{{ humanizaNameType(tipo.nombre) }}</th>
+            <th>{{ humanizeTypeName(tipo.nombre) }}</th>
           }
           <th style="width: 10rem">Acciones</th>
         </tr>

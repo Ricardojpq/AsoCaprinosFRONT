@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
-import { FarmContextService } from '@core/services/finca-context.service';
+import { FarmContextService } from '@core/services/farm-context.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ReproductionService } from '../../services/reproduction.service';
@@ -226,7 +226,7 @@ export class MatingSeason implements OnInit {
 
   loadAvailableMales(codFinca: number): void {
     this.loadingMale.set(true);
-    this.reproductionService.getMachosReproductores(codFinca).subscribe({
+    this.reproductionService.getBreedingMales(codFinca).subscribe({
       next: (response) => {
         this.maleSearchTerm.set(response.data);
         this.loadingMale.set(false);
@@ -505,8 +505,8 @@ export class MatingSeason implements OnInit {
     });
   }
 
-  marcarVacia(hembra: any): void {
-    this.reproductionService.marcarVacia(hembra.id).subscribe({
+  markAsEmpty(hembra: any): void {
+    this.reproductionService.markEmpty(hembra.id).subscribe({
       next: () => {
         this.messageService.add({
           severity: 'success',

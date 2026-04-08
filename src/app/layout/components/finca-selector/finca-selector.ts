@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { SelectModule } from 'primeng/select';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { SkeletonModule } from 'primeng/skeleton';
-import { FarmContextService } from '@core/services/finca-context.service';
+import { FarmContextService } from '@core/services/farm-context.service';
 import { AuthService } from '@features/auth/services/auth.service';
 import { LucideAngularModule, MapPin } from 'lucide-angular';
 
@@ -78,12 +78,12 @@ export class FincaSelectorComponent {
     effect(() => {
       const user = this.authService.user();
       if (user) {
-        this.loadFincasFromUser(user);
+        this.loadFarmsFromUser(user);
       }
     });
   }
 
-  private loadFincasFromUser(user: any): void {
+  private loadFarmsFromUser(user: any): void {
     const fincas = user.fincas || [];
     
     // Crear opciones de fincas (sin opción "Todas" - todos deben seleccionar una finca específica)

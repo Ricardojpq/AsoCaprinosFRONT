@@ -72,7 +72,7 @@
     @for (tipo of statusType(); track tipo.id) {
       <p-button 
         [styleClass]="'btn btn-sm ' + (activeTipoEstadoTab() === tipo.nombre ? ' btn-primary' : 'btn-secondary')"
-        [label]="humanizaNameType(tipo.nombre) + ' (' + getConteoEstado(tipo.nombre) + ')'"
+        [label]="humanizeTypeName(tipo.nombre) + ' (' + getStatusCount(tipo.nombre) + ')'"
         size="small"
         (onClick)="setActiveTipoEstadoTab(tipo.nombre)">
       </p-button>
@@ -113,7 +113,7 @@
           <th pSortableColumn="nomb_animal">Animal <p-sortIcon field="nomb_animal" /></th>
           <th style="width: 6rem">Sexo</th>
           @for (tipo of statusType(); track tipo.id) {
-            <th>{{ humanizaNameType(tipo.nombre) }}</th>
+            <th>{{ humanizeTypeName(tipo.nombre) }}</th>
           }
           <th style="width: 10rem">Acciones</th>
         </tr>
@@ -216,10 +216,10 @@
         appendTo="body"
         class="w-full">
         <ng-template let-item pTemplate="item">
-          <span>{{ humanizaNameType(item.nombre) }}</span>
+          <span>{{ humanizeTypeName(item.nombre) }}</span>
         </ng-template>
         <ng-template let-item pTemplate="selectedItem">
-          <span>{{ humanizaNameType(item.nombre) }}</span>
+          <span>{{ humanizeTypeName(item.nombre) }}</span>
         </ng-template>
       </p-select>
     </div>
@@ -312,7 +312,7 @@
       <ng-template pTemplate="body" let-item>
         <tr>
           <td>
-            <span class="text-sm font-medium">{{ humanizaNameType(item.tipo_estado?.nombre) }}</span>
+            <span class="text-sm font-medium">{{ humanizeTypeName(item.tipo_estado?.nombre) }}</span>
           </td>
           <td>
             <p-tag 

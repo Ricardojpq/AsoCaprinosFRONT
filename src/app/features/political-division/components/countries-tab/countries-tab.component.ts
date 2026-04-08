@@ -203,7 +203,7 @@ export class CountriesTabComponent implements OnInit, OnChanges {
         capital_pais: formValue.capital_pais || undefined
       };
 
-      this.politicalDivisionService.createPais(createDto).subscribe({
+      this.politicalDivisionService.createCountry(createDto).subscribe({
         next: (response) => {
           this.loading = false;
           this.closeModal();
@@ -225,7 +225,7 @@ export class CountriesTabComponent implements OnInit, OnChanges {
         capital_pais: formValue.capital_pais || undefined
       };
 
-      this.politicalDivisionService.updatePais(this.selectedCountryForEdit!.cod_pais, updateDto).subscribe({
+      this.politicalDivisionService.updateCountry(this.selectedCountryForEdit!.cod_pais, updateDto).subscribe({
         next: (response) => {
           this.loading = false;
           this.closeModal();
@@ -250,7 +250,7 @@ export class CountriesTabComponent implements OnInit, OnChanges {
     if (confirm(`¿Está seguro de eliminar el país "${country.nom_pais}"?`)) {
       this.loading = true;
       
-      this.politicalDivisionService.deletePais(country.cod_pais).subscribe({
+      this.politicalDivisionService.deleteCountry(country.cod_pais).subscribe({
         next: (response) => {
           this.loading = false;
           this.loadCountries();
@@ -321,7 +321,7 @@ export class CountriesTabComponent implements OnInit, OnChanges {
       sort_dir: this.sortOrder === 1 ? 'asc' : 'desc'
     };
 
-    this.politicalDivisionService.getPaises(params).subscribe({
+    this.politicalDivisionService.getCountries(params).subscribe({
       next: (response) => {
         this.countries = response.data.data;
         this.totalRecords = response.data.total;

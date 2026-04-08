@@ -117,7 +117,7 @@ export class AnimalStatus implements OnInit {
   }
 
   loadTypeStatus(): void {
-    this.reproductionService.getTiposEstado().subscribe({
+    this.reproductionService.getStatusTypes().subscribe({
       next: (response) => {
         this.statusType.set(response.data);
       },
@@ -294,7 +294,7 @@ export class AnimalStatus implements OnInit {
     return severities[estado] || 'secondary';
   }
 
-  humanizaNameType(nombre: string): string {
+  humanizeTypeName(nombre: string): string {
     const nombres: Record<string, string> = {
       'ESTATUS_GENERAL': 'General',
       'ESTATUS_PRODUCTIVO': 'Productivo',

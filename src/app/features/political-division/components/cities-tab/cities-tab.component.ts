@@ -124,7 +124,7 @@ export class CitiesTabComponent implements OnInit, OnChanges {
    * Cargar opciones de países para el formulario
    */
   loadCountryOptions(): void {
-    this.politicalDivisionService.getPaises({ page: 1, per_page: 100 }).subscribe({
+    this.politicalDivisionService.getCountries({ page: 1, per_page: 100 }).subscribe({
       next: (response: LaravelApiResponse<PaisDto>) => {
         this.countryOptions = response.data.data.map(country => ({
           label: country.nom_pais,
@@ -142,7 +142,7 @@ export class CitiesTabComponent implements OnInit, OnChanges {
    */
   loadAllStateOptions(): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.politicalDivisionService.getEstados({ page: 1, per_page: 100 }).subscribe({
+      this.politicalDivisionService.getStates({ page: 1, per_page: 100 }).subscribe({
         next: (response: LaravelApiResponse<EstadoDto>) => {
           this.allStateOptions = response.data.data.map(state => ({
             label: state.nom_estado,
@@ -165,7 +165,7 @@ export class CitiesTabComponent implements OnInit, OnChanges {
    */
   loadAllMunicipalityOptions(): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.politicalDivisionService.getMunicipios({ page: 1, per_page: 100 }).subscribe({
+      this.politicalDivisionService.getMunicipalities({ page: 1, per_page: 100 }).subscribe({
         next: (response: LaravelApiResponse<MunicipioDto>) => {
           this.allMunicipalityOptions = response.data.data.map(municipality => ({
             label: municipality.nom_municipio,
@@ -189,7 +189,7 @@ export class CitiesTabComponent implements OnInit, OnChanges {
   onCountryChange(selectedCountryCode: number): void {
     if (selectedCountryCode) {
       // Cargar estados filtrados por cod_pais usando el backend
-      this.politicalDivisionService.getEstados({ 
+      this.politicalDivisionService.getStates({ 
         page: 1, 
         per_page: 100,
         cod_pais: selectedCountryCode // Filtrar por país en el backend
@@ -233,7 +233,7 @@ export class CitiesTabComponent implements OnInit, OnChanges {
       const selectedState = this.allStateOptions.find(state => state.name === selectedStateName);
       if (selectedState) {
         // Cargar municipios filtrados por cod_estado usando el backend
-        this.politicalDivisionService.getMunicipios({ 
+        this.politicalDivisionService.getMunicipalities({ 
           page: 1, 
           per_page: 100,
           cod_estado: selectedState.value // Filtrar por estado en el backend
@@ -277,7 +277,7 @@ export class CitiesTabComponent implements OnInit, OnChanges {
       sort_dir: this.sortOrder === 1 ? 'asc' : 'desc'
     };
 
-    this.politicalDivisionService.getCiudades(params).subscribe({
+    this.politicalDivisionService.getCities(params).subscribe({
       next: (response: LaravelApiResponse<CiudadDto>) => {
         this.cities = response.data.data;
         this.totalRecords = response.data.total;
@@ -406,7 +406,7 @@ export class CitiesTabComponent implements OnInit, OnChanges {
         municipio_ciudad: formValue.municipio_ciudad
       };
 
-      this.politicalDivisionService.createCiudad(createDto).subscribe({
+      this.politicalDivisionService.createCity(createDto).subscribe({
         next: (response) => {
           this.loading = false;
           this.closeModal();
@@ -425,7 +425,7 @@ export class CitiesTabComponent implements OnInit, OnChanges {
         municipio_ciudad: formValue.municipio_ciudad
       };
 
-      this.politicalDivisionService.updateCiudad(this.selectedCityForEdit!.cod_ciudad, updateDto).subscribe({
+      this.politicalDivisionService.updateCity(this.selectedCityForEdit!.cod_ciudad, updateDto).subscribe({
         next: (response) => {
           this.loading = false;
           this.closeModal();
@@ -455,7 +455,7 @@ export class CitiesTabComponent implements OnInit, OnChanges {
   private deleteCity(city: CiudadDto): void {
     this.loading = true;
     
-    this.politicalDivisionService.deleteCiudad(city.cod_ciudad).subscribe({
+    this.politicalDivisionService.deleteCity(city.cod_ciudad).subscribe({
       next: (response) => {
         this.loading = false;
         this.loadCities();

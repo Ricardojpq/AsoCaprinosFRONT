@@ -132,7 +132,7 @@ export class Farms implements OnInit, OnDestroy {
   globalFilter = '';
   finca!: FincaDto;
   selectedFincas: FincaDto[] = [];
-  deleteFincaDialog = false;
+  deleteFarmDialog = false;
   submitting = false;
   isEditing = false;
 
@@ -256,8 +256,8 @@ export class Farms implements OnInit, OnDestroy {
 
   ngOnInit() {
     // Inicializar opciones de los selects
-    this.estatusOptions = this.farmsService.getEstatusOptions();
-    this.tipoCriadorOptions = this.farmsService.getTipoCriadorOptions();
+    this.estatusOptions = this.farmsService.getStatusOptions();
+    this.tipoCriadorOptions = this.farmsService.getBreederTypeOptions();
 
     this.cols = [
       { field: 'ide_finca', header: 'Siglas' },
@@ -283,7 +283,7 @@ export class Farms implements OnInit, OnDestroy {
   private loadGeographicData() {
     // Solo cargar países inicialmente
     this.loadingPaises = true;
-    this.politicalDivisionService.getAllPaises().subscribe({
+    this.politicalDivisionService.getAllCountries().subscribe({
       next: (paises: PoliticalDivisionSelectOption[]) => {
         this.paises = paises;
         this.loadingPaises = false;
@@ -434,7 +434,7 @@ export class Farms implements OnInit, OnDestroy {
     this.submitted = false;
   }
 
-  editFinca(farm: FincaDto) {
+  editFarm(farm: FincaDto) {
     this.selectedFincas = [{ ...farm }];
     this.isEditMode = true;
     
@@ -482,7 +482,7 @@ export class Farms implements OnInit, OnDestroy {
       estatus_finca: farm.estatus_finca,
     });
 
-    this.loadGeographicDataForEditFinca(farm);
+    this.loadGeographicDataForEditFarm(farm);
 
     if (farm.propietarios && farm.propietarios.length > 0) {
       this.selectedPropietarios = farm.propietarios.map(persona => ({
@@ -509,14 +509,14 @@ export class Farms implements OnInit, OnDestroy {
     this.submitted = false;
   }
 
-  deleteFinca(farm: FincaDto) {
+  deleteFarm(farm: FincaDto) {
     this.confirmationService.confirm({
       message: `¿Seguro que deseas eliminar la finca ${farm.nomb_finca}?`,
       header: 'Confirmar',
       icon: 'pi pi-exclamation-triangle',
       accept: () => {
         this.loading = true;
-        this.farmsService.deleteFinca$(farm.cod_finca).subscribe({
+        this.farmsService.deleteFarm$(farm.cod_finca).subscribe({
           next: () => {
             this.loadFarms();
             this.loading = false;
@@ -549,9 +549,9 @@ export class Farms implements OnInit, OnDestroy {
   confirmDelete() {
     if (this.finca) {
       this.submitting = true;
-      this.farmsService.deleteFinca$(this.finca.cod_finca).subscribe({
+      this.farmsService.deleteFarm$(this.finca.cod_finca).subscribe({
         next: () => {
-          this.deleteFincaDialog = false;
+          this.deleteFarmDialog = false;
           this.submitting = false;
           this.loadFarms();
           this.messageService.add({
@@ -628,7 +628,7 @@ export class Farms implements OnInit, OnDestroy {
     });
   }
 
-  saveFinca() {
+  saveFarm() {
     this.submitted = true;
 
     // Validar formulario
@@ -682,7 +682,7 @@ export class Farms implements OnInit, OnDestroy {
       }
 
       this.farmsService
-        .updateFinca$(codFinca, updateData)
+        .updateFarm$(codFinca, updateData)
         .subscribe({
           next: () => {
             this.loadFarms();
@@ -716,7 +716,7 @@ export class Farms implements OnInit, OnDestroy {
         }))
       };
 
-      this.farmsService.createFinca$(createData).subscribe({
+      this.farmsService.createFarm$(createData).subscribe({
         next: () => {
           this.loadFarms();
           this.fincaDialog = false;
@@ -769,7 +769,7 @@ export class Farms implements OnInit, OnDestroy {
   }
 
   // Geographic dropdown handlers
-  onPaisChange(event: any) {
+  onCountryChange(event: any) {
     const cod_pais = event.value;
     if (cod_pais) {
       // Limpiar estados, municipios y ciudades
@@ -791,7 +791,7 @@ export class Farms implements OnInit, OnDestroy {
 
       // Cargar estados del país seleccionado usando el método correcto
       this.loadingEstados = true;
-      this.politicalDivisionService.getEstadosByPais(cod_pais).subscribe({
+      this.politicalDivisionService.getStatesByCountry(cod_pais).subscribe({
         next: (estados: PoliticalDivisionSelectOption[]) => {
           this.estados = estados;
           this.loadingEstados = false;
@@ -812,7 +812,7 @@ export class Farms implements OnInit, OnDestroy {
     }
   }
 
-  onEstadoChange(event: any) {
+  onStateChange(event: any) {
     const cod_estado = event.value;
     if (cod_estado) {
       // Limpiar municipios y ciudades
@@ -832,7 +832,7 @@ export class Farms implements OnInit, OnDestroy {
       // Cargar municipios del estado seleccionado
       this.loadingMunicipios = true;
       this.politicalDivisionService
-        .getMunicipiosByEstado(cod_estado)
+        .getMunicipalitiesByState(cod_estado)
         .subscribe({
           next: (municipios: PoliticalDivisionSelectOption[]) => {
             this.municipios = municipios;
@@ -851,7 +851,7 @@ export class Farms implements OnInit, OnDestroy {
     }
   }
 
-  onMunicipioChange(event: any) {
+  onMunicipalityChange(event: any) {
     const cod_municipio: Number = event.value;
     if (cod_municipio) {
       // Limpiar ciudades
@@ -875,7 +875,7 @@ export class Farms implements OnInit, OnDestroy {
         // Cargar ciudades del municipio seleccionado y filtrar por nom_municipio
         this.loadingCiudades = true;
         this.politicalDivisionService
-          .getCiudadesByMunicipio(nom_municipio)
+          .getCitiesByMunicipality(nom_municipio)
           .subscribe({
             next: (data: any[]) => {
               this.ciudades = data
@@ -900,7 +900,7 @@ export class Farms implements OnInit, OnDestroy {
   /**
    * Obtiene la severidad del tag para el tipo de ganadería
    */
-  getTipoGanaderiaSeverity(tipo: string): string {
+  getLivestockTypeSeverity(tipo: string): string {
     switch (tipo?.toLowerCase()) {
       case 'caprino':
         return 'success';
@@ -916,7 +916,7 @@ export class Farms implements OnInit, OnDestroy {
   /**
    * Obtiene la severidad del tag para el estatus de la finca
    */
-  getEstatusSeverity(estatus: string): string {
+  getStatusSeverity(estatus: string): string {
     switch (estatus?.toLowerCase()) {
       case 'activa':
         return 'success';
@@ -934,7 +934,7 @@ export class Farms implements OnInit, OnDestroy {
   /**
    * Abre el diálogo para seleccionar propietario (socio)
    */
-  openPropietarioSociosDialog() {
+  openOwnerMembersDialog() {
     this.showMembersDialog = true;
   }
 
@@ -977,14 +977,14 @@ export class Farms implements OnInit, OnDestroy {
   /**
    * Obtiene el nombre completo de un propietario por su cédula
    */
-  getPropietarioNombre(cedula: string): string {
+  getOwnerName(cedula: string): string {
     return this.propietariosMap.get(cedula) || cedula;
   }
 
   /**
    * Obtiene el nombre del propietario principal de una finca
    */
-  getPropietarioPrincipal(finca: FincaDto): string {
+  getMainOwner(finca: FincaDto): string {
     if (!finca.propietarios || finca.propietarios.length === 0) {
       return 'Sin propietario';
     }
@@ -999,11 +999,11 @@ export class Farms implements OnInit, OnDestroy {
   /**
    * Load geographic data when editing an existing finca
    */
-  loadGeographicDataForEditFinca(finca: FincaDto) {
+  loadGeographicDataForEditFarm(finca: FincaDto) {
     if (finca.cod_pais) {
       // Cargar estados del país
       this.loadingEstados = true;
-      this.politicalDivisionService.getEstadosByPais(finca.cod_pais)
+      this.politicalDivisionService.getStatesByCountry(finca.cod_pais)
         .subscribe({
           next: (estados: PoliticalDivisionSelectOption[]) => {
             this.estados = estados;
@@ -1014,7 +1014,7 @@ export class Farms implements OnInit, OnDestroy {
             // Si tiene estado, cargar municipios
             if (finca.cod_estado) {
               this.loadingMunicipios = true;
-              this.politicalDivisionService.getMunicipiosByEstado(finca.cod_estado)
+              this.politicalDivisionService.getMunicipalitiesByState(finca.cod_estado)
                 .subscribe({
                   next: (municipios: PoliticalDivisionSelectOption[]) => {
                     this.municipios = municipios;
@@ -1029,7 +1029,7 @@ export class Farms implements OnInit, OnDestroy {
                       
                       if (nomMunicipio) {
                         this.loadingCiudades = true;
-                        this.politicalDivisionService.getCiudadesByMunicipio(nomMunicipio)
+                        this.politicalDivisionService.getCitiesByMunicipality(nomMunicipio)
                           .subscribe({
                             next: (data: any[]) => {
                               this.ciudades = data.map((ciudad) => ({

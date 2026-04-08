@@ -114,7 +114,7 @@ export class AnimalSelectionTable implements OnInit, OnChanges, OnDestroy {
 
   loadFarms() {
     this.loadingFincas = true;
-    this.farmsService.getAllActiveFincas$(1000).subscribe({
+    this.farmsService.getAllActiveFarms$(1000).subscribe({
       next: (fincas) => {
         this.fincaOptions = fincas.map(finca => ({
           label: finca.nomb_finca,
@@ -262,7 +262,7 @@ export class AnimalSelectionTable implements OnInit, OnChanges, OnDestroy {
     }
   }
 
-  getFincaName(codFinca: string | undefined): string {
+  getFarmName(codFinca: string | undefined): string {
     if (!codFinca) return '';
     const finca = this.fincaOptions.find(f => f.value === codFinca);
     return finca?.label || '';

@@ -2,7 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ReproductionService } from '../../services/reproduction.service';
-import { FarmContextService } from '@core/services/finca-context.service';
+import { FarmContextService } from '@core/services/farm-context.service';
 import { ControlLactancia, LactanciaEstadisticas } from '../../models';
 
 import { TableModule } from 'primeng/table';
@@ -116,7 +116,7 @@ export class Lactation implements OnInit {
     if (this.filterEndDate()) filters.fecha_fin = this.filterEndDate()?.toISOString().split('T')[0];
     if (this.filterStatus()) filters.estado = this.filterStatus();
 
-    this.reproductionService.getControlesLactancia(filters).subscribe({
+    this.reproductionService.getLactationControls(filters).subscribe({
       next: (response) => {
         this.controls.set(response.data.data);
         this.totalRecords.set(response.data.total);

@@ -103,8 +103,8 @@
           ></p-tag>
         </td>
         <td>
-          <span [pTooltip]="getFincasNames(user)" tooltipPosition="top">
-            {{ getFincasNames(user) | slice:0:25 }}{{ getFincasNames(user).length > 25 ? '...' : '' }}
+          <span [pTooltip]="getFarmNames(user)" tooltipPosition="top">
+            {{ getFarmNames(user) | slice:0:25 }}{{ getFarmNames(user).length > 25 ? '...' : '' }}
           </span>
         </td>
         <td>
@@ -221,7 +221,7 @@
       </div>
       <div>
         <label class="text-sm text-gray-500 block mb-1">Fincas asignadas</label>
-        <span>{{ selectedUser() ? getFincasNames(selectedUser()!) : '' }}</span>
+        <span>{{ selectedUser() ? getFarmNames(selectedUser()!) : '' }}</span>
       </div>
     </div>
     <ng-template pTemplate="footer">
@@ -299,7 +299,7 @@
             severity="secondary" 
             [text]="true"
             size="small"
-            (onClick)="openFincasModal()"
+            (onClick)="openFarmsModal()"
           >
             <lucide-icon [img]="mapPinIcon" class="mr-1" size="14"></lucide-icon>
           </p-button>
@@ -309,7 +309,7 @@
             <div class="flex flex-wrap gap-2">
               @for (codFinca of userForm.get('fincas')?.value; track codFinca) {
                 <p-tag 
-                  [value]="getFincaName(codFinca)" 
+                  [value]="getFarmName(codFinca)" 
                   [severity]="userForm.get('finca_principal')?.value === codFinca ? 'success' : 'secondary'"
                 ></p-tag>
               }
@@ -402,7 +402,7 @@
     </div>
   </div>
   <ng-template pTemplate="footer">
-    <p-button label="Cancelar" severity="secondary" (onClick)="closeFincasModal()"></p-button>
+    <p-button label="Cancelar" severity="secondary" (onClick)="closeFarmsModal()"></p-button>
     <p-button label="Aceptar" (onClick)="confirmFincasSelection()">
       <lucide-icon [img]="checkIcon" class="mr-2" size="16"></lucide-icon>
     </p-button>

@@ -141,7 +141,7 @@ export class MunicipalitiesTabComponent implements OnInit, OnChanges {
    */
   loadCountryOptions(): void {
     this.politicalDivisionService
-      .getPaises({ page: 1, per_page: 100 })
+      .getCountries({ page: 1, per_page: 100 })
       .subscribe({
         next: (response: LaravelApiResponse<PaisDto>) => {
           this.countryOptions = response.data.data.map((country) => ({
@@ -162,7 +162,7 @@ export class MunicipalitiesTabComponent implements OnInit, OnChanges {
     if (selectedCountryCode) {
       // Cargar estados filtrados por cod_pais usando el backend
       this.politicalDivisionService
-        .getEstados({
+        .getStates({
           page: 1,
           per_page: 100,
           cod_pais: selectedCountryCode, // Filtrar por país en el backend
@@ -206,7 +206,7 @@ export class MunicipalitiesTabComponent implements OnInit, OnChanges {
       sort_dir: this.sortOrder === 1 ? 'asc' : 'desc',
     };
 
-    this.politicalDivisionService.getMunicipios(params).subscribe({
+    this.politicalDivisionService.getMunicipalities(params).subscribe({
       next: (response: LaravelApiResponse<MunicipioDto>) => {
         this.municipalities = response.data.data;
         this.totalRecords = response.data.total;
@@ -315,7 +315,7 @@ export class MunicipalitiesTabComponent implements OnInit, OnChanges {
         capital_municipio: formValue.capital_municipio || undefined,
       };
 
-      this.politicalDivisionService.createMunicipio(createDto).subscribe({
+      this.politicalDivisionService.createMunicipality(createDto).subscribe({
         next: (response) => {
           this.loading = false;
           this.closeModal();
@@ -335,7 +335,7 @@ export class MunicipalitiesTabComponent implements OnInit, OnChanges {
       };
 
       this.politicalDivisionService
-        .updateMunicipio(
+        .updateMunicipality(
           this.selectedMunicipalityForEdit!.cod_municipio,
           updateDto
         )
@@ -374,7 +374,7 @@ export class MunicipalitiesTabComponent implements OnInit, OnChanges {
     this.loading = true;
 
     this.politicalDivisionService
-      .deleteMunicipio(municipality.cod_municipio)
+      .deleteMunicipality(municipality.cod_municipio)
       .subscribe({
         next: (response) => {
           this.loading = false;

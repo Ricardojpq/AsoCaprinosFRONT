@@ -143,7 +143,7 @@ export class CertificatesService {
   /**
    * Obtiene lista de socios para selección
    */
-  getSociosForSelection(search?: string): Observable<LaravelApiResponse<any>> {
+  getMembersForSelection(search?: string): Observable<LaravelApiResponse<any>> {
     let params = new HttpParams();
     if (search) {
       params = params.set('search', search);

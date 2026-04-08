@@ -4,20 +4,20 @@ export interface SelectOption<T = any> {
 }
 
 export interface CatalogOptions {
-  sexo: SelectOption<string>[];
-  estatus: SelectOption<string>[];
-  origen: SelectOption<string>[];
-  tipoConcepcion: SelectOption<string>[];
-  tipoParto: SelectOption<string>[];
-  materialGenetico: SelectOption<string>[];
-  protocoloImportacion: SelectOption<string>[];
-  compRacial: SelectOption<string>[];
-  razas: SelectOption<number>[];
-  colores: SelectOption<number>[];
-  tiposPelo: SelectOption<number>[];
-  infoOrejas: SelectOption<string>[];
-  infoCuernos: SelectOption<string>[];
-  tipoRegistro: SelectOption<string>[];
+  sex: SelectOption<string>[];
+  status: SelectOption<string>[];
+  origin: SelectOption<string>[];
+  conceptionType: SelectOption<string>[];
+  birthType: SelectOption<string>[];
+  geneticMaterial: SelectOption<string>[];
+  importProtocol: SelectOption<string>[];
+  bloodlinePurity: SelectOption<string>[];
+  breeds: SelectOption<number>[];
+  colors: SelectOption<number>[];
+  hairTypes: SelectOption<number>[];
+  earInfo: SelectOption<string>[];
+  hornInfo: SelectOption<string>[];
+  registryType: SelectOption<string>[];
 }
 
 export interface CatalogDto {

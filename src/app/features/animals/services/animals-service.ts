@@ -252,14 +252,14 @@ export class AnimalsService {
   }
 
   // Métodos para obtener opciones de los enums
-  getSexoOptions() {
+  getSexOptions() {
     return [
       { label: 'Macho', value: AnimalSexEnum.Male },
       { label: 'Hembra', value: AnimalSexEnum.Female }
     ];
   }
 
-  getOrigenOptions() {
+  getOriginOptions() {
     return [
       { label: 'Nacido en Finca', value: AnimalOriginEnum.FarmBorn },
       { label: 'Extranjero', value: AnimalOriginEnum.Foreign },
@@ -268,7 +268,7 @@ export class AnimalsService {
     ];
   }
 
-  getEstatusOptions() {
+  getStatusOptions() {
     return [
       { label: 'Activo', value: AnimalStatusEnum.ACTIVE },
       { label: 'Referencia', value: AnimalStatusEnum.REFERENCE },
@@ -276,7 +276,7 @@ export class AnimalsService {
     ];
   }
 
-  getTipoConcepcionOptions() {
+  getConceptionTypeOptions() {
     return [
       { label: 'Monta Natural', value: ConceptionTypeEnum.NaturalMating },
       { label: 'TE Fresco', value: ConceptionTypeEnum.ET_Fresh },
@@ -285,7 +285,7 @@ export class AnimalsService {
     ];
   }
 
-  getTipoPartoOptions() {
+  getBirthTypeOptions() {
     return [
       { label: 'Simple', value: BirthTypeEnum.Single },
       { label: 'Doble', value: BirthTypeEnum.Twin },
@@ -295,21 +295,21 @@ export class AnimalsService {
     ];
   }
 
-  getMaterialGeneticoOptions() {
+  getGeneticMaterialOptions() {
     return [
       { label: 'Nacional', value: GeneticMaterialEnum.Domestic },
       { label: 'Importado', value: GeneticMaterialEnum.Imported }
     ];
   }
 
-  getProtocoloImportacionOptions() {
+  getImportProtocolOptions() {
     return [
       { label: 'SI', value: 'S' },
       { label: 'NO', value: 'N' }
     ];
   }
 
-  getCompRacialOptions() {
+  getBloodlinePurityOptions() {
     return [
       { label: 'PO', value: BloodlinePurityEnum.PO },
       { label: 'PCOC', value: BloodlinePurityEnum.PCOC },

@@ -1,22 +1,22 @@
-export interface TipoEstado {
+export interface StatusType {
   id: number;
   nombre: string;
   descripcion?: string;
   is_active: boolean;
 }
 
-export interface EstadoCatalogo {
+export interface StatusCatalog {
   id: number;
   tipo_estado_id: number;
   nombre: string;
   descripcion?: string;
   orden: number;
   color?: string;
-  tipo_estado?: TipoEstado;
+  tipo_estado?: StatusType;
   is_active: boolean;
 }
 
-export interface HistorialEstadoAnimal {
+export interface AnimalStatusHistory {
   id: number;
   animal_id: number;
   tipo_estado_id: number;
@@ -24,12 +24,12 @@ export interface HistorialEstadoAnimal {
   fecha_inicio: string;
   fecha_fin?: string;
   comments?: string;
-  tipo_estado?: TipoEstado;
-  estado?: EstadoCatalogo;
+  tipo_estado?: StatusType;
+  estado?: StatusCatalog;
   animal?: any;
 }
 
-export interface Parametro {
+export interface Parameter {
   id: number;
   nombre: string;
   descripcion?: string;
@@ -40,7 +40,7 @@ export interface Parametro {
 }
 
 // Constantes para tipos de estado
-export const TIPOS_ESTADO = {
+export const STATUS_TYPES = {
   ETAPA_EVOLUTIVA: 'ETAPA_EVOLUTIVA',
   ESTATUS_REPRODUCTIVO: 'ESTATUS_REPRODUCTIVO',
   ESTATUS_PRODUCTIVO: 'ESTATUS_PRODUCTIVO',
@@ -48,7 +48,7 @@ export const TIPOS_ESTADO = {
 } as const;
 
 // Constantes para estados reproductivos
-export const ESTADOS_REPRODUCTIVOS = {
+export const REPRODUCTIVE_STATUSES = {
   DESCANSO: 'DESCANSO',
   CELO: 'CELO',
   EN_MONTA: 'EN_MONTA',
@@ -61,7 +61,7 @@ export const ESTADOS_REPRODUCTIVOS = {
 } as const;
 
 // Constantes para etapas evolutivas
-export const ETAPAS_EVOLUTIVAS = {
+export const EVOLUTIONARY_STAGES = {
   CRIA: 'CRIA',
   CORDERO: 'CORDERO',
   CORDERA: 'CORDERA',

@@ -14,7 +14,7 @@ import { AnimalCreateDto } from '../../models/DTOs/animal-create';
 import { AnimalUpdateDto } from '../../models/DTOs/animal-update';
 import { CatalogOptions } from '../../models/interfaces/catalog-options.interface';
 import { FincaDto } from '../../../farms/models/finca.dto';
-import { FarmContextService } from '../../../../core/services/finca-context.service';
+import { FarmContextService } from '../../../../core/services/farm-context.service';
 
 @Component({
   selector: 'app-animal-form',
@@ -76,9 +76,9 @@ export class AnimalFormComponent implements OnInit {
       const catalogs = this.catalogOptions();
       console.log('📋 Catálogos actualizados:', catalogs);
       if (catalogs) {
-        console.log('  - Colores:', catalogs.colores);
-        console.log('  - Tipos Pelo:', catalogs.tiposPelo);
-        console.log('  - Razas:', catalogs.razas);
+        console.log('  - Colors:', catalogs.colors);
+        console.log('  - Hair Types:', catalogs.hairTypes);
+        console.log('  - Breeds:', catalogs.breeds);
       }
     });
 

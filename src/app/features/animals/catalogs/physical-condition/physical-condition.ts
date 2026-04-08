@@ -164,7 +164,7 @@ export class PhysicalCondition implements OnInit, OnDestroy {
       sort_dir: this.sortOrder,
       ...this.filters,
     };
-    this.catalogsService.getCondicionesCorporales$(query).subscribe({
+    this.catalogsService.getBodyConditions$(query).subscribe({
       next: (res) => {
         this.physicalConditions = res.data || [];
         this.totalRecords = res.total;
@@ -220,7 +220,7 @@ export class PhysicalCondition implements OnInit, OnDestroy {
       icon: 'pi pi-exclamation-triangle',
       accept: () => {
         this.loading = true;
-        this.catalogsService.deleteCondicionCorporal$(physicalCondition.cod_condicion_corporal).subscribe({
+        this.catalogsService.deleteBodyCondition$(physicalCondition.cod_condicion_corporal).subscribe({
           next: () => {
             this.loadPhysicalConditions();
             this.loading = false;
@@ -254,7 +254,7 @@ export class PhysicalCondition implements OnInit, OnDestroy {
       accept: () => {
         this.loading = true;
         const deletes = this.selectedPhysicalConditions.map((physicalCondition) =>
-          this.catalogsService.deleteCondicionCorporal$(physicalCondition.cod_condicion_corporal)
+          this.catalogsService.deleteBodyCondition$(physicalCondition.cod_condicion_corporal)
         );
         Promise.all(deletes.map((obs) => firstValueFrom(obs)))
           .then(() => {
@@ -323,7 +323,7 @@ export class PhysicalCondition implements OnInit, OnDestroy {
         return;
       }
 
-      this.catalogsService.updateCondicionCorporal$(this.currentPhysicalCondition.cod_condicion_corporal, updateData).subscribe({
+      this.catalogsService.updateBodyCondition$(this.currentPhysicalCondition.cod_condicion_corporal, updateData).subscribe({
         next: () => {
           this.loadPhysicalConditions();
           this.physicalConditionDialog = false;
@@ -352,7 +352,7 @@ export class PhysicalCondition implements OnInit, OnDestroy {
         descripcion: formData.descripcion,
       };
 
-      this.catalogsService.createCondicionCorporal$(createData).subscribe({
+      this.catalogsService.createBodyCondition$(createData).subscribe({
         next: () => {
           this.loadPhysicalConditions();
           this.physicalConditionDialog = false;

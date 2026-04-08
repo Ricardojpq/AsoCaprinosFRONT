@@ -139,7 +139,7 @@ export class ParishesTabComponent implements OnInit, OnChanges {
    */
   loadCountryOptions(): void {
     this.politicalDivisionService
-      .getPaises({ page: 1, per_page: 100 })
+      .getCountries({ page: 1, per_page: 100 })
       .subscribe({
         next: (response: LaravelApiResponse<PaisDto>) => {
           this.countryOptions = response.data.data.map((country) => ({
@@ -159,7 +159,7 @@ export class ParishesTabComponent implements OnInit, OnChanges {
   loadAllStateOptions(): Promise<void> {
     return new Promise((resolve, reject) => {
       this.politicalDivisionService
-        .getEstados({ page: 1, per_page: 100 })
+        .getStates({ page: 1, per_page: 100 })
         .subscribe({
           next: (response: LaravelApiResponse<EstadoDto>) => {
             this.allStateOptions = response.data.data.map((state) => ({
@@ -183,7 +183,7 @@ export class ParishesTabComponent implements OnInit, OnChanges {
   loadAllMunicipalityOptions(): Promise<void> {
     return new Promise((resolve, reject) => {
       this.politicalDivisionService
-        .getMunicipios({ page: 1, per_page: 100 })
+        .getMunicipalities({ page: 1, per_page: 100 })
         .subscribe({
           next: (response: LaravelApiResponse<MunicipioDto>) => {
             this.allMunicipalityOptions = response.data.data.map(
@@ -210,7 +210,7 @@ export class ParishesTabComponent implements OnInit, OnChanges {
     if (selectedCountryCode) {
       // Cargar estados filtrados por cod_pais usando el backend
       this.politicalDivisionService
-        .getEstados({
+        .getStates({
           page: 1,
           per_page: 100,
           cod_pais: selectedCountryCode, // Filtrar por país en el backend
@@ -246,7 +246,7 @@ export class ParishesTabComponent implements OnInit, OnChanges {
     if (selectedStateCode) {
       // Cargar municipios filtrados por cod_estado usando el backend
       this.politicalDivisionService
-        .getMunicipios({
+        .getMunicipalities({
           page: 1,
           per_page: 100,
           cod_estado: selectedStateCode, // Filtrar por estado en el backend
@@ -292,7 +292,7 @@ export class ParishesTabComponent implements OnInit, OnChanges {
       sort_dir: this.sortOrder === 1 ? 'asc' : 'desc',
     };
 
-    this.politicalDivisionService.getParroquias(params).subscribe({
+    this.politicalDivisionService.getParishes(params).subscribe({
       next: (response: LaravelApiResponse<ParroquiaDto>) => {
         this.parishes = response.data.data;
         this.totalRecords = response.data.total;
@@ -418,7 +418,7 @@ export class ParishesTabComponent implements OnInit, OnChanges {
         cod_municipio: formValue.cod_municipio,
       };
 
-      this.politicalDivisionService.createParroquia(createDto).subscribe({
+      this.politicalDivisionService.createParish(createDto).subscribe({
         next: (response) => {
           this.loading = false;
           this.closeModal();
@@ -437,7 +437,7 @@ export class ParishesTabComponent implements OnInit, OnChanges {
       };
 
       this.politicalDivisionService
-        .updateParroquia(this.selectedParishForEdit!.cod_parroquia, updateDto)
+        .updateParish(this.selectedParishForEdit!.cod_parroquia, updateDto)
         .subscribe({
           next: (response) => {
             this.loading = false;
@@ -473,7 +473,7 @@ export class ParishesTabComponent implements OnInit, OnChanges {
     this.loading = true;
 
     this.politicalDivisionService
-      .deleteParroquia(parish.cod_parroquia)
+      .deleteParish(parish.cod_parroquia)
       .subscribe({
         next: (response) => {
           this.loading = false;

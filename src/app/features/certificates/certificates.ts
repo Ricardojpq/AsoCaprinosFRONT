@@ -6,7 +6,7 @@ import {
   ViewChild,
   inject,
 } from '@angular/core';
-import { FarmContextService } from '@core/services/finca-context.service';
+import { FarmContextService } from '@core/services/farm-context.service';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { TableModule } from 'primeng/table';
 import { DialogModule } from 'primeng/dialog';
@@ -627,7 +627,7 @@ export class Certificates implements OnInit {
         this.certificateData?.animal?.nomb_animal || 'certificado';
       
       // Convertir tipo de registro a sigla corta
-      const tipoRegistroSigla = this.getTipoRegistroSigla(
+      const tipoRegistroSigla = this.getRegistryTypeAbbr(
         this.certificateData?.animal?.tipo_registro
       );
       
@@ -689,7 +689,7 @@ export class Certificates implements OnInit {
         this.certificateData?.animal?.nomb_animal || 'certificado';
       
       // Convertir tipo de registro a sigla corta
-      const tipoRegistroSigla = this.getTipoRegistroSigla(
+      const tipoRegistroSigla = this.getRegistryTypeAbbr(
         this.certificateData?.animal?.tipo_registro
       );
       
@@ -789,7 +789,7 @@ export class Certificates implements OnInit {
   /**
    * Convierte el tipo de registro a una sigla corta
    */
-  private getTipoRegistroSigla(tipoRegistro?: string): string {
+  private getRegistryTypeAbbr(tipoRegistro?: string): string {
     if (!tipoRegistro) return 'REG';
     
     const tipoLower = tipoRegistro.toLowerCase();

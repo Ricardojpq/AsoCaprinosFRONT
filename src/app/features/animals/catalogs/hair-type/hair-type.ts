@@ -165,7 +165,7 @@ export class HairType implements OnInit, OnDestroy {
       sort_dir: this.sortOrder,
       ...this.filters,
     };
-    this.catalogsService.getTiposPelo$(query).subscribe({
+    this.catalogsService.getHairTypes$(query).subscribe({
       next: (res) => {
         this.hairTypes = res.data || [];
         this.totalRecords = res.total;
@@ -222,7 +222,7 @@ export class HairType implements OnInit, OnDestroy {
       icon: 'pi pi-exclamation-triangle',
       accept: () => {
         this.loading = true;
-        this.catalogsService.deleteTipoPelo$(hairType.cod_tipo_pelo).subscribe({
+        this.catalogsService.deleteHairType$(hairType.cod_tipo_pelo).subscribe({
           next: () => {
             this.loadHairTypes();
             this.loading = false;
@@ -256,7 +256,7 @@ export class HairType implements OnInit, OnDestroy {
       accept: () => {
         this.loading = true;
         const deletes = this.selectedHairTypes.map((hairType) =>
-          this.catalogsService.deleteTipoPelo$(hairType.cod_tipo_pelo)
+          this.catalogsService.deleteHairType$(hairType.cod_tipo_pelo)
         );
         Promise.all(deletes.map((obs) => firstValueFrom(obs)))
           .then(() => {
@@ -326,7 +326,7 @@ export class HairType implements OnInit, OnDestroy {
         return;
       }
 
-      this.catalogsService.updateTipoPelo$(this.currentHairType.cod_tipo_pelo, updateData).subscribe({
+      this.catalogsService.updateHairType$(this.currentHairType.cod_tipo_pelo, updateData).subscribe({
         next: () => {
           this.loadHairTypes();
           this.hairTypeDialog = false;
@@ -356,7 +356,7 @@ export class HairType implements OnInit, OnDestroy {
         // foto_tipo_pelo: formData.foto_tipo_pelo, // Campo removido temporalmente
       };
 
-      this.catalogsService.createTipoPelo$(createData).subscribe({
+      this.catalogsService.createHairType$(createData).subscribe({
         next: () => {
           this.loadHairTypes();
           this.hairTypeDialog = false;

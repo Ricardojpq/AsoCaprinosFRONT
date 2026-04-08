@@ -68,7 +68,7 @@ export class AnimalListComponent {
     return status === 'A' ? 'Activo' : 'Inactivo';
   }
 
-  getOrigenLabel(origen: string): string {
+  getOriginLabel(origen: string): string {
     const labels: Record<string, string> = {
       'N': 'Nacido',
       'I': 'Importado',
@@ -77,7 +77,7 @@ export class AnimalListComponent {
     return labels[origen] || origen;
   }
 
-  getTipoConcepcionLabel(tipo: string): string {
+  getConceptionTypeLabel(tipo: string): string {
     const labels: Record<string, string> = {
       'M': 'Monta Natural',
       'I': 'Inseminación',
@@ -87,7 +87,7 @@ export class AnimalListComponent {
     return labels[tipo] || tipo;
   }
 
-  getTipoPartoLabel(tipo: string): string {
+  getBirthTypeLabel(tipo: string): string {
     const labels: Record<string, string> = {
       'S': 'Simple',
       'M': 'Múltiple',

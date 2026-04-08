@@ -9,13 +9,13 @@ export interface ApiResponse<T> {
   data: T;
 }
 
-export interface TipoEstado {
+export interface StatusType {
   id: number;
   nombre: string;
   descripcion?: string;
 }
 
-export interface EstadoCatalogo {
+export interface StatusCatalog {
   id: number;
   nombre: string;
   descripcion?: string;
@@ -24,7 +24,7 @@ export interface EstadoCatalogo {
   sexo?: string | null; // M=Macho, H=Hembra, null=Ambos
 }
 
-export interface HistorialEstado {
+export interface StatusHistory {
   id: number;
   animal_id: number;
   tipo_estado_id: number;
@@ -32,26 +32,26 @@ export interface HistorialEstado {
   fecha_inicio: string;
   fecha_fin?: string;
   comments?: string;
-  tipo_estado?: TipoEstado;
-  estado?: EstadoCatalogo;
+  tipo_estado?: StatusType;
+  estado?: StatusCatalog;
   duracion_dias?: number;
 }
 
-export interface CambiarEstadoRequest {
+export interface ChangeStatusRequest {
   animal_id: number;
   tipo_estado: string;
   nuevo_estado: string;
   comments?: string;
 }
 
-export interface CambiarEstadoMasivoRequest {
+export interface BulkChangeStatusRequest {
   animal_ids: number[];
   tipo_estado: string;
   nuevo_estado: string;
   comments?: string;
 }
 
-export interface CambiarEstadoMasivoResponse {
+export interface BulkChangeStatusResponse {
   exitosos: number;
   fallidos: number;
   errores?: string[];
@@ -60,15 +60,15 @@ export interface CambiarEstadoMasivoResponse {
 @Injectable({
   providedIn: 'root'
 })
-export class EstadoAnimalService {
+export class AnimalStatusService {
   private http = inject(HttpClient);
   private apiUrl = `${environment.apiUrl}${environment.apiPrefix}/${environment.apiVersion}`;
 
   /**
    * Obtener todos los tipos de estado disponibles
    */
-  getTiposEstado(): Observable<ApiResponse<TipoEstado[]>> {
-    return this.http.get<ApiResponse<TipoEstado[]>>(`${this.apiUrl}/reproduction/estados-animal/tipos`);
+  getStatusTypes(): Observable<ApiResponse<StatusType[]>> {
+    return this.http.get<ApiResponse<StatusType[]>>(`${this.apiUrl}/reproduction/estados-animal/tipos`);
   }
 
   /**
@@ -76,12 +76,12 @@ export class EstadoAnimalService {
    * @param tipoNombre Nombre del tipo de estado
    * @param sexo Opcional: filtrar por sexo del animal (M/H)
    */
-  getStatusByType(tipoNombre: string, sexo?: string): Observable<ApiResponse<EstadoCatalogo[]>> {
+  getStatusByType(tipoNombre: string, sexo?: string): Observable<ApiResponse<StatusCatalog[]>> {
     let params = new HttpParams();
     if (sexo) {
       params = params.set('sexo', sexo);
     }
-    return this.http.get<ApiResponse<EstadoCatalogo[]>>(`${this.apiUrl}/reproduction/estados-animal/tipos/${tipoNombre}/estados`, { params });
+    return this.http.get<ApiResponse<StatusCatalog[]>>(`${this.apiUrl}/reproduction/estados-animal/tipos/${tipoNombre}/estados`, { params });
   }
 
   /**
@@ -97,31 +97,31 @@ export class EstadoAnimalService {
   /**
    * Obtener estados actuales de un animal específico
    */
-  getEstadosAnimal(animalId: number): Observable<ApiResponse<any>> {
+  getAnimalStatuses(animalId: number): Observable<ApiResponse<any>> {
     return this.http.get<ApiResponse<any>>(`${this.apiUrl}/reproduction/estados-animal/animal/${animalId}`);
   }
 
   /**
    * Obtener historial de estados de un animal
    */
-  getAnimalHistory(animalId: number, tipo?: string): Observable<ApiResponse<HistorialEstado[]>> {
+  getAnimalHistory(animalId: number, tipo?: string): Observable<ApiResponse<StatusHistory[]>> {
     let params = new HttpParams();
     if (tipo) params = params.set('tipo', tipo);
-    return this.http.get<ApiResponse<HistorialEstado[]>>(`${this.apiUrl}/reproduction/estados-animal/animal/${animalId}/historial`, { params });
+    return this.http.get<ApiResponse<StatusHistory[]>>(`${this.apiUrl}/reproduction/estados-animal/animal/${animalId}/historial`, { params });
   }
 
   /**
    * Cambiar estado de un animal
    */
-  changeStatus(data: CambiarEstadoRequest): Observable<ApiResponse<HistorialEstado>> {
-    return this.http.post<ApiResponse<HistorialEstado>>(`${this.apiUrl}/reproduction/estados-animal/cambiar`, data);
+  changeStatus(data: ChangeStatusRequest): Observable<ApiResponse<StatusHistory>> {
+    return this.http.post<ApiResponse<StatusHistory>>(`${this.apiUrl}/reproduction/estados-animal/cambiar`, data);
   }
 
   /**
    * Cambiar estado de múltiples animales
    */
-  bulkUpdateStatus(data: CambiarEstadoMasivoRequest): Observable<ApiResponse<CambiarEstadoMasivoResponse>> {
-    return this.http.post<ApiResponse<CambiarEstadoMasivoResponse>>(`${this.apiUrl}/reproduction/estados-animal/cambiar-masivo`, data);
+  bulkUpdateStatus(data: BulkChangeStatusRequest): Observable<ApiResponse<BulkChangeStatusResponse>> {
+    return this.http.post<ApiResponse<BulkChangeStatusResponse>>(`${this.apiUrl}/reproduction/estados-animal/cambiar-masivo`, data);
   }
 
   /**
@@ -182,7 +182,7 @@ export class EstadoAnimalService {
   /**
    * Humanizar nombre de tipo de estado
    */
-  humanizaNameType(nombre: string): string {
+  humanizeTypeName(nombre: string): string {
     const nombres: Record<string, string> = {
       'ESTATUS_GENERAL': 'General',
       'ESTATUS_PRODUCTIVO': 'Productivo',
@@ -195,7 +195,7 @@ export class EstadoAnimalService {
   /**
    * Transiciones válidas del ciclo reproductivo de la hembra
    */
-  getTransicionesReproductivas(): Record<string, string[]> {
+  getReproductiveTransitions(): Record<string, string[]> {
     return {
       'CELO': ['EN_MONTA'],
       'EN_MONTA': ['PREÑADA', 'VACIA'],
@@ -212,8 +212,8 @@ export class EstadoAnimalService {
   /**
    * Obtener transiciones disponibles para un estado reproductivo
    */
-  getTransicionesDisponibles(estadoActual: string): string[] {
-    const transiciones = this.getTransicionesReproductivas();
-    return transiciones[estadoActual] || [];
+  getAvailableTransitions(estadoActual: string): string[] {
+    const transitions = this.getReproductiveTransitions();
+    return transitions[estadoActual] || [];
   }
 }

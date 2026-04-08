@@ -70,25 +70,25 @@
   <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-9 gap-2 mb-4">
     <div 
       class="p-3 rounded-lg border cursor-pointer transition-all hover:shadow-md"
-      [class.bg-gray-100]="selectedEstadoFiltro() === null"
-      [class.border-primary-500]="selectedEstadoFiltro() === null"
-      [class.border-gray-200]="selectedEstadoFiltro() !== null"
-      (click)="setEstadoFiltro(null)">
+      [class.bg-gray-100]="selectedStatusFilter() === null"
+      [class.border-primary-500]="selectedStatusFilter() === null"
+      [class.border-gray-200]="selectedStatusFilter() !== null"
+      (click)="setStatusFilter(null)">
       <div class="text-center">
         <p class="text-xl font-bold text-gray-800">{{ animales().length }}</p>
         <p class="text-xs text-gray-500">Todos</p>
       </div>
     </div>
-    @for (estado of estadosReproductivos(); track estado.id) {
+    @for (estado of reproductiveStatuses(); track estado.id) {
       <div 
         class="p-3 rounded-lg border cursor-pointer transition-all hover:shadow-md"
-        [class.bg-gray-100]="selectedEstadoFiltro() === estado.nombre"
-        [class.border-primary-500]="selectedEstadoFiltro() === estado.nombre"
-        [class.border-gray-200]="selectedEstadoFiltro() !== estado.nombre"
-        (click)="setEstadoFiltro(estado.nombre)">
+        [class.bg-gray-100]="selectedStatusFilter() === estado.nombre"
+        [class.border-primary-500]="selectedStatusFilter() === estado.nombre"
+        [class.border-gray-200]="selectedStatusFilter() !== estado.nombre"
+        (click)="setStatusFilter(estado.nombre)">
         <div class="text-center">
           <p class="text-xl font-bold" [class]="'text-' + getStatusSeverity(estado.nombre)">
-            {{ getConteoEstado(estado.nombre) }}
+            {{ getStatusCount(estado.nombre) }}
           </p>
           <p class="text-xs text-gray-500 truncate" [title]="estado.nombre">{{ estado.nombre }}</p>
         </div>
@@ -116,8 +116,8 @@
         <div class="flex items-center justify-between">
           <span class="text-sm text-gray-600">
             <strong>{{ filteredAnimales.length }}</strong> animales
-            @if (selectedEstadoFiltro()) {
-              en estado <strong>{{ selectedEstadoFiltro() }}</strong>
+            @if (selectedStatusFilter()) {
+              en estado <strong>{{ selectedStatusFilter() }}</strong>
             }
           </span>
           <span class="text-sm text-gray-500">
@@ -156,10 +156,10 @@
             </p-tag>
           </td>
           <td>
-            @if (getEstadoReproductivo(animal) !== '-') {
+            @if (getReproductiveStatus(animal) !== '-') {
               <p-tag 
-                [value]="getEstadoReproductivo(animal)" 
-                [severity]="getStatusSeverity(getEstadoReproductivo(animal))">
+                [value]="getReproductiveStatus(animal)" 
+                [severity]="getStatusSeverity(getReproductiveStatus(animal))">
               </p-tag>
             } @else {
               <span class="text-gray-400">Sin estado</span>
@@ -167,17 +167,17 @@
           </td>
           <td>
             <div class="flex gap-1 flex-wrap">
-              @for (transicion of getTransicionesDisponibles(animal); track transicion) {
+              @for (transicion of getAvailableTransitions(animal); track transicion) {
                 <p-button 
                   [label]="transicion"
                   size="small"
                   [outlined]="true"
                   [severity]="getStatusSeverity(transicion)"
                   pTooltip="Cambiar a {{ transicion }}"
-                  (onClick)="cambioRapido(animal, transicion)">
+                  (onClick)="quickChange(animal, transicion)">
                 </p-button>
               }
-              @if (getTransicionesDisponibles(animal).length === 0) {
+              @if (getAvailableTransitions(animal).length === 0) {
                 <span class="text-gray-400 text-sm">-</span>
               }
             </div>
@@ -252,8 +252,8 @@
             </p-tag>
           </div>
           <p-tag 
-            [value]="getEstadoReproductivo(selectedAnimals()[0])" 
-            [severity]="getStatusSeverity(getEstadoReproductivo(selectedAnimals()[0]))">
+            [value]="getReproductiveStatus(selectedAnimals()[0])" 
+            [severity]="getStatusSeverity(getReproductiveStatus(selectedAnimals()[0]))">
           </p-tag>
         </div>
       </div>
@@ -266,7 +266,7 @@
     <div class="field">
       <label class="block text-sm font-medium text-gray-700 mb-2">Nuevo Estado Reproductivo *</label>
       <p-select 
-        [options]="estadosDisponiblesParaTransicion()" 
+        [options]="availableTransitionStatuses()" 
         [(ngModel)]="selectedNewStatus"
         optionLabel="nombre"
         optionValue="nombre"
@@ -296,8 +296,8 @@
     @if (selectedAnimals().length === 1 && selectedNewStatus()) {
       <div class="p-3 bg-gray-50 rounded-lg flex items-center justify-center gap-3">
         <p-tag 
-          [value]="getEstadoReproductivo(selectedAnimals()[0])" 
-          [severity]="getStatusSeverity(getEstadoReproductivo(selectedAnimals()[0]))">
+          [value]="getReproductiveStatus(selectedAnimals()[0])" 
+          [severity]="getStatusSeverity(getReproductiveStatus(selectedAnimals()[0]))">
         </p-tag>
         <lucide-icon [img]="arrowRightIcon" size="20" class="text-gray-400"></lucide-icon>
         <p-tag 
@@ -421,7 +421,7 @@
     <div class="mt-6 border-t pt-4">
       <h4 class="font-semibold mb-3">Transiciones Válidas (Hembras):</h4>
       <div class="grid grid-cols-1 gap-2 text-sm">
-        @for (entry of transicionesHembra | keyvalue; track entry.key) {
+        @for (entry of femaleTransitions | keyvalue; track entry.key) {
           <div class="flex items-center gap-2 p-2 bg-gray-50 rounded">
             <p-tag [value]="$any(entry.key)" [severity]="getStatusSeverity($any(entry.key))" [style]="{'font-size': '0.7rem'}"></p-tag>
             <lucide-icon [img]="arrowRightIcon" size="14" class="text-gray-400"></lucide-icon>
@@ -435,7 +435,7 @@
       </div>
       <h4 class="font-semibold mb-3 mt-4">Transiciones Válidas (Machos):</h4>
       <div class="grid grid-cols-1 gap-2 text-sm">
-        @for (entry of transicionesMacho | keyvalue; track entry.key) {
+        @for (entry of maleTransitions | keyvalue; track entry.key) {
           <div class="flex items-center gap-2 p-2 bg-gray-50 rounded">
             <p-tag [value]="$any(entry.key)" [severity]="getStatusSeverity($any(entry.key))" [style]="{'font-size': '0.7rem'}"></p-tag>
             <lucide-icon [img]="arrowRightIcon" size="14" class="text-gray-400"></lucide-icon>

@@ -2,7 +2,7 @@ import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MessageService, ConfirmationService } from 'primeng/api';
-import { FarmContextService } from '@core/services/finca-context.service';
+import { FarmContextService } from '@core/services/farm-context.service';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
@@ -143,11 +143,11 @@ export class DiagnosticoPrenezComponent implements OnInit {
     this.filterBusquedaPendientes = '';
     this.filterFechaInicioPendientes = null;
     this.filterFechaFinPendientes = null;
-    this.loadHembrasPendientes();
+    this.loadPendingFemales();
   }
 
   applyFiltersPendientes(): void {
-    this.loadHembrasPendientes();
+    this.loadPendingFemales();
   }
 
   private formatDateForApi(date: Date | null): string | null {
@@ -159,11 +159,11 @@ export class DiagnosticoPrenezComponent implements OnInit {
   }
 
   loadData(): void {
-    this.loadHembrasElegibles();
-    this.loadHembrasPendientes();
+    this.loadEligibleFemales();
+    this.loadPendingFemales();
   }
 
-  loadHembrasElegibles(): void {
+  loadEligibleFemales(): void {
     this.loading.set(true);
     const filters: any = { per_page: 100 };
     
@@ -172,13 +172,13 @@ export class DiagnosticoPrenezComponent implements OnInit {
     if (this.filterStartDate) filters.fecha_inicio = this.formatDateForApi(this.filterStartDate);
     if (this.filterEndDate) filters.fecha_fin = this.formatDateForApi(this.filterEndDate);
 
-    this.reproductionService.getHembrasParaDiagnostico(filters).subscribe({
+    this.reproductionService.getFemalesForDiagnosis(filters).subscribe({
       next: (response) => {
         const responseData = response.data || { hembras: [], diasEspera: 30 };
         if (responseData.diasEspera !== undefined) {
           this.diasEsperaDiagnostico.set(responseData.diasEspera);
         }
-        const hembras = (responseData.hembras || []).map((h: TemporadaMontaHembra) => this.procesarHembra(h));
+        const hembras = (responseData.hembras || []).map((h: TemporadaMontaHembra) => this.processFemale(h));
         this.hembrasElegibles.set(hembras);
         this.loading.set(false);
       },
@@ -193,7 +193,7 @@ export class DiagnosticoPrenezComponent implements OnInit {
     });
   }
 
-  loadHembrasPendientes(): void {
+  loadPendingFemales(): void {
     this.loadingPendientes.set(true);
     const filters: any = { per_page: 100 };
     
@@ -202,13 +202,13 @@ export class DiagnosticoPrenezComponent implements OnInit {
     if (this.filterFechaInicioPendientes) filters.fecha_inicio = this.formatDateForApi(this.filterFechaInicioPendientes);
     if (this.filterFechaFinPendientes) filters.fecha_fin = this.formatDateForApi(this.filterFechaFinPendientes);
 
-    this.reproductionService.getHembrasPendientesDiagnostico(filters).subscribe({
+    this.reproductionService.getFemalesPendingDiagnosis(filters).subscribe({
       next: (response) => {
         const responseData = response.data || { hembras: [], diasEspera: 30 };
         if (responseData.diasEspera !== undefined) {
           this.diasEsperaDiagnostico.set(responseData.diasEspera);
         }
-        const hembras = (responseData.hembras || []).map((h: TemporadaMontaHembra) => this.procesarHembra(h));
+        const hembras = (responseData.hembras || []).map((h: TemporadaMontaHembra) => this.processFemale(h));
         this.hembrasPendientes.set(hembras);
         this.loadingPendientes.set(false);
       },
@@ -223,7 +223,7 @@ export class DiagnosticoPrenezComponent implements OnInit {
     });
   }
 
-  private procesarHembra(hembra: TemporadaMontaHembra): HembraDiagnostico {
+  private processFemale(hembra: TemporadaMontaHembra): HembraDiagnostico {
     // Usar fecha_fin de la temporada (maestro) para el cálculo
     const fechaFinStr = (hembra as any).temporada_monta?.fecha_fin;
     const fechaFin = fechaFinStr ? this.parseDateLocal(fechaFinStr) : null;
@@ -263,7 +263,7 @@ export class DiagnosticoPrenezComponent implements OnInit {
     );
   }
 
-  registrarDiagnosticoIndividual(hembra: HembraDiagnostico): void {
+  registerIndividualDiagnosis(hembra: HembraDiagnostico): void {
     if (!hembra.diagnosticoSeleccionado) {
       this.messageService.add({
         severity: 'warn',
@@ -281,7 +281,7 @@ export class DiagnosticoPrenezComponent implements OnInit {
       rejectLabel: 'Cancelar',
       accept: () => {
         this.procesando.set(true);
-        this.reproductionService.registrarDiagnosticoPrenez({
+        this.reproductionService.registerPregnancyDiagnosis({
           temporada_monta_hembra_id: hembra.id,
           resultado: hembra.diagnosticoSeleccionado!
         }).subscribe({
@@ -307,7 +307,7 @@ export class DiagnosticoPrenezComponent implements OnInit {
     });
   }
 
-  registrarDiagnosticoMasivo(resultado: 'PREÑADA' | 'VACIA'): void {
+  registerBulkDiagnosis(resultado: 'PREÑADA' | 'VACIA'): void {
     const seleccionadas = this.hembrasSeleccionadas();
     if (seleccionadas.length === 0) {
       this.messageService.add({
@@ -333,7 +333,7 @@ export class DiagnosticoPrenezComponent implements OnInit {
           resultado
         }));
 
-        this.reproductionService.registrarDiagnosticoMasivo(diagnosticos).subscribe({
+        this.reproductionService.registerBulkDiagnosis(diagnosticos).subscribe({
           next: (response) => {
             this.messageService.add({
               severity: 'success',

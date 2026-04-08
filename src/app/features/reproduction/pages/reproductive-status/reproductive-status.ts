@@ -19,7 +19,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { BadgeModule } from 'primeng/badge';
 import { LucideAngularModule, RefreshCw, History, Check, Filter, Search, ChevronRight, ArrowRight, Info } from 'lucide-angular';
 
-import { EstadoAnimalService } from '@core/services/estado-animal.service';
+import { AnimalStatusService } from '@core/services/animal-status.service';
 
 @Component({
   selector: 'app-estados-reproductivos',
@@ -47,7 +47,7 @@ import { EstadoAnimalService } from '@core/services/estado-animal.service';
   templateUrl: './reproductive-status.html'
 })
 export class EstadosReproductivosComponent implements OnInit {
-  private estadoAnimalService = inject(EstadoAnimalService);
+  private animalStatusService = inject(AnimalStatusService);
   private messageService = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
 
@@ -63,14 +63,14 @@ export class EstadosReproductivosComponent implements OnInit {
 
   // Data
   animales = signal<any[]>([]);
-  estadosReproductivos = signal<any[]>([]);
+  reproductiveStatuses = signal<any[]>([]);
   fincas = signal<any[]>([]);
   loading = signal(false);
 
   // Filters
   selectedFarm = signal<number | null>(null);
   selectedGender = signal<string | null>(null);
-  selectedEstadoFiltro = signal<string | null>(null);
+  selectedStatusFilter = signal<string | null>(null);
   searchTerm = signal('');
 
   // Selection
@@ -96,7 +96,7 @@ export class EstadosReproductivosComponent implements OnInit {
 
   // Transiciones válidas del ciclo reproductivo
   // Hembras tienen ciclo completo, machos solo DESCANSO <-> EN_MONTA
-  transicionesHembra: Record<string, string[]> = {
+  femaleTransitions: Record<string, string[]> = {
     'CELO': ['EN_MONTA'],
     'EN_MONTA': ['PREÑADA', 'VACIA'],
     'PREÑADA': ['LACTANDO', 'PARIDA', 'ABORTO'],
@@ -108,49 +108,49 @@ export class EstadosReproductivosComponent implements OnInit {
     'ABORTO': ['DESCANSO']
   };
 
-  transicionesMacho: Record<string, string[]> = {
+  maleTransitions: Record<string, string[]> = {
     'DESCANSO': ['EN_MONTA'],
     'EN_MONTA': ['DESCANSO']
   };
 
   // Computed: estados disponibles según el estado actual y sexo del animal
-  estadosDisponiblesParaTransicion = computed(() => {
+  availableTransitionStatuses = computed(() => {
     const animales = this.selectedAnimals();
-    if (animales.length === 0) return this.estadosReproductivos();
+    if (animales.length === 0) return this.reproductiveStatuses();
 
     // Si hay múltiples animales, mostrar todos los estados (el backend validará)
-    if (animales.length > 1) return this.estadosReproductivos();
+    if (animales.length > 1) return this.reproductiveStatuses();
 
     const animal = animales[0];
     const sexoAnimal = animal?.sexo_animal;
     const esMacho = sexoAnimal === 'M';
 
     // Filtrar por sexo del animal
-    let estadosFiltrados = this.estadosReproductivos().filter(e => 
+    let filteredStatuses = this.reproductiveStatuses().filter(e => 
       !e.sexo || e.sexo === sexoAnimal
     );
 
     // Para un solo animal, filtrar según transiciones válidas
-    const estadoActual = this.getEstadoReproductivo(animal);
-    const transiciones = esMacho ? this.transicionesMacho : this.transicionesHembra;
-    const transicionesPermitidas = transiciones[estadoActual] || [];
+    const estadoActual = this.getReproductiveStatus(animal);
+    const transiciones = esMacho ? this.maleTransitions : this.femaleTransitions;
+    const allowedTransitions = transiciones[estadoActual] || [];
     
-    if (transicionesPermitidas.length === 0) {
-      return estadosFiltrados;
+    if (allowedTransitions.length === 0) {
+      return filteredStatuses;
     }
 
-    return estadosFiltrados.filter(e => 
-      transicionesPermitidas.includes(e.nombre)
+    return filteredStatuses.filter(e => 
+      allowedTransitions.includes(e.nombre)
     );
   });
 
   ngOnInit(): void {
     this.loadFarms();
-    this.loadEstadosReproductivos();
+    this.loadReproductiveStatuses();
   }
 
   loadFarms(): void {
-    this.estadoAnimalService.getFarms().subscribe({
+    this.animalStatusService.getFarms().subscribe({
       next: (response) => {
         const data = response.data;
         if (Array.isArray(data)) {
@@ -173,10 +173,10 @@ export class EstadosReproductivosComponent implements OnInit {
     });
   }
 
-  loadEstadosReproductivos(sexo?: string): void {
-    this.estadoAnimalService.getStatusByType('ESTATUS_REPRODUCTIVO', sexo).subscribe({
+  loadReproductiveStatuses(sexo?: string): void {
+    this.animalStatusService.getStatusByType('ESTATUS_REPRODUCTIVO', sexo).subscribe({
       next: (response) => {
-        this.estadosReproductivos.set(response.data);
+        this.reproductiveStatuses.set(response.data);
       },
       error: () => {
         this.messageService.add({
@@ -198,7 +198,7 @@ export class EstadosReproductivosComponent implements OnInit {
       filters.sexo = this.selectedGender();
     }
 
-    this.estadoAnimalService.getAnimalWithStatus(filters).subscribe({
+    this.animalStatusService.getAnimalWithStatus(filters).subscribe({
       next: (response) => {
         this.animales.set(response.data);
         this.selectedAnimals.set([]);
@@ -228,24 +228,24 @@ export class EstadosReproductivosComponent implements OnInit {
     }
 
     // Filter by estado reproductivo
-    if (this.selectedEstadoFiltro()) {
+    if (this.selectedStatusFilter()) {
       result = result.filter(a => 
-        this.getEstadoReproductivo(a) === this.selectedEstadoFiltro()
+        this.getReproductiveStatus(a) === this.selectedStatusFilter()
       );
     }
 
     return result;
   }
 
-  getEstadoReproductivo(animal: any): string {
+  getReproductiveStatus(animal: any): string {
     if (animal.estados_actuales && animal.estados_actuales['ESTATUS_REPRODUCTIVO']) {
       return animal.estados_actuales['ESTATUS_REPRODUCTIVO'].estado?.nombre || '-';
     }
     return '-';
   }
 
-  getConteoEstado(estadoNombre: string): number {
-    return this.animales().filter(a => this.getEstadoReproductivo(a) === estadoNombre).length;
+  getStatusCount(estadoNombre: string): number {
+    return this.animales().filter(a => this.getReproductiveStatus(a) === estadoNombre).length;
   }
 
   openChangeStatusDialog(animal?: any): void {
@@ -278,7 +278,7 @@ export class EstadosReproductivosComponent implements OnInit {
     const animalIds = this.selectedAnimals().map(a => a.id);
 
     if (animalIds.length === 1) {
-      this.estadoAnimalService.changeStatus({
+      this.animalStatusService.changeStatus({
         animal_id: animalIds[0],
         tipo_estado: 'ESTATUS_REPRODUCTIVO',
         nuevo_estado: this.selectedNewStatus()!,
@@ -302,7 +302,7 @@ export class EstadosReproductivosComponent implements OnInit {
         }
       });
     } else {
-      this.estadoAnimalService.bulkUpdateStatus({
+      this.animalStatusService.bulkUpdateStatus({
         animal_ids: animalIds,
         tipo_estado: 'ESTATUS_REPRODUCTIVO',
         nuevo_estado: this.selectedNewStatus()!,
@@ -329,7 +329,7 @@ export class EstadosReproductivosComponent implements OnInit {
   }
 
   // Cambio rápido de estado (un clic)
-  cambioRapido(animal: any, nuevoEstado: string): void {
+  quickChange(animal: any, nuevoEstado: string): void {
     this.confirmationService.confirm({
       message: `¿Cambiar estado de "${animal.nomb_animal || animal.cod_animal}" a ${nuevoEstado}?`,
       header: 'Confirmar Cambio',
@@ -337,11 +337,11 @@ export class EstadosReproductivosComponent implements OnInit {
       acceptLabel: 'Sí, cambiar',
       rejectLabel: 'Cancelar',
       accept: () => {
-        this.estadoAnimalService.changeStatus({
+        this.animalStatusService.changeStatus({
           animal_id: animal.id,
           tipo_estado: 'ESTATUS_REPRODUCTIVO',
           nuevo_estado: nuevoEstado,
-          comments: `Cambio rápido: ${this.getEstadoReproductivo(animal)} → ${nuevoEstado}`
+          comments: `Cambio rápido: ${this.getReproductiveStatus(animal)} → ${nuevoEstado}`
         }).subscribe({
           next: () => {
             this.messageService.add({
@@ -363,10 +363,10 @@ export class EstadosReproductivosComponent implements OnInit {
     });
   }
 
-  getTransicionesDisponibles(animal: any): string[] {
-    const estadoActual = this.getEstadoReproductivo(animal);
+  getAvailableTransitions(animal: any): string[] {
+    const estadoActual = this.getReproductiveStatus(animal);
     const esMacho = animal?.sexo_animal === 'M';
-    const transiciones = esMacho ? this.transicionesMacho : this.transicionesHembra;
+    const transiciones = esMacho ? this.maleTransitions : this.femaleTransitions;
     return transiciones[estadoActual] || [];
   }
 
@@ -376,7 +376,7 @@ export class EstadosReproductivosComponent implements OnInit {
     this.loadingHistorial.set(true);
     this.showHistoryDialog.set(true);
 
-    this.estadoAnimalService.getAnimalHistory(animal.id, 'ESTATUS_REPRODUCTIVO').subscribe({
+    this.animalStatusService.getAnimalHistory(animal.id, 'ESTATUS_REPRODUCTIVO').subscribe({
       next: (response: any) => {
         this.animalHistory.set(response.data?.data || response.data || []);
         this.loadingHistorial.set(false);
@@ -411,7 +411,7 @@ export class EstadosReproductivosComponent implements OnInit {
     return severities[estado] || 'secondary';
   }
 
-  setEstadoFiltro(estado: string | null): void {
-    this.selectedEstadoFiltro.set(estado === this.selectedEstadoFiltro() ? null : estado);
+  setStatusFilter(estado: string | null): void {
+    this.selectedStatusFilter.set(estado === this.selectedStatusFilter() ? null : estado);
   }
 }

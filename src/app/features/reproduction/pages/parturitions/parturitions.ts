@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
-import { FarmContextService } from '@core/services/finca-context.service';
+import { FarmContextService } from '@core/services/farm-context.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ReproductionService } from '../../services/reproduction.service';
@@ -163,15 +163,15 @@ export class Partos implements OnInit {
   });
 
   ngOnInit(): void {
-    this.loadPartos();
-    this.loadHembrasPregnadas();
+    this.loadBirths();
+    this.loadPregnantFemales();
   }
 
   get selectedFarm(): number | null {
     return this.farmContext.getSelectedFarm();
   }
 
-  loadPartos(): void {
+  loadBirths(): void {
     this.loading.set(true);
     const filters: any = {};
     // Usar finca del contexto global
@@ -186,7 +186,7 @@ export class Partos implements OnInit {
       filters.fecha_fin = this.formatDate(this.fechaFin()!);
     }
 
-    this.reproductionService.getPartos(filters).subscribe({
+    this.reproductionService.getBirths(filters).subscribe({
       next: (response) => {
         this.partos.set(response.data.data);
         this.totalRecords.set(response.data.total);
@@ -210,10 +210,10 @@ export class Partos implements OnInit {
   clearFilters(): void {
     this.fechaInicio.set(null);
     this.fechaFin.set(null);
-    this.loadPartos();
+    this.loadBirths();
   }
 
-  getTipoParto(tipo: string): string {
+  getBirthTypeLabel(tipo: string): string {
     const tipos: Record<string, string> = {
       'NATURAL': 'Natural',
       'ASISTIDO': 'Asistido',
@@ -222,7 +222,7 @@ export class Partos implements OnInit {
     return tipos[tipo] || tipo;
   }
 
-  getEstadoMadreSeverity(estado: string): 'success' | 'warn' | 'danger' | 'info' | 'secondary' | 'contrast' {
+  getMotherStatusSeverity(estado: string): 'success' | 'warn' | 'danger' | 'info' | 'secondary' | 'contrast' {
     switch (estado) {
       case 'NORMAL': return 'success';
       case 'COMPLICACIONES': return 'warn';
@@ -270,7 +270,7 @@ export class Partos implements OnInit {
     this.showEditDialog.set(true);
   }
 
-  updateParto(): void {
+  updateBirthLocal(): void {
     if (!this.editParto.fecha) {
       this.messageService.add({
         severity: 'warn',
@@ -280,7 +280,7 @@ export class Partos implements OnInit {
       return;
     }
 
-    this.reproductionService.updateParto(this.editParto.id, {
+    this.reproductionService.updateBirth(this.editParto.id, {
       fecha: this.editParto.fecha,
       comments: this.editParto.comments
     }).subscribe({
@@ -291,7 +291,7 @@ export class Partos implements OnInit {
           detail: 'Parto actualizado exitosamente'
         });
         this.showEditDialog.set(false);
-        this.loadPartos();
+        this.loadBirths();
       },
       error: (error) => {
         this.messageService.add({
@@ -322,7 +322,7 @@ export class Partos implements OnInit {
     const detalle = this.editingDetalle();
     if (!detalle) return;
 
-    this.reproductionService.updatePartoDetalle(detalle.id, {
+    this.reproductionService.updateBirthDetail(detalle.id, {
       tipo_parto: detalle.tipo_parto,
       estado_madre_post_parto: detalle.estado_madre_post_parto,
       comments: detalle.comments
@@ -336,7 +336,7 @@ export class Partos implements OnInit {
         this.showEditDetalleDialog.set(false);
         this.editingDetalle.set(null);
         // Recargar el parto para ver los cambios
-        this.loadPartos();
+        this.loadBirths();
         // Si el modal de detalle está abierto, actualizar
         if (this.selectedParto()) {
           this.refreshSelectedParto();
@@ -356,7 +356,7 @@ export class Partos implements OnInit {
     const partoId = this.selectedParto()?.id;
     if (!partoId) return;
 
-    this.reproductionService.getParto(partoId).subscribe({
+    this.reproductionService.getBirth(partoId).subscribe({
       next: (response) => {
         this.selectedParto.set(response.data);
       }
@@ -384,11 +384,11 @@ export class Partos implements OnInit {
     this.showEditCriaDialog.set(true);
   }
 
-  updateCria(): void {
+  updateOffspringLocal(): void {
     const cria = this.editingCria();
     if (!cria) return;
 
-    this.reproductionService.updateCria(cria.id, {
+    this.reproductionService.updateOffspring(cria.id, {
       sexo: cria.sexo,
       peso_nacimiento: cria.peso_nacimiento,
       estado_nacimiento: cria.estado_nacimiento,
@@ -402,7 +402,7 @@ export class Partos implements OnInit {
         });
         this.showEditCriaDialog.set(false);
         this.editingCria.set(null);
-        this.loadPartos();
+        this.loadBirths();
         if (this.selectedParto()) {
           this.refreshSelectedParto();
         }
@@ -422,11 +422,11 @@ export class Partos implements OnInit {
     this.editingCria.set(null);
   }
 
-  getSexoLabel(sexo: string): string {
+  getSexLabel(sexo: string): string {
     return sexo === 'M' ? 'Macho' : sexo === 'H' ? 'Hembra' : '-';
   }
 
-  getEstadoNacimientoSeverity(estado: string): 'success' | 'danger' | 'warn' | 'info' | 'secondary' | 'contrast' | undefined {
+  getBirthStatusSeverity(estado: string): 'success' | 'danger' | 'warn' | 'info' | 'secondary' | 'contrast' | undefined {
     switch (estado) {
       case 'VIVO': return 'success';
       case 'MUERTO': return 'danger';
@@ -439,12 +439,12 @@ export class Partos implements OnInit {
   // HEMBRAS PREÑADAS
   // =====================================================
 
-  loadHembrasPregnadas(): void {
+  loadPregnantFemales(): void {
     const codFinca = this.selectedFarm;
     if (!codFinca) return;
 
     this.loadingHembrasPregnadas.set(true);
-    this.reproductionService.getHembrasPreñadas(codFinca).subscribe({
+    this.reproductionService.getPregnantFemales(codFinca).subscribe({
       next: (response) => {
         this.hembrasPregnadas.set(response.data || []);
         this.loadingHembrasPregnadas.set(false);
@@ -480,8 +480,8 @@ export class Partos implements OnInit {
     this.selectedResponsable.set(null);
     this.detallesPartoTemp.set([]);
     this.currentStep.set(0);
-    this.loadPersonas();
-    this.loadHembrasParaParto();
+    this.loadPersons();
+    this.loadFemalesForBirth();
     this.showCreateDialog.set(true);
   }
 
@@ -489,9 +489,9 @@ export class Partos implements OnInit {
   // SELECCIÓN DE RESPONSABLE
   // =====================================================
 
-  loadPersonas(): void {
+  loadPersons(): void {
     this.loadingPersonas.set(true);
-    this.reproductionService.getPersonas().subscribe({
+    this.reproductionService.getPersons().subscribe({
       next: (response) => {
         const data = response.data;
         if (Array.isArray(data)) {
@@ -543,12 +543,12 @@ export class Partos implements OnInit {
   // SELECCIÓN DE HEMBRAS PARA PARTO
   // =====================================================
 
-  loadHembrasParaParto(): void {
+  loadFemalesForBirth(): void {
     const codFinca = this.selectedFarm;
     if (!codFinca) return;
 
     this.loadingHembrasParaParto.set(true);
-    this.reproductionService.getHembrasPreñadas(codFinca).subscribe({
+    this.reproductionService.getPregnantFemales(codFinca).subscribe({
       next: (response) => {
         this.hembrasParaParto.set(response.data || []);
         this.loadingHembrasParaParto.set(false);
@@ -603,7 +603,7 @@ export class Partos implements OnInit {
   // DETALLE DE HEMBRA EN PARTO
   // =====================================================
 
-  guardarDetalleHembra(): void {
+  saveFemaleDetail(): void {
     const detalle = this.currentHembraDetalle();
     if (!detalle) return;
 
@@ -632,12 +632,12 @@ export class Partos implements OnInit {
     this.currentHembraDetalle.set(null);
   }
 
-  cancelarDetalleHembra(): void {
+  cancelFemaleDetail(): void {
     this.showDetalleHembraDialog.set(false);
     this.currentHembraDetalle.set(null);
   }
 
-  eliminarDetalleTemp(index: number): void {
+  removeDetailTemp(index: number): void {
     this.detallesPartoTemp.update(detalles => detalles.filter((_, i) => i !== index));
   }
 
@@ -645,12 +645,12 @@ export class Partos implements OnInit {
   // REGISTRO FINAL DEL PARTO
   // =====================================================
 
-  canRegisterParto(): boolean {
+  canRegisterBirth(): boolean {
     return this.detallesPartoTemp().length > 0 && !!this.newParto.fecha;
   }
 
-  registrarParto(): void {
-    if (!this.canRegisterParto()) {
+  registerBirth(): void {
+    if (!this.canRegisterBirth()) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Advertencia',
@@ -680,7 +680,7 @@ export class Partos implements OnInit {
       header: 'Confirmar Registro',
       icon: 'pi pi-exclamation-triangle',
       accept: () => {
-        this.reproductionService.createParto(partoData).subscribe({
+        this.reproductionService.createBirth(partoData).subscribe({
           next: () => {
             this.messageService.add({
               severity: 'success',
@@ -688,8 +688,8 @@ export class Partos implements OnInit {
               detail: 'Parto registrado exitosamente'
             });
             this.showCreateDialog.set(false);
-            this.loadPartos();
-            this.loadHembrasPregnadas();
+            this.loadBirths();
+            this.loadPregnantFemales();
           },
           error: (error) => {
             this.messageService.add({

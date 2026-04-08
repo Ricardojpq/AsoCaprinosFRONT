@@ -40,7 +40,7 @@ export class PoliticalDivisionService {
   /**
    * Obtener lista paginada de países
    */
-  getPaises(params?: PaisQueryParams): Observable<LaravelApiResponse<PaisDto>> {
+  getCountries(params?: PaisQueryParams): Observable<LaravelApiResponse<PaisDto>> {
     let httpParams = new HttpParams();
     
     if (params) {
@@ -58,36 +58,36 @@ export class PoliticalDivisionService {
   /**
    * Obtener país por ID
    */
-  getPais(codPais: number): Observable<LaravelSingleItemResponse<PaisDto>> {
+  getCountry(codPais: number): Observable<LaravelSingleItemResponse<PaisDto>> {
     return this.http.get<LaravelSingleItemResponse<PaisDto>>(`${this.apiUrl}/paises/${codPais}`);
   }
 
   /**
    * Crear nuevo país
    */
-  createPais(pais: PaisCreateDto): Observable<LaravelSingleItemResponse<PaisDto>> {
+  createCountry(pais: PaisCreateDto): Observable<LaravelSingleItemResponse<PaisDto>> {
     return this.http.post<LaravelSingleItemResponse<PaisDto>>(`${this.apiUrl}/paises`, pais);
   }
 
   /**
    * Actualizar país
    */
-  updatePais(codPais: number, pais: PaisUpdateDto): Observable<LaravelSingleItemResponse<PaisDto>> {
+  updateCountry(codPais: number, pais: PaisUpdateDto): Observable<LaravelSingleItemResponse<PaisDto>> {
     return this.http.put<LaravelSingleItemResponse<PaisDto>>(`${this.apiUrl}/paises/${codPais}`, pais);
   }
 
   /**
    * Eliminar país
    */
-  deletePais(codPais: number): Observable<LaravelSingleItemResponse<any>> {
+  deleteCountry(codPais: number): Observable<LaravelSingleItemResponse<any>> {
     return this.http.delete<LaravelSingleItemResponse<any>>(`${this.apiUrl}/paises/${codPais}`);
   }
 
   /**
    * Obtener todos los países para dropdown
    */
-  getAllPaises(): Observable<PoliticalDivisionSelectOption[]> {
-    return this.getPaises({ per_page: 100 }).pipe(
+  getAllCountries(): Observable<PoliticalDivisionSelectOption[]> {
+    return this.getCountries({ per_page: 100 }).pipe(
       map(response => response.data.data.map(pais => ({
         label: pais.nom_pais,
         value: pais.cod_pais,
@@ -101,7 +101,7 @@ export class PoliticalDivisionService {
   /**
    * Obtener lista paginada de estados
    */
-  getEstados(params?: EstadoQueryParams): Observable<LaravelApiResponse<EstadoDto>> {
+  getStates(params?: EstadoQueryParams): Observable<LaravelApiResponse<EstadoDto>> {
     let httpParams = new HttpParams();
     
     if (params) {
@@ -119,36 +119,36 @@ export class PoliticalDivisionService {
   /**
    * Obtener estado por ID
    */
-  getEstado(codEstado: number): Observable<LaravelSingleItemResponse<EstadoDto>> {
+  getState(codEstado: number): Observable<LaravelSingleItemResponse<EstadoDto>> {
     return this.http.get<LaravelSingleItemResponse<EstadoDto>>(`${this.apiUrl}/estados/${codEstado}`);
   }
 
   /**
    * Crear nuevo estado
    */
-  createEstado(estado: EstadoCreateDto): Observable<LaravelSingleItemResponse<EstadoDto>> {
+  createState(estado: EstadoCreateDto): Observable<LaravelSingleItemResponse<EstadoDto>> {
     return this.http.post<LaravelSingleItemResponse<EstadoDto>>(`${this.apiUrl}/estados`, estado);
   }
 
   /**
    * Actualizar estado
    */
-  updateEstado(codEstado: number, estado: EstadoUpdateDto): Observable<LaravelSingleItemResponse<EstadoDto>> {
+  updateState(codEstado: number, estado: EstadoUpdateDto): Observable<LaravelSingleItemResponse<EstadoDto>> {
     return this.http.put<LaravelSingleItemResponse<EstadoDto>>(`${this.apiUrl}/estados/${codEstado}`, estado);
   }
 
   /**
    * Eliminar estado
    */
-  deleteEstado(codEstado: number): Observable<LaravelSingleItemResponse<any>> {
+  deleteState(codEstado: number): Observable<LaravelSingleItemResponse<any>> {
     return this.http.delete<LaravelSingleItemResponse<any>>(`${this.apiUrl}/estados/${codEstado}`);
   }
 
   /**
    * Obtener estados por país para dropdown
    */
-  getEstadosByPais(codPais: number): Observable<PoliticalDivisionSelectOption[]> {
-    return this.getEstados({ cod_pais: codPais, per_page: 100 }).pipe(
+  getStatesByCountry(codPais: number): Observable<PoliticalDivisionSelectOption[]> {
+    return this.getStates({ cod_pais: codPais, per_page: 100 }).pipe(
       map(response => response.data.data.map(estado => ({
         label: estado.nom_estado,
         value: estado.cod_estado,
@@ -160,8 +160,8 @@ export class PoliticalDivisionService {
   /**
    * Obtener todos los estados activos para dropdown
    */
-  getAllActiveEstados(): Observable<EstadoDto[]> {
-    return this.getEstados({ per_page: 100 }).pipe(
+  getAllActiveStates(): Observable<EstadoDto[]> {
+    return this.getStates({ per_page: 100 }).pipe(
       map(response => response.data.data)
     );
   }
@@ -171,7 +171,7 @@ export class PoliticalDivisionService {
   /**
    * Obtener lista paginada de municipios
    */
-  getMunicipios(params?: MunicipioQueryParams): Observable<LaravelApiResponse<MunicipioDto>> {
+  getMunicipalities(params?: MunicipioQueryParams): Observable<LaravelApiResponse<MunicipioDto>> {
     let httpParams = new HttpParams();
     
     if (params) {
@@ -189,8 +189,8 @@ export class PoliticalDivisionService {
   /**
    * Obtener municipios por estado para dropdown
    */
-  getMunicipiosByEstado(codEstado: number): Observable<PoliticalDivisionSelectOption[]> {
-    return this.getMunicipios({ cod_estado: codEstado, per_page: 100 }).pipe(
+  getMunicipalitiesByState(codEstado: number): Observable<PoliticalDivisionSelectOption[]> {
+    return this.getMunicipalities({ cod_estado: codEstado, per_page: 100 }).pipe(
       map(response => response.data.data.map(municipio => ({
         label: municipio.nom_municipio,
         value: municipio.cod_municipio
@@ -201,8 +201,8 @@ export class PoliticalDivisionService {
   /**
    * Obtener municipios completos por estado
    */
-  getMunicipiosFullByEstado(codEstado: number): Observable<MunicipioDto[]> {
-    return this.getMunicipios({ cod_estado: codEstado, per_page: 100 }).pipe(
+  getMunicipalitiesFullByState(codEstado: number): Observable<MunicipioDto[]> {
+    return this.getMunicipalities({ cod_estado: codEstado, per_page: 100 }).pipe(
       map(response => response.data.data)
     );
   }
@@ -210,21 +210,21 @@ export class PoliticalDivisionService {
   /**
    * Crear nuevo municipio
    */
-  createMunicipio(municipio: MunicipioCreateDto): Observable<LaravelSingleItemResponse<MunicipioDto>> {
+  createMunicipality(municipio: MunicipioCreateDto): Observable<LaravelSingleItemResponse<MunicipioDto>> {
     return this.http.post<LaravelSingleItemResponse<MunicipioDto>>(`${this.apiUrl}/municipios`, municipio);
   }
 
   /**
    * Actualizar municipio existente
    */
-  updateMunicipio(codMunicipio: number, municipio: MunicipioUpdateDto): Observable<LaravelSingleItemResponse<MunicipioDto>> {
+  updateMunicipality(codMunicipio: number, municipio: MunicipioUpdateDto): Observable<LaravelSingleItemResponse<MunicipioDto>> {
     return this.http.put<LaravelSingleItemResponse<MunicipioDto>>(`${this.apiUrl}/municipios/${codMunicipio}`, municipio);
   }
 
   /**
    * Eliminar municipio
    */
-  deleteMunicipio(codMunicipio: number): Observable<LaravelSingleItemResponse<any>> {
+  deleteMunicipality(codMunicipio: number): Observable<LaravelSingleItemResponse<any>> {
     return this.http.delete<LaravelSingleItemResponse<any>>(`${this.apiUrl}/municipios/${codMunicipio}`);
   }
 
@@ -233,7 +233,7 @@ export class PoliticalDivisionService {
   /**
    * Obtener lista paginada de parroquias
    */
-  getParroquias(params?: ParroquiaQueryParams): Observable<LaravelApiResponse<ParroquiaDto>> {
+  getParishes(params?: ParroquiaQueryParams): Observable<LaravelApiResponse<ParroquiaDto>> {
     let httpParams = new HttpParams();
     
     if (params) {
@@ -251,8 +251,8 @@ export class PoliticalDivisionService {
   /**
    * Obtener parroquias por municipio para dropdown
    */
-  getParroquiasByMunicipio(codMunicipio: number): Observable<PoliticalDivisionSelectOption[]> {
-    return this.getParroquias({ cod_municipio: codMunicipio, per_page: 100 }).pipe(
+  getParishesByMunicipality(codMunicipio: number): Observable<PoliticalDivisionSelectOption[]> {
+    return this.getParishes({ cod_municipio: codMunicipio, per_page: 100 }).pipe(
       map(response => response.data.data.map(parroquia => ({
         label: parroquia.nom_parroquia,
         value: parroquia.cod_parroquia
@@ -263,21 +263,21 @@ export class PoliticalDivisionService {
   /**
    * Crear nueva parroquia
    */
-  createParroquia(parroquia: ParroquiaCreateDto): Observable<LaravelSingleItemResponse<ParroquiaDto>> {
+  createParish(parroquia: ParroquiaCreateDto): Observable<LaravelSingleItemResponse<ParroquiaDto>> {
     return this.http.post<LaravelSingleItemResponse<ParroquiaDto>>(`${this.apiUrl}/parroquias`, parroquia);
   }
 
   /**
    * Actualizar parroquia existente
    */
-  updateParroquia(codParroquia: number, parroquia: ParroquiaUpdateDto): Observable<LaravelSingleItemResponse<ParroquiaDto>> {
+  updateParish(codParroquia: number, parroquia: ParroquiaUpdateDto): Observable<LaravelSingleItemResponse<ParroquiaDto>> {
     return this.http.put<LaravelSingleItemResponse<ParroquiaDto>>(`${this.apiUrl}/parroquias/${codParroquia}`, parroquia);
   }
 
   /**
    * Eliminar parroquia
    */
-  deleteParroquia(codParroquia: number): Observable<LaravelSingleItemResponse<any>> {
+  deleteParish(codParroquia: number): Observable<LaravelSingleItemResponse<any>> {
     return this.http.delete<LaravelSingleItemResponse<any>>(`${this.apiUrl}/parroquias/${codParroquia}`);
   }
 
@@ -286,7 +286,7 @@ export class PoliticalDivisionService {
   /**
    * Obtener lista paginada de ciudades
    */
-  getCiudades(params?: CiudadQueryParams): Observable<LaravelApiResponse<CiudadDto>> {
+  getCities(params?: CiudadQueryParams): Observable<LaravelApiResponse<CiudadDto>> {
     let httpParams = new HttpParams();
     
     if (params) {
@@ -304,8 +304,8 @@ export class PoliticalDivisionService {
   /**
    * Obtener ciudades por municipio para dropdown
    */
-  getCiudadesByMunicipio(nomMunicipio: string): Observable<CiudadDto[]> {
-    return this.getCiudades({ municipio_ciudad: nomMunicipio, per_page: 100 }).pipe(
+  getCitiesByMunicipality(nomMunicipio: string): Observable<CiudadDto[]> {
+    return this.getCities({ municipio_ciudad: nomMunicipio, per_page: 100 }).pipe(
       map(response => response.data.data)
     );
   }
@@ -314,21 +314,21 @@ export class PoliticalDivisionService {
   /**
    * Crear nueva ciudad
    */
-  createCiudad(ciudad: CiudadCreateDto): Observable<LaravelSingleItemResponse<CiudadDto>> {
+  createCity(ciudad: CiudadCreateDto): Observable<LaravelSingleItemResponse<CiudadDto>> {
     return this.http.post<LaravelSingleItemResponse<CiudadDto>>(`${this.apiUrl}/ciudades`, ciudad);
   }
 
   /**
    * Actualizar ciudad existente
    */
-  updateCiudad(codCiudad: number, ciudad: CiudadUpdateDto): Observable<LaravelSingleItemResponse<CiudadDto>> {
+  updateCity(codCiudad: number, ciudad: CiudadUpdateDto): Observable<LaravelSingleItemResponse<CiudadDto>> {
     return this.http.put<LaravelSingleItemResponse<CiudadDto>>(`${this.apiUrl}/ciudades/${codCiudad}`, ciudad);
   }
 
   /**
    * Eliminar ciudad
    */
-  deleteCiudad(codCiudad: number): Observable<LaravelSingleItemResponse<any>> {
+  deleteCity(codCiudad: number): Observable<LaravelSingleItemResponse<any>> {
     return this.http.delete<LaravelSingleItemResponse<any>>(`${this.apiUrl}/ciudades/${codCiudad}`);
   }
 }

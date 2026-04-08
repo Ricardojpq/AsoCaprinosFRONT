@@ -186,7 +186,7 @@ export class StatesTabComponent implements OnInit, OnChanges {
         capital_estado: formValue.capital_estado || undefined,
       };
 
-      this.politicalDivisionService.createEstado(createDto).subscribe({
+      this.politicalDivisionService.createState(createDto).subscribe({
         next: (response) => {
           this.loading = false;
           this.closeModal();
@@ -207,7 +207,7 @@ export class StatesTabComponent implements OnInit, OnChanges {
       };
 
       this.politicalDivisionService
-        .updateEstado(this.selectedStateForEdit!.cod_estado, updateDto)
+        .updateState(this.selectedStateForEdit!.cod_estado, updateDto)
         .subscribe({
           next: (response) => {
             this.loading = false;
@@ -227,7 +227,7 @@ export class StatesTabComponent implements OnInit, OnChanges {
     if (confirm(`¿Está seguro de eliminar el estado "${state.nom_estado}"?`)) {
       this.loading = true;
 
-      this.politicalDivisionService.deleteEstado(state.cod_estado).subscribe({
+      this.politicalDivisionService.deleteState(state.cod_estado).subscribe({
         next: (response) => {
           this.loading = false;
           this.loadStates();
@@ -277,7 +277,7 @@ export class StatesTabComponent implements OnInit, OnChanges {
    */
   loadCountryOptions(): void {
     this.politicalDivisionService
-      .getPaises({ page: 1, per_page: 100 })
+      .getCountries({ page: 1, per_page: 100 })
       .subscribe({
         next: (response: LaravelApiResponse<PaisDto>) => {
           this.countryOptions = response.data.data.map((country) => ({
@@ -313,7 +313,7 @@ export class StatesTabComponent implements OnInit, OnChanges {
       sort_dir: this.sortOrder === 1 ? 'asc' : 'desc',
     };
 
-    this.politicalDivisionService.getEstados(params).subscribe({
+    this.politicalDivisionService.getStates(params).subscribe({
       next: ({data}) => {
         this.states = data.data;
         this.totalRecords = data.total;

@@ -55,7 +55,7 @@ export class FarmsService {
   /**
    * Get a specific farm by ID
    */
-  getFinca$(cod_finca: number): Observable<FincaDto> {
+  getFarm$(cod_finca: number): Observable<FincaDto> {
     return this.http.get<LaravelSingleItemResponse<FincaDto>>(`${this.apiUrl}/${cod_finca}`)
       .pipe(
         map(response => response.data)
@@ -65,7 +65,7 @@ export class FarmsService {
   /**
    * Create a new farm
    */
-  createFinca$(finca: CreateFincaDto): Observable<FincaDto> {
+  createFarm$(finca: CreateFincaDto): Observable<FincaDto> {
     return this.http.post<LaravelSingleItemResponse<FincaDto>>(this.apiUrl, finca)
       .pipe(
         map(response => response.data)
@@ -75,7 +75,7 @@ export class FarmsService {
   /**
    * Update an existing farm
    */
-  updateFinca$(cod_finca: number, finca: UpdateFincaDto): Observable<FincaDto> {
+  updateFarm$(cod_finca: number, finca: UpdateFincaDto): Observable<FincaDto> {
     return this.http.put<LaravelSingleItemResponse<FincaDto>>(`${this.apiUrl}/${cod_finca}`, finca)
       .pipe(
         map(response => response.data)
@@ -85,7 +85,7 @@ export class FarmsService {
   /**
    * Delete a farm (soft delete)
    */
-  deleteFinca$(cod_finca: number): Observable<any> {
+  deleteFarm$(cod_finca: number): Observable<any> {
     return this.http.delete<LaravelSingleItemResponse<any>>(`${this.apiUrl}/${cod_finca}`)
       .pipe(
         map(response => response.data)
@@ -95,7 +95,7 @@ export class FarmsService {
   /**
    * Search farms by text
    */
-  searchFincas$(searchTerm: string, params: Partial<FincaQueryParams> = {}): Observable<LaravelPaginationResponse<FincaDto>> {
+  searchFarms$(searchTerm: string, params: Partial<FincaQueryParams> = {}): Observable<LaravelPaginationResponse<FincaDto>> {
     const searchParams: FincaQueryParams = {
       ...params,
       search: searchTerm
@@ -107,7 +107,7 @@ export class FarmsService {
    * Get all active farms for dropdowns
    * @param perPage Número de elementos a obtener (por defecto 100)
    */
-  getAllActiveFincas$(perPage: number = 100): Observable<FincaDto[]> {
+  getAllActiveFarms$(perPage: number = 100): Observable<FincaDto[]> {
     const params: FincaQueryParams = {
       per_page: perPage,
       estatus_finca: 'A'
@@ -135,7 +135,7 @@ export class FarmsService {
   /**
    * Get farms by estado
    */
-  getFincasByEstado$(cod_estado: number): Observable<FincaDto[]> {
+  getFarmsByState$(cod_estado: number): Observable<FincaDto[]> {
     const params: FincaQueryParams = {
       cod_estado,
       per_page: 1000
@@ -148,7 +148,7 @@ export class FarmsService {
   /**
    * Get farms by municipio
    */
-  getFincasByMunicipio$(cod_municipio: number): Observable<FincaDto[]> {
+  getFarmsByMunicipality$(cod_municipio: number): Observable<FincaDto[]> {
     const params: FincaQueryParams = {
       cod_municipio,
       per_page: 1000
@@ -161,7 +161,7 @@ export class FarmsService {
   /**
    * Get status options for dropdowns
    */
-  getEstatusOptions(): Array<{label: string, value: string}> {
+  getStatusOptions(): Array<{label: string, value: string}> {
     return [
       { label: 'Activo', value: 'A' },
       { label: 'Inactivo', value: 'I' },
@@ -172,7 +172,7 @@ export class FarmsService {
   /**
    * Get tipo ganaderia options
    */
-  getTipoGanaderiaOptions(): Array<{label: string, value: string}> {
+  getLivestockTypeOptions(): Array<{label: string, value: string}> {
     return [
       { label: 'Caprino', value: 'C' },
       { label: 'Ovino', value: 'O' },
@@ -184,7 +184,7 @@ export class FarmsService {
   /**
    * Get tipo sistema options
    */
-  getTipoSistemaOptions(): Array<{label: string, value: string}> {
+  getSystemTypeOptions(): Array<{label: string, value: string}> {
     return [
       { label: 'Extensivo', value: 'E' },
       { label: 'Semi-intensivo', value: 'S' },
@@ -195,7 +195,7 @@ export class FarmsService {
   /**
    * Get tipo criador options
    */
-  getTipoCriadorOptions(): Array<{label: string, value: string}> {
+  getBreederTypeOptions(): Array<{label: string, value: string}> {
     return [
       { label: 'Comercial', value: 'C' },
       { label: 'Registrado', value: 'R' },

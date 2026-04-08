@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild, OnDestroy, inject } from '@angular/core';
-import { FarmContextService } from '@core/services/finca-context.service';
+import { FarmContextService } from '@core/services/farm-context.service';
 import { firstValueFrom, BehaviorSubject, Subject } from 'rxjs';
 import {
   takeUntil,

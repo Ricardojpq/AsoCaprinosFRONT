@@ -107,7 +107,7 @@
                   class="text-white"
                 ></lucide-angular>
               </div>
-              <span>{{ getPropietarioPrincipal(finca) }}</span>
+              <span>{{ getMainOwner(finca) }}</span>
             </div>
           } @else {
             <span class="text-gray-400">Sin propietario</span>
@@ -122,7 +122,7 @@
               severity="warn"
               pTooltip="Editar Finca"
               tooltipPosition="top"
-              (click)="editFinca(finca)"
+              (click)="editFarm(finca)"
               class="p-button-icon-only btn-action btn-action-edit">
               <lucide-icon [img]="pencilIcon" [size]="18"></lucide-icon>
             </button>
@@ -133,7 +133,7 @@
               severity="danger"
               pTooltip="Eliminar Finca"
               tooltipPosition="top"
-              (click)="deleteFinca(finca)"
+              (click)="deleteFarm(finca)"
               class="p-button-icon-only btn-action btn-action-delete">
               <lucide-icon [img]="trashIcon" [size]="18"></lucide-icon>
             </button>
@@ -156,7 +156,7 @@
   [resizable]="false"
 >
   <ng-template #content>
-    <form [formGroup]="fincaForm" (ngSubmit)="saveFinca()">
+    <form [formGroup]="fincaForm" (ngSubmit)="saveFarm()">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         
         <!-- Código de Finca -->
@@ -213,7 +213,7 @@
             placeholder="Seleccione un país"
             [loading]="loadingPaises"
             class="w-full"
-            (onChange)="onPaisChange($event)"
+            (onChange)="onCountryChange($event)"
             [class.ng-invalid]="isFieldInvalid('cod_pais')"
             [class.ng-dirty]="fincaForm.get('cod_pais')?.dirty">
             <ng-template #loadingicon>
@@ -238,7 +238,7 @@
             placeholder="Seleccione un estado"
             [loading]="loadingEstados"
             class="w-full"
-            (onChange)="onEstadoChange($event)"
+            (onChange)="onStateChange($event)"
             [class.ng-invalid]="isFieldInvalid('cod_estado')"
             [class.ng-dirty]="fincaForm.get('cod_estado')?.dirty">
             
@@ -264,7 +264,7 @@
             placeholder="Seleccione un municipio"
             [loading]="loadingMunicipios"
             class="w-full"
-            (onChange)="onMunicipioChange($event)"
+            (onChange)="onMunicipalityChange($event)"
             [class.ng-invalid]="isFieldInvalid('cod_municipio')"
             [class.ng-dirty]="fincaForm.get('cod_municipio')?.dirty">
             
@@ -450,7 +450,7 @@
               Propietarios <span class="text-red-600">*</span>
             </label>
             <p-button 
-              (onClick)="openPropietarioSociosDialog()"
+              (onClick)="openOwnerMembersDialog()"
               label="Seleccionar Propietarios"
               size="small"
               severity="secondary"
@@ -474,7 +474,7 @@
                     </div>
                     <div>
                       <p class="text-sm font-medium text-gray-900 dark:text-white">
-                        {{ getPropietarioNombre(prop.ced_propietario) }}
+                        {{ getOwnerName(prop.ced_propietario) }}
                       </p>
                       <p class="text-xs text-gray-500 dark:text-slate-400">
                         Cédula: {{ prop.ced_propietario }}
@@ -577,7 +577,7 @@
 
 <!-- Modal de Confirmación de Eliminación -->
 <p-dialog
-  [(visible)]="deleteFincaDialog"
+  [(visible)]="deleteFarmDialog"
   header="Confirmar Eliminación"
   [modal]="true"
   [style]="{ width: '450px' }"
@@ -600,7 +600,7 @@
       <p-button
         label="Cancelar"
         class="p-button-text"
-        (onClick)="deleteFincaDialog = false"
+        (onClick)="deleteFarmDialog = false"
       >
         <lucide-icon [img]="xIcon" size="16"></lucide-icon>
       </p-button>

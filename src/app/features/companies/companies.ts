@@ -495,7 +495,7 @@ export class Companies implements OnInit, OnDestroy {
    */
   loadGeographicData() {
     this.loadingPaises = true;
-    this.politicalDivisionService.getAllPaises()
+    this.politicalDivisionService.getAllCountries()
       .subscribe({
         next: (paises: PoliticalDivisionSelectOption[]) => {
           this.paises = paises;
@@ -535,7 +535,7 @@ export class Companies implements OnInit, OnDestroy {
       
       // Cargar estados del país seleccionado
       this.loadingEstados = true;
-      this.politicalDivisionService.getEstadosByPais(codPais)
+      this.politicalDivisionService.getStatesByCountry(codPais)
         .subscribe({
           next: (estados: PoliticalDivisionSelectOption[]) => {
             this.estados = estados;
@@ -582,7 +582,7 @@ export class Companies implements OnInit, OnDestroy {
       
       // Cargar municipios del estado seleccionado
       this.loadingMunicipios = true;
-      this.politicalDivisionService.getMunicipiosByEstado(codEstado)
+      this.politicalDivisionService.getMunicipalitiesByState(codEstado)
         .subscribe({
           next: (municipios: PoliticalDivisionSelectOption[]) => {
             this.municipios = municipios;
@@ -624,7 +624,7 @@ export class Companies implements OnInit, OnDestroy {
       if (nomMunicipio) {
         // Cargar ciudades del municipio seleccionado usando el nombre
         this.loadingCiudades = true;
-        this.politicalDivisionService.getCiudadesByMunicipio(nomMunicipio)
+        this.politicalDivisionService.getCitiesByMunicipality(nomMunicipio)
           .subscribe({
             next: (data: any[]) => {
               this.ciudades = data.map(ciudad => ({
@@ -661,7 +661,7 @@ export class Companies implements OnInit, OnDestroy {
     // Verificar si los países están cargados
     if (this.paises.length === 0) {
       this.loadingPaises = true;
-      this.politicalDivisionService.getAllPaises()
+      this.politicalDivisionService.getAllCountries()
         .subscribe({
           next: (paises: PoliticalDivisionSelectOption[]) => {
             this.paises = paises;
@@ -685,7 +685,7 @@ export class Companies implements OnInit, OnDestroy {
     if (formValues.cod_pais) {
       this.loadingEstados = true;
       
-      this.politicalDivisionService.getEstadosByPais(formValues.cod_pais)
+      this.politicalDivisionService.getStatesByCountry(formValues.cod_pais)
         .subscribe({
           next: (estados: PoliticalDivisionSelectOption[]) => {
             this.estados = estados;
@@ -696,7 +696,7 @@ export class Companies implements OnInit, OnDestroy {
             if (formValues.cod_estado) {
               this.loadingMunicipios = true;
               
-              this.politicalDivisionService.getMunicipiosByEstado(formValues.cod_estado)
+              this.politicalDivisionService.getMunicipalitiesByState(formValues.cod_estado)
                 .subscribe({
                   next: (municipios: PoliticalDivisionSelectOption[]) => {
                     this.municipios = municipios;
@@ -711,7 +711,7 @@ export class Companies implements OnInit, OnDestroy {
                       if (nomMunicipio) {
                         this.loadingCiudades = true;
                         
-                        this.politicalDivisionService.getCiudadesByMunicipio(nomMunicipio)
+                        this.politicalDivisionService.getCitiesByMunicipality(nomMunicipio)
                           .subscribe({
                             next: (data: any[]) => {
                               this.ciudades = data.map(ciudad => ({

@@ -20,7 +20,7 @@ import { TabsModule } from 'primeng/tabs';
 import { BadgeModule } from 'primeng/badge';
 import { LucideAngularModule, RefreshCw, History, Check, Filter, Search, ChevronRight } from 'lucide-angular';
 
-import { EstadoAnimalService } from '@core/services/estado-animal.service';
+import { AnimalStatusService } from '@core/services/animal-status.service';
 
 @Component({
   selector: 'app-estados',
@@ -49,7 +49,7 @@ import { EstadoAnimalService } from '@core/services/estado-animal.service';
   templateUrl: './estados.html'
 })
 export class EstadosComponent implements OnInit {
-  private estadoAnimalService = inject(EstadoAnimalService);
+  private animalStatusService = inject(AnimalStatusService);
   private messageService = inject(MessageService);
 
   // Lucide icons
@@ -103,7 +103,7 @@ export class EstadosComponent implements OnInit {
   }
 
   loadFarms(): void {
-    this.estadoAnimalService.getFarms().subscribe({
+    this.animalStatusService.getFarms().subscribe({
       next: (response) => {
         const data = response.data;
         if (Array.isArray(data)) {
@@ -127,7 +127,7 @@ export class EstadosComponent implements OnInit {
   }
 
   loadTypeStatus(): void {
-    this.estadoAnimalService.getTiposEstado().subscribe({
+    this.animalStatusService.getStatusTypes().subscribe({
       next: (response) => {
         this.statusType.set(response.data);
       },
@@ -151,7 +151,7 @@ export class EstadosComponent implements OnInit {
       filters.sexo = this.selectedGender();
     }
 
-    this.estadoAnimalService.getAnimalWithStatus(filters).subscribe({
+    this.animalStatusService.getAnimalWithStatus(filters).subscribe({
       next: (response) => {
         this.animales.set(response.data);
         this.selectedAnimals.set([]);
@@ -200,7 +200,7 @@ export class EstadosComponent implements OnInit {
         ? this.selectedAnimals()[0]?.sexo_animal 
         : undefined;
 
-      this.estadoAnimalService.getStatusByType(this.selectedStatusType()!, sexo).subscribe({
+      this.animalStatusService.getStatusByType(this.selectedStatusType()!, sexo).subscribe({
         next: (response) => {
           this.availableStatus.set(response.data);
         }
@@ -244,7 +244,7 @@ export class EstadosComponent implements OnInit {
     const animalIds = this.selectedAnimals().map(a => a.id);
 
     if (animalIds.length === 1) {
-      this.estadoAnimalService.changeStatus({
+      this.animalStatusService.changeStatus({
         animal_id: animalIds[0],
         tipo_estado: this.selectedStatusType()!,
         nuevo_estado: this.selectedNewStatus()!,
@@ -270,7 +270,7 @@ export class EstadosComponent implements OnInit {
         }
       });
     } else {
-      this.estadoAnimalService.bulkUpdateStatus({
+      this.animalStatusService.bulkUpdateStatus({
         animal_ids: animalIds,
         tipo_estado: this.selectedStatusType()!,
         nuevo_estado: this.selectedNewStatus()!,
@@ -304,7 +304,7 @@ export class EstadosComponent implements OnInit {
     this.loadingHistorial.set(true);
     this.showHistoryDialog.set(true);
 
-    this.estadoAnimalService.getAnimalHistory(animal.id).subscribe({
+    this.animalStatusService.getAnimalHistory(animal.id).subscribe({
       next: (response: any) => {
         this.animalHistory.set(response.data?.data || response.data || []);
         this.loadingHistorial.set(false);
@@ -349,7 +349,7 @@ export class EstadosComponent implements OnInit {
     return severities[estado] || 'secondary';
   }
 
-  humanizaNameType(nombre: string): string {
+  humanizeTypeName(nombre: string): string {
     const nombres: Record<string, string> = {
       'ESTATUS_GENERAL': 'General',
       'ESTATUS_PRODUCTIVO': 'Productivo',
@@ -359,7 +359,7 @@ export class EstadosComponent implements OnInit {
     return nombres[nombre] || nombre.replace(/_/g, ' ').toLowerCase().replace(/^\w/, c => c.toUpperCase());
   }
 
-  getConteoEstado(tipoNombre: string): number {
+  getStatusCount(tipoNombre: string): number {
     return this.animales().filter(a => this.getCurrentStatus(a, tipoNombre) !== '-').length;
   }
 

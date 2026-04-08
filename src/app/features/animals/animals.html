@@ -65,7 +65,7 @@
       [style]="{ width: '80vw', maxWidth: '900px' }"
       [draggable]="false"
       [resizable]="false"
-      (onHide)="closeFincaCriadorDialog()"
+      (onHide)="closeBreederFarmDialog()"
     >
       <app-farms-table
         (fincaSelected)="onFincaCriadorSelected($event)"
@@ -82,7 +82,7 @@
       [style]="{ width: '80vw', maxWidth: '900px' }"
       [draggable]="false"
       [resizable]="false"
-      (onHide)="closeFincaPropietarioDialog()"
+      (onHide)="closeOwnerFarmDialog()"
     >
       <app-farms-table
         (fincaSelected)="onFincaPropietarioSelected($event)"

@@ -27,7 +27,7 @@
         <p-button
           styleClass="btn btn-secondary btn-sm"
           pTooltip="Buscar"
-          (onClick)="loadPartos()">
+          (onClick)="loadBirths()">
           <lucide-icon [img]="searchIcon" size="16"></lucide-icon>
         </p-button>
         @if (fechaInicio() || fechaFin()) {
@@ -293,12 +293,12 @@
             <tr>
               <td class="font-medium">{{ detalle.hembra?.cod_animal || 'N/A' }}</td>
               <td>{{ detalle.hembra?.nomb_animal || 'N/A' }}</td>
-              <td>{{ getTipoParto(detalle.tipo_parto) }}</td>
+              <td>{{ getBirthTypeLabel(detalle.tipo_parto) }}</td>
               <td class="text-center">{{ detalle.numero_crias }}</td>
               <td class="text-center text-green-600 font-semibold">{{ detalle.crias_vivas }}</td>
               <td class="text-center text-red-600 font-semibold">{{ detalle.crias_muertas }}</td>
               <td>
-                <p-tag [value]="detalle.estado_madre_post_parto" [severity]="getEstadoMadreSeverity(detalle.estado_madre_post_parto)"></p-tag>
+                <p-tag [value]="detalle.estado_madre_post_parto" [severity]="getMotherStatusSeverity(detalle.estado_madre_post_parto)"></p-tag>
               </td>
               <td>
                 <p-button 
@@ -306,7 +306,7 @@
                   [text]="true"
                   severity="danger"
                   pTooltip="Eliminar"
-                  (onClick)="eliminarDetalleTemp(i)">
+                  (onClick)="removeDetailTemp(i)">
                   <lucide-icon [img]="trashIcon" size="16"></lucide-icon>
                 </p-button>
               </td>
@@ -333,8 +333,8 @@
     <p-button label="Cancelar" [text]="true" (onClick)="showCreateDialog.set(false)"></p-button>
     <p-button 
       label="Registrar Parto" 
-      [disabled]="!canRegisterParto()"
-      (onClick)="registrarParto()">
+      [disabled]="!canRegisterBirth()"
+      (onClick)="registerBirth()">
       <lucide-icon [img]="checkCircleIcon" size="16" class="mr-1"></lucide-icon>
     </p-button>
   </ng-template>
@@ -547,8 +547,8 @@
   }
 
   <ng-template pTemplate="footer">
-    <p-button label="Cancelar" [text]="true" (onClick)="cancelarDetalleHembra()"></p-button>
-    <p-button label="Agregar" (onClick)="guardarDetalleHembra()"></p-button>
+    <p-button label="Cancelar" [text]="true" (onClick)="cancelFemaleDetail()"></p-button>
+    <p-button label="Agregar" (onClick)="saveFemaleDetail()"></p-button>
   </ng-template>
 </p-dialog>
 
@@ -615,8 +615,8 @@
               <div class="flex items-center justify-between p-3 bg-pink-50 border-b">
                 <div class="flex items-center gap-3">
                   <span class="font-semibold text-pink-800">{{ detalle.hembra?.cod_animal }} - {{ detalle.hembra?.nomb_animal || 'Sin nombre' }}</span>
-                  <p-tag [value]="getTipoParto(detalle.tipo_parto)" severity="info" />
-                  <p-tag [value]="detalle.estado_madre_post_parto || 'N/A'" [severity]="getEstadoMadreSeverity(detalle.estado_madre_post_parto)" />
+                  <p-tag [value]="getBirthTypeLabel(detalle.tipo_parto)" severity="info" />
+                  <p-tag [value]="detalle.estado_madre_post_parto || 'N/A'" [severity]="getMotherStatusSeverity(detalle.estado_madre_post_parto)" />
                 </div>
                 <p-button 
                   [rounded]="true" 
@@ -656,11 +656,11 @@
                     <tr>
                       <td class="font-medium">{{ cria.codigo_provisional || cria.animal?.cod_animal || '-' }}</td>
                       <td>
-                        <p-tag [value]="getSexoLabel(cria.sexo)" [severity]="cria.sexo === 'M' ? 'info' : 'warn'" />
+                        <p-tag [value]="getSexLabel(cria.sexo)" [severity]="cria.sexo === 'M' ? 'info' : 'warn'" />
                       </td>
                       <td>{{ cria.peso_nacimiento || '-' }}</td>
                       <td>
-                        <p-tag [value]="cria.estado_nacimiento || 'N/A'" [severity]="getEstadoNacimientoSeverity(cria.estado_nacimiento)" />
+                        <p-tag [value]="cria.estado_nacimiento || 'N/A'" [severity]="getBirthStatusSeverity(cria.estado_nacimiento)" />
                       </td>
                       <td>{{ cria.comments || '-' }}</td>
                       <td>
@@ -734,7 +734,7 @@
   </div>
   <ng-template pTemplate="footer">
     <p-button label="Cancelar" [text]="true" (onClick)="showEditDialog.set(false)"></p-button>
-    <p-button label="Guardar" (onClick)="updateParto()"></p-button>
+    <p-button label="Guardar" (onClick)="updateBirthLocal()"></p-button>
   </ng-template>
 </p-dialog>
 
@@ -864,6 +864,6 @@
 
   <ng-template pTemplate="footer">
     <p-button label="Cancelar" [text]="true" (onClick)="cancelEditCria()"></p-button>
-    <p-button label="Guardar" (onClick)="updateCria()"></p-button>
+    <p-button label="Guardar" (onClick)="updateOffspringLocal()"></p-button>
   </ng-template>
 </p-dialog>

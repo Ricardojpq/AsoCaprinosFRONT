@@ -186,7 +186,7 @@ export class UserManagementService {
   /**
    * Obtener lista de fincas disponibles
    */
-  getFincasDisponibles(): Observable<FincaDisponible[]> {
+  getAvailableFarms(): Observable<FincaDisponible[]> {
     return this.http.get<{ status: string; data: { fincas: FincaDisponible[] } }>(
       `${this.baseUrl}/users/fincas-disponibles`
     ).pipe(map(response => response.data.fincas));

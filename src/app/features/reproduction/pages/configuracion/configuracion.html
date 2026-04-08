@@ -112,7 +112,7 @@
               severity="danger"
               pTooltip="Eliminar Parámetro"
               tooltipPosition="top"
-              (click)="deleteParametro(parametro)"
+              (click)="deleteParameter(parametro)"
               class="p-button-icon-only btn-action btn-action-delete">
               <lucide-icon [img]="trashIcon" [size]="18"></lucide-icon>
             </button>
@@ -187,6 +187,6 @@
     <p-button 
       [label]="isEditing() ? 'Actualizar' : 'Crear'"
       icon="pi pi-check"
-      (click)="saveParametro()" />
+      (click)="saveParameter()" />
   </ng-template>
 </p-dialog>

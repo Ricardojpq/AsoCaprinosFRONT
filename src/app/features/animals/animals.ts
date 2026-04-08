@@ -107,9 +107,9 @@ export class Animals implements OnInit, OnDestroy, CanComponentDeactivate {
   private loadCatalogs(): void {
     this.state.setCatalogsLoading(true);
 
-    const razas$ = this.catalogsService.getAllRazas$();
+    const razas$ = this.catalogsService.getAllBreeds$();
     const colores$ = this.catalogsService.getAllColors$();
-    const tiposPelo$ = this.catalogsService.getAllTiposPelo$();
+    const tiposPelo$ = this.catalogsService.getAllHairTypes$();
 
     // Cargar todos los catálogos en paralelo
     Promise.all([
@@ -118,57 +118,57 @@ export class Animals implements OnInit, OnDestroy, CanComponentDeactivate {
       tiposPelo$.toPromise()
     ]).then(([razas, colores, tiposPelo]) => {
       const catalogOptions: CatalogOptions = {
-        sexo: [
+        sex: [
           { label: 'Macho', value: 'M' },
           { label: 'Hembra', value: 'H' }
         ],
-        estatus: [
+        status: [
           { label: 'Activo', value: 'A' },
           { label: 'Inactivo', value: 'I' }
         ],
-        origen: [
+        origin: [
           { label: 'Nacido', value: 'N' },
           { label: 'Importado', value: 'I' },
           { label: 'Comprado', value: 'C' }
         ],
-        tipoConcepcion: [
+        conceptionType: [
           { label: 'Monta Natural', value: 'M' },
           { label: 'Inseminación', value: 'I' },
           { label: 'TE Fresco', value: 'F' },
           { label: 'TE Congelado', value: 'C' }
         ],
-        tipoParto: [
+        birthType: [
           { label: 'Simple', value: 'S' },
           { label: 'Múltiple', value: 'M' },
           { label: 'Triple', value: 'T' }
         ],
-        materialGenetico: [
+        geneticMaterial: [
           { label: 'Nacional', value: 'A' },
           { label: 'Importado', value: 'I' }
         ],
-        protocoloImportacion: [
+        importProtocol: [
           { label: 'Sí', value: 'S' },
           { label: 'No', value: 'N' }
         ],
-        compRacial: [
+        bloodlinePurity: [
           { label: 'Puro', value: 'P' },
           { label: 'Mestizo', value: 'M' }
         ],
-        razas: razas?.map((r: any) => ({ 
+        breeds: razas?.map((r: any) => ({ 
           label: r.descripcion || r.nomb_raza, 
           value: r.cod_raza 
         })) || [],
-        colores: colores?.map((c: any) => ({ 
+        colors: colores?.map((c: any) => ({ 
           label: c.nomb_color || c.descripcion, 
           value: c.cod_color 
         })) || [],
-        tiposPelo: tiposPelo?.map((t: any) => ({ 
+        hairTypes: tiposPelo?.map((t: any) => ({ 
           label: t.nomb_tipo_pelo || t.descripcion, 
           value: t.cod_tipo_pelo 
         })) || [],
-        infoOrejas: [],
-        infoCuernos: [],
-        tipoRegistro: []
+        earInfo: [],
+        hornInfo: [],
+        registryType: []
       };
 
       this.state.setCatalogOptions(catalogOptions);
@@ -528,14 +528,14 @@ export class Animals implements OnInit, OnDestroy, CanComponentDeactivate {
   /**
    * Cierra el diálogo de selección de finca criadora
    */
-  closeFincaCriadorDialog(): void {
+  closeBreederFarmDialog(): void {
     this.showFincaCriadorDialog = false;
   }
 
   /**
    * Cierra el diálogo de selección de finca propietaria
    */
-  closeFincaPropietarioDialog(): void {
+  closeOwnerFarmDialog(): void {
     this.showFincaPropietarioDialog = false;
   }
 

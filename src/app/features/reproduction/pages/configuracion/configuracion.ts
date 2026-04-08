@@ -2,7 +2,7 @@ import { Component, OnInit, inject, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ReproductionService } from '../../services/reproduction.service';
-import { Parametro } from '../../models';
+import { Parameter } from '../../models';
 
 import { Table, TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
@@ -53,7 +53,7 @@ export class Configuracion implements OnInit {
   readonly trashIcon = Trash2;
 
   // Signals
-  parametros = signal<Parametro[]>([]);
+  parametros = signal<Parameter[]>([]);
   loading = signal(false);
   totalRecords = signal(0);
   globalFilterValue = '';
@@ -67,10 +67,10 @@ export class Configuracion implements OnInit {
   // Dialog states
   showDialog = signal(false);
   isEditing = signal(false);
-  selectedParametro = signal<Parametro | null>(null);
+  selectedParameter = signal<Parameter | null>(null);
 
   // Form data
-  formData = signal<Partial<Parametro>>({
+  formData = signal<Partial<Parameter>>({
     nombre: '',
     descripcion: '',
     valor: '',
@@ -80,10 +80,10 @@ export class Configuracion implements OnInit {
 
   
   ngOnInit(): void {
-    this.loadParametros();
+    this.loadParameters();
   }
 
-  loadParametros(): void {
+  loadParameters(): void {
     this.loading.set(true);
 
     const filters: any = {
@@ -97,7 +97,7 @@ export class Configuracion implements OnInit {
       filters.search = this.globalFilterValue;
     }
 
-    this.reproductionService.getParametros(filters).subscribe({
+    this.reproductionService.getParameters(filters).subscribe({
       next: (response) => {
         this.parametros.set(response.data.data);
         this.totalRecords.set(response.data.total);
@@ -123,12 +123,12 @@ export class Configuracion implements OnInit {
       this.sortOrder = event.sortOrder === 1 ? 'asc' : 'desc';
     }
 
-    this.loadParametros();
+    this.loadParameters();
   }
 
   openCreateDialog(): void {
     this.isEditing.set(false);
-    this.selectedParametro.set(null);
+    this.selectedParameter.set(null);
     this.formData.set({
       nombre: '',
       descripcion: '',
@@ -139,9 +139,9 @@ export class Configuracion implements OnInit {
     this.showDialog.set(true);
   }
 
-  openEditDialog(parametro: Parametro): void {
+  openEditDialog(parametro: Parameter): void {
     this.isEditing.set(true);
-    this.selectedParametro.set(parametro);
+    this.selectedParameter.set(parametro);
     this.formData.set({
       nombre: parametro.nombre,
       descripcion: parametro.descripcion,
@@ -152,7 +152,7 @@ export class Configuracion implements OnInit {
     this.showDialog.set(true);
   }
 
-  saveParametro(): void {
+  saveParameter(): void {
     const data = this.formData();
     
     if (!data.nombre || !data.valor) {
@@ -164,9 +164,9 @@ export class Configuracion implements OnInit {
       return;
     }
 
-    if (this.isEditing() && this.selectedParametro()) {
+    if (this.isEditing() && this.selectedParameter()) {
       // Actualizar
-      this.reproductionService.updateParametro(this.selectedParametro()!.id, data).subscribe({
+      this.reproductionService.updateParameter(this.selectedParameter()!.id, data).subscribe({
         next: () => {
           this.messageService.add({
             severity: 'success',
@@ -174,7 +174,7 @@ export class Configuracion implements OnInit {
             detail: 'Parámetro actualizado correctamente'
           });
           this.showDialog.set(false);
-          this.loadParametros();
+          this.loadParameters();
         },
         error: (error) => {
           this.messageService.add({
@@ -186,7 +186,7 @@ export class Configuracion implements OnInit {
       });
     } else {
       // Crear
-      this.reproductionService.createParametro(data).subscribe({
+      this.reproductionService.createParameter(data).subscribe({
         next: () => {
           this.messageService.add({
             severity: 'success',
@@ -194,7 +194,7 @@ export class Configuracion implements OnInit {
             detail: 'Parámetro creado correctamente'
           });
           this.showDialog.set(false);
-          this.loadParametros();
+          this.loadParameters();
         },
         error: (error) => {
           this.messageService.add({
@@ -207,7 +207,7 @@ export class Configuracion implements OnInit {
     }
   }
 
-  deleteParametro(parametro: Parametro): void {
+  deleteParameter(parametro: Parameter): void {
     this.confirmationService.confirm({
       message: `¿Está seguro de eliminar el parámetro "${parametro.nombre}"?`,
       header: 'Confirmar Eliminación',
@@ -215,14 +215,14 @@ export class Configuracion implements OnInit {
       acceptLabel: 'Sí, eliminar',
       rejectLabel: 'Cancelar',
       accept: () => {
-        this.reproductionService.deleteParametro(parametro.id).subscribe({
+        this.reproductionService.deleteParameter(parametro.id).subscribe({
           next: () => {
             this.messageService.add({
               severity: 'success',
               summary: 'Éxito',
               detail: 'Parámetro eliminado correctamente'
             });
-            this.loadParametros();
+            this.loadParameters();
           },
           error: (error) => {
             this.messageService.add({
@@ -240,13 +240,13 @@ export class Configuracion implements OnInit {
     const value = (event.target as HTMLInputElement).value;
     this.globalFilterValue = value;
     this.currentPage = 1;
-    this.loadParametros();
+    this.loadParameters();
   }
 
   clearSearch(): void {
     this.globalFilterValue = '';
     this.currentPage = 1;
-    this.loadParametros();
+    this.loadParameters();
   }
 
   updateFormField(field: string, value: any): void {

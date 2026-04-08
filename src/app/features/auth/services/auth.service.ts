@@ -5,7 +5,7 @@ import { LoadingService } from '@core/services/loading.service';
 import { interval, Subscription } from 'rxjs';
 import { switchMap, catchError, tap } from 'rxjs/operators';
 import { JwtAuthService } from '@core/services/jwt-auth.service';
-import { FarmContextService } from '@core/services/finca-context.service';
+import { FarmContextService } from '@core/services/farm-context.service';
 import { User } from '../models/user';
 
 @Injectable({ providedIn: 'root' })

@@ -164,7 +164,7 @@ export class Breeds implements OnInit, OnDestroy {
       sort_dir: this.sortOrder,
       ...this.filters,
     };
-    this.catalogsService.getRazas$(query).subscribe({
+    this.catalogsService.getBreeds$(query).subscribe({
       next: (res) => {
         this.breeds = res.data || [];
         this.totalRecords = res.total;
@@ -220,7 +220,7 @@ export class Breeds implements OnInit, OnDestroy {
       icon: 'pi pi-exclamation-triangle',
       accept: () => {
         this.loading = true;
-        this.catalogsService.deleteRaza$(breed.cod_raza).subscribe({
+        this.catalogsService.deleteBreed$(breed.cod_raza).subscribe({
           next: () => {
             this.loadBreeds();
             this.loading = false;
@@ -254,7 +254,7 @@ export class Breeds implements OnInit, OnDestroy {
       accept: () => {
         this.loading = true;
         const deletes = this.selectedBreeds.map((breed) =>
-          this.catalogsService.deleteRaza$(breed.cod_raza)
+          this.catalogsService.deleteBreed$(breed.cod_raza)
         );
         Promise.all(deletes.map((obs) => firstValueFrom(obs)))
           .then(() => {
@@ -323,7 +323,7 @@ export class Breeds implements OnInit, OnDestroy {
         return;
       }
 
-      this.catalogsService.updateRaza$(this.currentBreed.cod_raza, updateData).subscribe({
+      this.catalogsService.updateBreed$(this.currentBreed.cod_raza, updateData).subscribe({
         next: () => {
           this.loadBreeds();
           this.breedDialog = false;
@@ -352,7 +352,7 @@ export class Breeds implements OnInit, OnDestroy {
         descripcion: formData.descripcion,
       };
 
-      this.catalogsService.createRaza$(createData).subscribe({
+      this.catalogsService.createBreed$(createData).subscribe({
         next: () => {
           this.loadBreeds();
           this.breedDialog = false;

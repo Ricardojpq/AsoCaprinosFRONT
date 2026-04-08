@@ -195,7 +195,7 @@ export class UserManagementComponent implements OnInit {
 
   async loadFarms(): Promise<void> {
     try {
-      const fincas = await this.userService.getFincasDisponibles().toPromise();
+      const fincas = await this.userService.getAvailableFarms().toPromise();
       if (fincas) {
         this.fincasDisponibles.set(fincas);
       }
@@ -415,14 +415,14 @@ export class UserManagementComponent implements OnInit {
     return perfil?.descripcion || 'Sin perfil';
   }
 
-  getFincasNames(user: Usuario): string {
+  getFarmNames(user: Usuario): string {
     if (!user.fincas || user.fincas.length === 0) {
       return 'Sin fincas asignadas';
     }
     return user.fincas.map(f => f.nomb_finca).join(', ');
   }
 
-  getFincaName(codFinca: number): string {
+  getFarmName(codFinca: number): string {
     const finca = this.fincasDisponibles().find(f => f.cod_finca === codFinca);
     return finca?.nomb_finca || 'Finca desconocida';
   }
@@ -442,7 +442,7 @@ export class UserManagementComponent implements OnInit {
     this.loadUsers();
   }
 
-  toggleFinca(codFinca: number): void {
+  toggleFarm(codFinca: number): void {
     const currentFincas = this.userForm.get('fincas')?.value || [];
     const index = currentFincas.indexOf(codFinca);
     
@@ -465,14 +465,14 @@ export class UserManagementComponent implements OnInit {
   }
 
   // Modal de fincas
-  openFincasModal(): void {
+  openFarmsModal(): void {
     // Preseleccionar las fincas ya asignadas
     const currentFincas = this.userForm.get('fincas')?.value || [];
     this.selectedFincasTemp = this.fincasDisponibles().filter(f => currentFincas.includes(f.cod_finca));
     this.showFincasModalVisible = true;
   }
 
-  closeFincasModal(): void {
+  closeFarmsModal(): void {
     this.showFincasModalVisible = false;
     this.selectedFincasTemp = [];
   }
@@ -492,6 +492,6 @@ export class UserManagementComponent implements OnInit {
       this.userForm.patchValue({ finca_principal: selectedCodes[0] });
     }
     
-    this.closeFincasModal();
+    this.closeFarmsModal();
   }
 }

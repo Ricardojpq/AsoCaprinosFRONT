@@ -85,14 +85,14 @@
             label="Marcar PREÑADAS"
             severity="success"
             [loading]="procesando()"
-            (onClick)="registrarDiagnosticoMasivo('PREÑADA')">
+            (onClick)="registerBulkDiagnosis('PREÑADA')">
             <lucide-icon [img]="heartIcon" size="16" class="mr-2"></lucide-icon>
           </p-button>
           <p-button
             label="Marcar VACÍAS"
             severity="warn"
             [loading]="procesando()"
-            (onClick)="registrarDiagnosticoMasivo('VACIA')">
+            (onClick)="registerBulkDiagnosis('VACIA')">
             <lucide-icon [img]="xCircleIcon" size="16" class="mr-2"></lucide-icon>
           </p-button>
         </div>
@@ -193,7 +193,7 @@
                 severity="success"
                 pTooltip="Registrar diagnóstico"
                 [disabled]="!hembra.diagnosticoSeleccionado || procesando()"
-                (onClick)="registrarDiagnosticoIndividual(hembra)">
+                (onClick)="registerIndividualDiagnosis(hembra)">
                 <lucide-icon [img]="checkIcon" size="18"></lucide-icon>
               </p-button>
             </td>

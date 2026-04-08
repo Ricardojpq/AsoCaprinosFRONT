@@ -75,7 +75,7 @@
           <p-select
             id="sexo_animal"
             formControlName="sexo_animal"
-            [options]="catalogOptions()?.sexo || []"
+            [options]="catalogOptions()?.sex || []"
             optionLabel="label"
             optionValue="value"
             placeholder="Seleccione sexo"
@@ -124,7 +124,7 @@
           <p-select
             id="cod_raza"
             formControlName="cod_raza"
-            [options]="catalogOptions()?.razas || []"
+            [options]="catalogOptions()?.breeds || []"
             optionLabel="label"
             optionValue="value"
             placeholder="Seleccione raza"
@@ -142,7 +142,7 @@
           <p-select
             id="cod_color"
             formControlName="cod_color"
-            [options]="catalogOptions()?.colores || []"
+            [options]="catalogOptions()?.colors || []"
             optionLabel="label"
             optionValue="value"
             placeholder="Seleccione color"
@@ -157,7 +157,7 @@
           <p-select
             id="cod_tipo_pelo"
             formControlName="cod_tipo_pelo"
-            [options]="catalogOptions()?.tiposPelo || []"
+            [options]="catalogOptions()?.hairTypes || []"
             optionLabel="label"
             optionValue="value"
             placeholder="Seleccione tipo de pelo"
@@ -172,7 +172,7 @@
           <p-select
             id="estatus"
             formControlName="estatus"
-            [options]="catalogOptions()?.estatus || []"
+            [options]="catalogOptions()?.status || []"
             optionLabel="label"
             optionValue="value"
             placeholder="Seleccione estatus"
@@ -186,7 +186,7 @@
           <p-select
             id="origen"
             formControlName="origen"
-            [options]="catalogOptions()?.origen || []"
+            [options]="catalogOptions()?.origin || []"
             optionLabel="label"
             optionValue="value"
             placeholder="Seleccione origen"
