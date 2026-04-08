@@ -107,12 +107,12 @@ export class AnimalSelectionTable implements OnInit, OnChanges, OnDestroy {
   ngOnChanges(changes: SimpleChanges) {
     // Detectar cuando el modal se abre
     if (changes['visible'] && changes['visible'].currentValue === true) {
-      this.loadFincas();
+      this.loadFarms();
       this.loadAnimals();
     }
   }
 
-  loadFincas() {
+  loadFarms() {
     this.loadingFincas = true;
     this.farmsService.getAllActiveFincas$(1000).subscribe({
       next: (fincas) => {

@@ -26,7 +26,7 @@ export class FarmsService {
   /**
    * Get paginated list of farms with filters
    */
-  getFincas$(params: FincaQueryParams = {}): Observable<LaravelPaginationResponse<FincaDto>> {
+  getFarms$(params: FincaQueryParams = {}): Observable<LaravelPaginationResponse<FincaDto>> {
     let httpParams = new HttpParams();
     
     // Add pagination parameters
@@ -100,7 +100,7 @@ export class FarmsService {
       ...params,
       search: searchTerm
     };
-    return this.getFincas$(searchParams);
+    return this.getFarms$(searchParams);
   }
 
   /**
@@ -112,7 +112,7 @@ export class FarmsService {
       per_page: perPage,
       estatus_finca: 'A'
     };
-    return this.getFincas$(params).pipe(
+    return this.getFarms$(params).pipe(
       map(response => response.data)
     );
   }
@@ -140,7 +140,7 @@ export class FarmsService {
       cod_estado,
       per_page: 1000
     };
-    return this.getFincas$(params).pipe(
+    return this.getFarms$(params).pipe(
       map(response => response.data)
     );
   }
@@ -153,7 +153,7 @@ export class FarmsService {
       cod_municipio,
       per_page: 1000
     };
-    return this.getFincas$(params).pipe(
+    return this.getFarms$(params).pipe(
       map(response => response.data)
     );
   }

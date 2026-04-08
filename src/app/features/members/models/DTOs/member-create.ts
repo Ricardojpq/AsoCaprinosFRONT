@@ -3,7 +3,7 @@ export interface MemberCreateDto {
   cod_finca: number;
   estatus_socio?: string;
   fec_ingreso?: string;
-  observaciones?: string;
+  comments?: string;
   is_active?: boolean;
   
   // Campos de persona (opcionales para crear persona si no existe)

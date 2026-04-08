@@ -10,13 +10,13 @@ import { AuthService } from '@features/auth/services/auth.service';
 import { AnimalCreateDto } from '@features/animals/models/DTOs/animal-create';
 import { AnimalUpdateDto } from '@features/animals/models/DTOs/animal-update';
 import { AnimalDto } from '@features/animals/models/DTOs/animal';
-import { SexoAnimalEnum } from '@core/enums/sexo-animal-enum';
-import { OrigenAnimalEnum } from '@core/enums/origen-animal-enum';
-import { EstatusAnimalEnum } from '@core/enums/estatus-animal-enum';
-import { TipoConcepcionEnum } from '@core/enums/tipo-concepcion-enum';
-import { TipoPartoEnum } from '@core/enums/tipo-parto-enum';
-import { MaterialGeneticoEnum } from '@core/enums/material-genetico-enum';
-import { PurezaSangreEnum } from '@core/enums/pureza-sangre-enum';
+import { AnimalSexEnum } from '@core/enums/animal-sex-enum';
+import { AnimalOriginEnum } from '@core/enums/animal-origin-enum';
+import { AnimalStatusEnum } from '@core/enums/animal-status-enum';
+import { ConceptionTypeEnum } from '@core/enums/conception-type-enum';
+import { BirthTypeEnum } from '@core/enums/birth-type-enum';
+import { GeneticMaterialEnum } from '@core/enums/genetic-material-enum';
+import { BloodlinePurityEnum } from '@core/enums/bloodline-purity-enum';
 
 export interface AnimalQueryParams {
   page?: number;
@@ -254,51 +254,51 @@ export class AnimalsService {
   // Métodos para obtener opciones de los enums
   getSexoOptions() {
     return [
-      { label: 'Macho', value: SexoAnimalEnum.Macho },
-      { label: 'Hembra', value: SexoAnimalEnum.Hembra }
+      { label: 'Macho', value: AnimalSexEnum.Male },
+      { label: 'Hembra', value: AnimalSexEnum.Female }
     ];
   }
 
   getOrigenOptions() {
     return [
-      { label: 'Nacido en Finca', value: OrigenAnimalEnum.NacidoFinca },
-      { label: 'Extranjero', value: OrigenAnimalEnum.Extranjero },
-      { label: 'Compra a Socio', value: OrigenAnimalEnum.CompraSocio },
-      { label: 'Compra Independiente', value: OrigenAnimalEnum.CompraIndependiente }
+      { label: 'Nacido en Finca', value: AnimalOriginEnum.FarmBorn },
+      { label: 'Extranjero', value: AnimalOriginEnum.Foreign },
+      { label: 'Compra a Socio', value: AnimalOriginEnum.MemberPurchase },
+      { label: 'Compra Independiente', value: AnimalOriginEnum.IndependentPurchase }
     ];
   }
 
   getEstatusOptions() {
     return [
-      { label: 'Activo', value: EstatusAnimalEnum.ACTIVO },
-      { label: 'Referencia', value: EstatusAnimalEnum.REFERENCIA },
-      { label: 'Inactivo', value: EstatusAnimalEnum.INACTIVO }
+      { label: 'Activo', value: AnimalStatusEnum.ACTIVE },
+      { label: 'Referencia', value: AnimalStatusEnum.REFERENCE },
+      { label: 'Inactivo', value: AnimalStatusEnum.INACTIVE }
     ];
   }
 
   getTipoConcepcionOptions() {
     return [
-      { label: 'Monta Natural', value: TipoConcepcionEnum.MN },
-      { label: 'TE Fresco', value: TipoConcepcionEnum.TE_Fresco },
-      { label: 'TE Congelado', value: TipoConcepcionEnum.TE_Congelado },
-      { label: 'Inseminación Artificial', value: TipoConcepcionEnum.IA }
+      { label: 'Monta Natural', value: ConceptionTypeEnum.NaturalMating },
+      { label: 'TE Fresco', value: ConceptionTypeEnum.ET_Fresh },
+      { label: 'TE Congelado', value: ConceptionTypeEnum.ET_Frozen },
+      { label: 'Inseminación Artificial', value: ConceptionTypeEnum.AI }
     ];
   }
 
   getTipoPartoOptions() {
     return [
-      { label: 'Simple', value: TipoPartoEnum.Simple },
-      { label: 'Doble', value: TipoPartoEnum.Doble },
-      { label: 'Triple', value: TipoPartoEnum.Triple },
-      { label: 'Cuádruple', value: TipoPartoEnum.Cuádruple },
-      { label: 'Quíntuple', value: TipoPartoEnum.Quíntuple }
+      { label: 'Simple', value: BirthTypeEnum.Single },
+      { label: 'Doble', value: BirthTypeEnum.Twin },
+      { label: 'Triple', value: BirthTypeEnum.Triplet },
+      { label: 'Cuádruple', value: BirthTypeEnum.Quadruplet },
+      { label: 'Quíntuple', value: BirthTypeEnum.Quintuplet }
     ];
   }
 
   getMaterialGeneticoOptions() {
     return [
-      { label: 'Nacional', value: MaterialGeneticoEnum.Nacional },
-      { label: 'Importado', value: MaterialGeneticoEnum.Importado }
+      { label: 'Nacional', value: GeneticMaterialEnum.Domestic },
+      { label: 'Importado', value: GeneticMaterialEnum.Imported }
     ];
   }
 
@@ -311,14 +311,14 @@ export class AnimalsService {
 
   getCompRacialOptions() {
     return [
-      { label: 'PO', value: PurezaSangreEnum.PO },
-      { label: 'PCOC', value: PurezaSangreEnum.PCOC },
-      { label: 'PR', value: PurezaSangreEnum.PR },
-      { label: 'Base', value: PurezaSangreEnum.BASE },
-      { label: 'G1', value: PurezaSangreEnum.G1 },
-      { label: 'G2', value: PurezaSangreEnum.G2 },
-      { label: 'G3', value: PurezaSangreEnum.G3 },
-      { label: 'G4', value: PurezaSangreEnum.G4 }
+      { label: 'PO', value: BloodlinePurityEnum.PO },
+      { label: 'PCOC', value: BloodlinePurityEnum.PCOC },
+      { label: 'PR', value: BloodlinePurityEnum.PR },
+      { label: 'Base', value: BloodlinePurityEnum.BASE },
+      { label: 'G1', value: BloodlinePurityEnum.G1 },
+      { label: 'G2', value: BloodlinePurityEnum.G2 },
+      { label: 'G3', value: BloodlinePurityEnum.G3 },
+      { label: 'G4', value: BloodlinePurityEnum.G4 }
     ];
   }
 

@@ -44,7 +44,7 @@
       ></p-select>
 
       <p-select
-        [options]="estadoOptions"
+        [options]="statusOptions"
         [ngModel]="filterActive()"
         (ngModelChange)="filterActive.set($event); onFilterChange()"
         placeholder="Todos los estados"

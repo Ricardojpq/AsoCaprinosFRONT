@@ -438,7 +438,7 @@ export class Companies implements OnInit, OnDestroy {
     });
   }
 
-  // Getters para acceso fácil a los controles del formulario
+  // Getters para acceso fácil a los controls del formulario
   get f() { return this.empresaForm.controls; }
 
   // Métodos de validación

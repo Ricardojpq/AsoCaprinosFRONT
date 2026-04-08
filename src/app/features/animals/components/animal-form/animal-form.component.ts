@@ -14,7 +14,7 @@ import { AnimalCreateDto } from '../../models/DTOs/animal-create';
 import { AnimalUpdateDto } from '../../models/DTOs/animal-update';
 import { CatalogOptions } from '../../models/interfaces/catalog-options.interface';
 import { FincaDto } from '../../../farms/models/finca.dto';
-import { FincaContextService } from '../../../../core/services/finca-context.service';
+import { FarmContextService } from '../../../../core/services/finca-context.service';
 
 @Component({
   selector: 'app-animal-form',
@@ -34,7 +34,7 @@ import { FincaContextService } from '../../../../core/services/finca-context.ser
 })
 export class AnimalFormComponent implements OnInit {
   private fb = inject(FormBuilder);
-  private fincaContextService = inject(FincaContextService);
+  private fincaContextService = inject(FarmContextService);
 
   // Inputs
   readonly animal = input<AnimalDto | null>(null);
@@ -124,7 +124,7 @@ export class AnimalFormComponent implements OnInit {
   private initializeForm(): void {
     this.animalForm = this.fb.group({
       // === INFORMACIÓN BÁSICA ===
-      cod_finca: [{ value: this.fincaContextService.getSelectedFinca(), disabled: true }, [Validators.required]],
+      cod_finca: [{ value: this.fincaContextService.getSelectedFarm(), disabled: true }, [Validators.required]],
       cod_animal: ['', [Validators.required, Validators.maxLength(15)]],
       nomb_animal: ['', [Validators.required, Validators.maxLength(50)]],
       sexo_animal: ['M', [Validators.required]],
@@ -140,7 +140,7 @@ export class AnimalFormComponent implements OnInit {
       origen: ['N', [Validators.required]],
 
       // === FINCAS ===
-      cod_finca_actual: [this.fincaContextService.getSelectedFinca(), [Validators.required]],
+      cod_finca_actual: [this.fincaContextService.getSelectedFarm(), [Validators.required]],
       siglas_criador: [''],
       nombre_criador: [''],
       siglas_propietario: [''],

@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild, OnDestroy, inject } from '@angular/core';
-import { FincaContextService } from '@core/services/finca-context.service';
+import { FarmContextService } from '@core/services/finca-context.service';
 import { firstValueFrom, BehaviorSubject, Subject } from 'rxjs';
 import {
   takeUntil,
@@ -113,7 +113,7 @@ export class Members implements OnInit, OnDestroy {
   currentMember: MemberDto | null = null;
 
   // Servicio de contexto de finca
-  private fincaContext = inject(FincaContextService);
+  private farmContext = inject(FarmContextService);
 
   constructor(
     private fb: FormBuilder,
@@ -149,7 +149,7 @@ export class Members implements OnInit, OnDestroy {
       // Campos opcionales del socio
       estatus_socio: ['A'],
       fec_ingreso: [''],
-      observaciones: ['', [Validators.maxLength(500)]],
+      comments: ['', [Validators.maxLength(500)]],
       
       // Campos obligatorios de persona
       nom_persona: ['', [Validators.required, Validators.maxLength(50)]],
@@ -246,7 +246,7 @@ export class Members implements OnInit, OnDestroy {
       sort_dir: this.sortOrder,
       ...this.filters,
       // Filtrar por finca seleccionada
-      ...this.fincaContext.getFincaQueryParams(),
+      ...this.farmContext.getFarmQueryParams(),
     };
     this.membersService.getMembers$(query).subscribe({
       next: (res) => {
@@ -285,7 +285,7 @@ export class Members implements OnInit, OnDestroy {
       cod_finca: '',
       estatus_socio: 'A',
       fec_ingreso: '',
-      observaciones: '',
+      comments: '',
       nom_persona: '',
       ape_persona: '',
       tel_persona: '',
@@ -317,7 +317,7 @@ export class Members implements OnInit, OnDestroy {
       cod_finca: member.cod_finca || '',
       estatus_socio: member.estatus_socio || 'A',
       fec_ingreso: fecIngreso,
-      observaciones: member.observaciones || '',
+      comments: member.comments || '',
       nom_persona: member.persona?.nom_persona || '',
       ape_persona: member.persona?.ape_persona || '',
       tel_persona: member.persona?.tlf_persona || '',
@@ -380,7 +380,7 @@ export class Members implements OnInit, OnDestroy {
     this.submitted = false;
   }
 
-  // Helper para acceder a los controles del formulario
+  // Helper para acceder a los controls del formulario
   get f() {
     return this.memberForm.controls;
   }
@@ -427,7 +427,7 @@ export class Members implements OnInit, OnDestroy {
       const updateData: MemberUpdateDto = {
         estatus_socio: formData.estatus_socio,
         fec_ingreso: this.formatDateForBackend(formData.fec_ingreso),
-        observaciones: formData.observaciones,
+        comments: formData.comments,
         // Campos de persona opcionales
         nom_persona: formData.nom_persona,
         ape_persona: formData.ape_persona,
@@ -496,7 +496,7 @@ export class Members implements OnInit, OnDestroy {
         cod_finca: formData.cod_finca,
         estatus_socio: formData.estatus_socio || 'A',
         fec_ingreso: this.formatDateForBackend(formData.fec_ingreso),
-        observaciones: formData.observaciones,
+        comments: formData.comments,
         // Campos opcionales de persona para crear si no existe
         nom_persona: formData.nom_persona,
         ape_persona: formData.ape_persona,

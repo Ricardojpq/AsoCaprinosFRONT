@@ -1,7 +1,7 @@
 export interface MemberUpdateDto {
   estatus_socio?: string;
   fec_ingreso?: string;
-  observaciones?: string;
+  comments?: string;
   is_active?: boolean;
   
   // Campos de persona (opcionales para actualizar persona)

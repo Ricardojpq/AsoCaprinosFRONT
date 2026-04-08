@@ -63,7 +63,7 @@ export class PermissionsService {
 
   /**
    * Verifica si el usuario puede ver un módulo
-   * @param vista La vista/ruta del módulo (ej: 'Animals', 'Reproduccion/partos')
+   * @param vista La vista/ruta del módulo (ej: 'Animals', 'Reproduction/partos')
    */
   canView(vista: string): boolean {
     if (this.isSuperAdmin()) return true;

@@ -138,14 +138,14 @@ export const routes: Routes = [
         path: 'Settings/Parameters',
         canActivate: [modulePermissionGuard('Settings/Parameters')],
         loadComponent: () =>
-          import('@features/reproduccion/pages/configuracion/configuracion').then(
+          import('@features/reproduction/pages/configuracion/configuracion').then(
             (c) => c.Configuracion
           ),
       },
       {
-        path: 'Reproduccion',
+        path: 'Reproduction',
         loadChildren: () =>
-          import('@features/reproduccion/reproduccion.routes').then(
+          import('@features/reproduction/reproduction.routes').then(
             (r) => r.REPRODUCCION_ROUTES
           ),
       },

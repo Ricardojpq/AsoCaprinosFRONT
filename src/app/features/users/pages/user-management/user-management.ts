@@ -75,7 +75,7 @@ export class UserManagementComponent implements OnInit {
   filterActive = signal<boolean | null>(null);
 
   // Opciones para selects
-  estadoOptions = [
+  statusOptions = [
     { label: 'Activos', value: true },
     { label: 'Inactivos', value: false }
   ];
@@ -145,7 +145,7 @@ export class UserManagementComponent implements OnInit {
   ngOnInit(): void {
     this.loadUsers();
     this.loadPerfiles();
-    this.loadFincas();
+    this.loadFarms();
   }
 
   async loadUsers(): Promise<void> {
@@ -193,7 +193,7 @@ export class UserManagementComponent implements OnInit {
     }
   }
 
-  async loadFincas(): Promise<void> {
+  async loadFarms(): Promise<void> {
     try {
       const fincas = await this.userService.getFincasDisponibles().toPromise();
       if (fincas) {

@@ -1,0 +1,261 @@
+<div class="card">
+  <p-toast />
+  <p-confirmDialog [style]="{ width: '450px' }" />
+
+  <p-toolbar class="mb-6">
+    <ng-template #start>
+      <div class="flex gap-4 items-end flex-wrap">
+        <div class="flex flex-col">
+          <label class="text-sm font-medium text-gray-600 mb-1">Finca</label>
+          <p-select 
+            [options]="farms()" 
+            [(ngModel)]="selectedFarm"
+            optionLabel="nomb_finca"
+            optionValue="cod_finca"
+            placeholder="Seleccione una finca"
+            (onChange)="loadAnimals()"
+            class="w-48">
+          </p-select>
+        </div>
+        <div class="flex flex-col">
+          <label class="text-sm font-medium text-gray-600 mb-1">Sexo</label>
+          <p-select 
+            [options]="sexoOptions" 
+            [(ngModel)]="selectedGender"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Todos"
+            (onChange)="loadAnimals()"
+            class="w-32">
+          </p-select>
+        </div>
+      </div>
+    </ng-template>
+    <ng-template #end>
+      <p-button
+        styleClass="btn btn-primary btn-sm"
+        label="Cambiar Estado"
+        (onClick)="openChangeStatusDialog()"
+        [disabled]="selectedAnimals().length === 0">
+        <lucide-icon [img]="refreshIcon" size="16"></lucide-icon>
+      </p-button>
+    </ng-template>
+  </p-toolbar>
+
+  @if (loading()) {
+    <div class="flex justify-center p-8">
+      <p-progressSpinner></p-progressSpinner>
+    </div>
+  } @else {
+    <p-table 
+      [value]="animals()" 
+      [paginator]="true" 
+      [rows]="10"
+      [rowsPerPageOptions]="[10, 25, 50]"
+      [(selection)]="selectedAnimals"
+      [rowHover]="true"
+      dataKey="id"
+      currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} animales"
+      [showCurrentPageReport]="true"
+      styleClass="p-datatable-striped">
+      <ng-template pTemplate="caption">
+        <div class="flex items-center justify-between">
+          <h5 class="m-0">Gestión de Estados de Animales</h5>
+          <span class="text-sm text-gray-500">
+            {{ selectedAnimals().length }} seleccionados
+          </span>
+        </div>
+      </ng-template>
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="width: 3rem">
+            <p-tableHeaderCheckbox />
+          </th>
+          <th>Animal</th>
+          <th>Sexo</th>
+          <th>Raza</th>
+          @for (tipo of statusType(); track tipo.id) {
+            <th>{{ humanizaNameType(tipo.nombre) }}</th>
+          }
+          <th style="width: 10rem">Acciones</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-animal>
+        <tr>
+          <td>
+            <p-tableCheckbox [value]="animal" />
+          </td>
+          <td>
+            <div class="flex flex-col">
+              <span class="font-semibold">{{ animal.nomb_animal || animal.cod_animal }}</span>
+              <span class="text-xs text-gray-500">{{ animal.cod_animal }}</span>
+            </div>
+          </td>
+          <td>
+            <p-tag 
+              [value]="animal.sexo_animal === 'M' ? 'Macho' : 'Hembra'" 
+              [severity]="animal.sexo_animal === 'M' ? 'info' : 'warn'">
+            </p-tag>
+          </td>
+          <td>{{ animal.raza?.descripcion || '-' }}</td>
+          @for (tipo of statusType(); track tipo.id) {
+            <td>
+              @if (getCurrentStatus(animal, tipo.nombre) !== '-') {
+                <p-tag 
+                  [value]="getCurrentStatus(animal, tipo.nombre)" 
+                  [severity]="getStatusSeverity(getCurrentStatus(animal, tipo.nombre))">
+                </p-tag>
+              } @else {
+                <span class="text-gray-400">-</span>
+              }
+            </td>
+          }
+          <td>
+            <div class="flex gap-1">
+              <p-button 
+                pTooltip="Cambiar Estado"
+                [rounded]="true" 
+                [outlined]="true"
+                styleClass="p-button-sm"
+                (onClick)="openChangeStatusDialog(animal)">
+                <lucide-icon [img]="refreshIcon" size="16"></lucide-icon>
+              </p-button>
+              <p-button 
+                pTooltip="Ver Historial"
+                [rounded]="true" 
+                [outlined]="true"
+                severity="secondary"
+                styleClass="p-button-sm"
+                (onClick)="openHistoryDialog(animal)">
+                <lucide-icon [img]="historyIcon" size="16"></lucide-icon>
+              </p-button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td [attr.colspan]="4 + statusType().length" class="text-center p-4 text-gray-500">
+            No se encontraron animales
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  }
+</div>
+
+<!-- Dialog Cambiar Estado -->
+<p-dialog 
+  [header]="selectedAnimals().length > 1 ? 'Cambiar Estado (' + selectedAnimals().length + ' animales)' : 'Cambiar Estado'" 
+  [(visible)]="showChangeStatusDialog"
+  [modal]="true"
+  [style]="{width: '500px'}">
+  <ng-template #content>
+    <div class="flex flex-col gap-4">
+      @if (selectedAnimals().length === 1) {
+        <div class="p-3 bg-gray-50 rounded-lg">
+          <span class="font-semibold">{{ selectedAnimals()[0]?.nomb_animal || selectedAnimals()[0]?.cod_animal }}</span>
+          <span class="text-sm text-gray-500 ml-2">({{ selectedAnimals()[0]?.cod_animal }})</span>
+        </div>
+      }
+      
+      <div class="field">
+        <label class="block text-sm font-medium mb-2">Tipo de Estado *</label>
+        <p-select 
+          [options]="statusType()" 
+          [(ngModel)]="selectedStatusType"
+          optionLabel="nombre"
+          optionValue="nombre"
+          placeholder="Seleccione tipo de estado"
+          (onChange)="onTypeStatusChange()"
+          class="w-full">
+        </p-select>
+      </div>
+      
+      <div class="field">
+        <label class="block text-sm font-medium mb-2">Nuevo Estado *</label>
+        <p-select 
+          [options]="availableStatus()" 
+          [(ngModel)]="selectedNewStatus"
+          optionLabel="nombre"
+          optionValue="nombre"
+          placeholder="Seleccione nuevo estado"
+          [disabled]="!selectedStatusType()"
+          class="w-full">
+        </p-select>
+      </div>
+      
+      <div class="field">
+        <label class="block text-sm font-medium mb-2">Observaciones</label>
+        <textarea 
+          pInputTextarea 
+          [(ngModel)]="comments"
+          rows="2"
+          placeholder="Observaciones opcionales"
+          class="w-full">
+        </textarea>
+      </div>
+    </div>
+  </ng-template>
+  
+  <ng-template #footer>
+    <p-button 
+      label="Cancelar" 
+      [text]="true" 
+      (click)="showChangeStatusDialog.set(false)" />
+    <p-button 
+      label="Cambiar Estado"
+      (click)="changeStatus()"
+      [disabled]="!selectedStatusType() || !selectedNewStatus()">
+      <lucide-icon [img]="checkIcon" size="16"></lucide-icon>
+    </p-button>
+  </ng-template>
+</p-dialog>
+
+<!-- Dialog Historial -->
+<p-dialog 
+  [header]="'Historial de Estados - ' + (selectedAnimalForChange()?.nomb_animal || selectedAnimalForChange()?.cod_animal)" 
+  [(visible)]="showHistoryDialog"
+  [modal]="true"
+  [style]="{width: '700px'}">
+  <ng-template #content>
+    @if (animalHistory().length === 0) {
+      <div class="text-center p-4 text-gray-500">
+        No hay historial de estados para este animal
+      </div>
+    } @else {
+      <p-table [value]="animalHistory()" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Tipo</th>
+            <th>Estado</th>
+            <th>Fecha Inicio</th>
+            <th>Fecha Fin</th>
+            <th>Observaciones</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-item>
+          <tr>
+            <td>{{ item.tipo_estado?.nombre }}</td>
+            <td>
+              <p-tag 
+                [value]="item.estado?.nombre" 
+                [severity]="getStatusSeverity(item.estado?.nombre)">
+              </p-tag>
+            </td>
+            <td>{{ item.fecha_inicio | date:'dd/MM/yyyy' }}</td>
+            <td>{{ item.fecha_fin ? (item.fecha_fin | date:'dd/MM/yyyy') : 'Actual' }}</td>
+            <td>{{ item.comments || '-' }}</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    }
+  </ng-template>
+  
+  <ng-template #footer>
+    <p-button 
+      label="Cerrar" 
+      [text]="true" 
+      (click)="showHistoryDialog.set(false)" />
+  </ng-template>
+</p-dialog>

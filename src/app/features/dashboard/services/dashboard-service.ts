@@ -3,8 +3,8 @@ import { Observable, forkJoin, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { AnimalsService } from '@features/animals/services/animals-service';
 import { AnimalDto } from '@features/animals/models/DTOs/animal';
-import { SexoAnimalEnum } from '@core/enums/sexo-animal-enum';
-import { PurezaSangreEnum, PurezaSangreLabels } from '@core/enums/pureza-sangre-enum';
+import { AnimalSexEnum } from '@core/enums/animal-sex-enum';
+import { BloodlinePurityEnum, BloodlinePurityLabels } from '@core/enums/bloodline-purity-enum';
 
 export interface SexStats {
   label: string;
@@ -113,7 +113,7 @@ export class DashboardService {
     const total = Object.values(purityStats).reduce((sum: number, count: any) => sum + count, 0);
     
     return Object.entries(purityStats).map(([pureza, count], index) => ({
-      label: PurezaSangreLabels[pureza] || `Pureza ${pureza}`,
+      label: BloodlinePurityLabels[pureza] || `Pureza ${pureza}`,
       value: pureza,
       count: count as number,
       percentage: total > 0 ? ((count as number / total) * 100) : 0,
@@ -153,7 +153,7 @@ export class DashboardService {
       return [];
     }
     return purityStats.map((stat, index) => ({
-      label: PurezaSangreLabels[stat.pureza] || `Pureza ${stat.pureza}`,
+      label: BloodlinePurityLabels[stat.pureza] || `Pureza ${stat.pureza}`,
       value: stat.pureza,
       count: stat.count,
       percentage: stat.percentage,
@@ -172,8 +172,8 @@ export class DashboardService {
     const stats: SexStats[] = [];
 
     Object.entries(sexCounts).forEach(([sex, count], index) => {
-      const label = sex === SexoAnimalEnum.Macho ? 'Machos' : 
-                   sex === SexoAnimalEnum.Hembra ? 'Hembras' : 
+      const label = sex === AnimalSexEnum.Male ? 'Machos' : 
+                   sex === AnimalSexEnum.Female ? 'Hembras' : 
                    `Sexo ${sex}`;
       
       stats.push({
@@ -222,7 +222,7 @@ export class DashboardService {
     const stats: PurityStats[] = [];
 
     Object.entries(purityCounts).forEach(([purity, count], index) => {
-      const label = PurezaSangreLabels[purity] || `Pureza ${purity}`;
+      const label = BloodlinePurityLabels[purity] || `Pureza ${purity}`;
       
       stats.push({
         label,

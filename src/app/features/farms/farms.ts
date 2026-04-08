@@ -48,8 +48,8 @@ import {
   Star,
 } from 'lucide-angular';
 import { TextareaModule } from 'primeng/textarea';
-import { TipoGanaderiaFincaEnum } from '../../core/enums/tipo-ganaderia-finca';
-import { TipoSistemaFincaEnum } from '../../core/enums/tipo-sistema-finca.enum';
+import { FarmLivestockTypeEnum } from '../../core/enums/farm-livestock-type';
+import { FarmSystemTypeEnum } from '../../core/enums/farm-system-type.enum';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { TooltipModule } from 'primeng/tooltip';
@@ -149,18 +149,18 @@ export class Farms implements OnInit, OnDestroy {
   loadingMunicipios = false;
   loadingCiudades = false;
   tipoGanaderiaOptions = [
-    { label: 'Carne y Leche', value: TipoGanaderiaFincaEnum.CARNE_LECHE },
-    { label: 'Leche', value: TipoGanaderiaFincaEnum.LECHE },
-    { label: 'Cría y Carne', value: TipoGanaderiaFincaEnum.CRIA_CARNE },
-    { label: 'Carne', value: TipoGanaderiaFincaEnum.CARNE },
-    { label: 'Cría', value: TipoGanaderiaFincaEnum.CRIA },
+    { label: 'Carne y Leche', value: FarmLivestockTypeEnum.MEAT_DAIRY },
+    { label: 'Leche', value: FarmLivestockTypeEnum.DAIRY },
+    { label: 'Cría y Carne', value: FarmLivestockTypeEnum.BREEDING_MEAT },
+    { label: 'Carne', value: FarmLivestockTypeEnum.MEAT },
+    { label: 'Cría', value: FarmLivestockTypeEnum.BREEDING },
   ];
   municipioOptions: any[] = [];
   ciudadOptions: any[] = [];
   tipoSistemaOptions = [
-    { label: 'Intensivo', value: TipoSistemaFincaEnum.Intensivo },
-    { label: 'Semi-Intensivo', value: TipoSistemaFincaEnum.SemiIntensivo },
-    { label: 'Estabulado', value: TipoSistemaFincaEnum.ESTABULADO },
+    { label: 'Intensivo', value: FarmSystemTypeEnum.Intensive },
+    { label: 'Semi-Intensivo', value: FarmSystemTypeEnum.SemiIntensive },
+    { label: 'Estabulado', value: FarmSystemTypeEnum.CONFINED },
   ];
   tipoCriadorOptions: any[] = [];
 
@@ -186,7 +186,7 @@ export class Farms implements OnInit, OnDestroy {
    */
   private initializeForm() {
     this.fincaForm = this.fb.group({
-      // Campos obligatorios según tabla real
+      // Campos obligatorios
       cod_empresa: [1, [Validators.required]],
       direccion: ['', [Validators.required, Validators.maxLength(100)]],
       nomb_finca: ['', [Validators.required, Validators.maxLength(50)]],
@@ -270,11 +270,6 @@ export class Farms implements OnInit, OnDestroy {
 
     // Configurar el pipe de búsqueda
     this.setupSearchPipe();
-
-    // ✅ OPTIMIZACIÓN: No cargar datos geográficos hasta que sea necesario
-    // this.loadGeographicData(); // Movido a openNew() y editFinca()
-
-    // No llamar loadFarms() aquí - se maneja con lazy loading
   }
 
   ngOnDestroy() {
@@ -352,7 +347,7 @@ export class Farms implements OnInit, OnDestroy {
       ...this.filters,
     };
 
-    this.farmsService.getFincas$(query).subscribe({
+    this.farmsService.getFarms$(query).subscribe({
       next: (res) => {
         this.farms = res.data || [];
         this.totalRecords = res.total;
@@ -429,11 +424,9 @@ export class Farms implements OnInit, OnDestroy {
     this.fincaForm.get('cod_municipio')?.disable();
     this.fincaForm.get('cod_ciudad')?.disable();
 
-    // Limpiar propietarios al abrir nueva finca
     this.selectedPropietarios = [];
     this.propietariosMap.clear();
 
-    // ✅ OPTIMIZACIÓN: Cargar datos geográficos solo cuando se necesiten
     this.loadGeographicData();
 
     this.isEditMode = false;
@@ -489,10 +482,8 @@ export class Farms implements OnInit, OnDestroy {
       estatus_finca: farm.estatus_finca,
     });
 
-    // Load geographic data for editing
     this.loadGeographicDataForEditFinca(farm);
 
-    // Cargar propietarios si existen
     if (farm.propietarios && farm.propietarios.length > 0) {
       this.selectedPropietarios = farm.propietarios.map(persona => ({
         ced_propietario: persona.ced_persona,
@@ -500,7 +491,6 @@ export class Farms implements OnInit, OnDestroy {
         nombre_completo: `${persona.nom_persona} ${persona.ape_persona}`
       }));
 
-      // Guardar nombres en el mapa
       farm.propietarios.forEach(persona => {
         this.propietariosMap.set(
           persona.ced_persona,
@@ -509,7 +499,6 @@ export class Farms implements OnInit, OnDestroy {
       });
 
       // TODO: Obtener cuál es el principal desde la tabla pivote
-      // Por ahora, el primero será el principal
       if (this.selectedPropietarios.length > 0) {
         this.selectedPropietarios[0].propietario_principal = true;
       }

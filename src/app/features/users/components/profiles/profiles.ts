@@ -97,12 +97,12 @@ export class Profiles implements OnInit {
     // Animales depende de sus catálogos para funcionar correctamente
     'Animals': ['Animals/Breeds', 'Animals/Colors', 'Animals/HairTypes', 'Animals/PhysicalConditions'],
     // Reproducción depende de Animales
-    'Reproduccion': ['Animals'],
-    'Reproduccion/temporadas-monta': ['Animals', 'Reproduccion'],
-    'Reproduccion/diagnostico-prenez': ['Animals', 'Reproduccion'],
-    'Reproduccion/partos': ['Animals', 'Reproduccion'],
-    'Reproduccion/lactancia': ['Animals', 'Reproduccion'],
-    'Reproduccion/estados-reproductivos': ['Animals', 'Reproduccion'],
+    'Reproduction': ['Animals'],
+    'Reproduction/temporadas-monta': ['Animals', 'Reproduction'],
+    'Reproduction/diagnostico-prenez': ['Animals', 'Reproduction'],
+    'Reproduction/partos': ['Animals', 'Reproduction'],
+    'Reproduction/lactancia': ['Animals', 'Reproduction'],
+    'Reproduction/estados-reproductivos': ['Animals', 'Reproduction'],
     // Certificados depende de Animales y Clasificadores
     'Certificates': ['Animals', 'Classifiers'],
   };

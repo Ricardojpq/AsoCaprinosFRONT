@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { SelectModule } from 'primeng/select';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { SkeletonModule } from 'primeng/skeleton';
-import { FincaContextService } from '@core/services/finca-context.service';
+import { FarmContextService } from '@core/services/finca-context.service';
 import { AuthService } from '@features/auth/services/auth.service';
 import { LucideAngularModule, MapPin } from 'lucide-angular';
 
@@ -66,7 +66,7 @@ interface FincaOption {
 })
 export class FincaSelectorComponent {
   readonly mapPinIcon = MapPin;
-  private fincaContext = inject(FincaContextService);
+  private farmContext = inject(FarmContextService);
   private authService = inject(AuthService);
 
   loading = signal(true);
@@ -95,7 +95,7 @@ export class FincaSelectorComponent {
     this.fincaOptions.set(options);
 
     // Cargar finca seleccionada del localStorage o usar la primera/principal
-    const storedFinca = this.fincaContext.getSelectedFinca();
+    const storedFinca = this.farmContext.getSelectedFarm();
     
     if (storedFinca && fincas.some((f: any) => f.cod_finca === storedFinca)) {
       this.selectedFincaId.set(storedFinca);
@@ -104,7 +104,7 @@ export class FincaSelectorComponent {
       const principal = fincas.find((f: any) => f.es_principal || f.es_finca_principal);
       const defaultFinca = principal || fincas[0];
       this.selectedFincaId.set(defaultFinca.cod_finca);
-      this.fincaContext.setSelectedFinca(defaultFinca.cod_finca);
+      this.farmContext.setSelectedFarm(defaultFinca.cod_finca);
     }
     
     // Terminar carga
@@ -113,7 +113,7 @@ export class FincaSelectorComponent {
 
   onFincaChange(codFinca: number | null): void {
     this.selectedFincaId.set(codFinca);
-    this.fincaContext.setSelectedFinca(codFinca);
+    this.farmContext.setSelectedFarm(codFinca);
     // Recargar la página para aplicar el filtro
     window.location.reload();
   }

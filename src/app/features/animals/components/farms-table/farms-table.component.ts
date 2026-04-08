@@ -106,7 +106,7 @@ export class FarmsTableComponent implements OnInit, OnDestroy {
       search: this.globalFilterValue || undefined
     };
 
-    this.farmsService.getFincas$(params).subscribe({
+    this.farmsService.getFarms$(params).subscribe({
       next: (response) => {
         // Store complete data for selection
         this.completeFarmsData = response.data;

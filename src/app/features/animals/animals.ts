@@ -66,7 +66,6 @@ export class Animals implements OnInit, OnDestroy, CanComponentDeactivate {
   selectedPadre: AnimalDto | null = null;
   selectedMadre: AnimalDto | null = null;
 
-  // Getter/Setter para el binding bidireccional del diálogo principal
   get dialogVisible(): boolean {
     return this.state.dialogVisible();
   }
@@ -78,7 +77,6 @@ export class Animals implements OnInit, OnDestroy, CanComponentDeactivate {
 
   ngOnInit(): void {
     this.setupSearchPipe();
-    // Los animales se cargan automáticamente por el lazy loading de la tabla
   }
 
   ngOnDestroy(): void {

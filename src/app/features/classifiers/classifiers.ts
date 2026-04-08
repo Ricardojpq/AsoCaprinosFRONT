@@ -483,7 +483,7 @@ export class Classifiers implements OnInit, OnDestroy {
     });
   }
 
-  // Getters para acceso fácil a los controles del formulario
+  // Getters para acceso fácil a los controls del formulario
   get f() { return this.clasificadorForm.controls; }
 
   private formatDateForBackend(date: any, required: boolean = false): string | undefined {

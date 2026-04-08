@@ -8,7 +8,7 @@ export interface Certificate {
   cod_clasificador?: string;
   fecha_emision?: string;
   numero_certificado?: string;
-  observaciones?: string;
+  comments?: string;
   is_active?: boolean;
   created_by?: string;
   updated_by?: string;
@@ -80,7 +80,7 @@ export interface CertificateDto {
   cod_clasificador?: string;
   fecha_emision?: string;
   numero_certificado?: string;
-  observaciones?: string;
+  comments?: string;
 
   // Información completa del animal
   animal?: AnimalInfoDto;
@@ -239,7 +239,7 @@ export interface CertificateTableData {
 export interface CreateCertificateDto {
   cod_animal: string;
   ced_clasificador: string;
-  observaciones?: string;
+  comments?: string;
 }
 
 // Interface para crear/editar certificados (legacy)
@@ -251,6 +251,6 @@ export interface CertificateFormData {
   cod_propietario: string;
   cod_clasificador: string;
   fecha_emision: string;
-  observaciones?: string;
+  comments?: string;
 }
 

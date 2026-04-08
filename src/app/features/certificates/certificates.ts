@@ -6,7 +6,7 @@ import {
   ViewChild,
   inject,
 } from '@angular/core';
-import { FincaContextService } from '@core/services/finca-context.service';
+import { FarmContextService } from '@core/services/finca-context.service';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { TableModule } from 'primeng/table';
 import { DialogModule } from 'primeng/dialog';
@@ -162,7 +162,7 @@ export class Certificates implements OnInit {
   selectedClasificadorData: ClasificadorSelectionDto | null = null;
 
   // Servicio de contexto de finca
-  private fincaContext = inject(FincaContextService);
+  private farmContext = inject(FarmContextService);
 
   constructor(
     private messageService: MessageService,
@@ -186,7 +186,7 @@ export class Certificates implements OnInit {
     const searchFilters = {
       ...this.filters,
       search: this.searchTerm || undefined,
-      ...this.fincaContext.getFincaQueryParamsString(),
+      ...this.farmContext.getFarmQueryParamsString(),
     };
 
     this.certificatesService
@@ -243,7 +243,7 @@ export class Certificates implements OnInit {
     return {
       cod_animal: '',
       ced_clasificador: '',
-      observaciones: '',
+      comments: '',
     };
   }
 
@@ -255,7 +255,7 @@ export class Certificates implements OnInit {
       cod_propietario: '',
       cod_clasificador: '',
       fecha_emision: new Date().toISOString().split('T')[0],
-      observaciones: '',
+      comments: '',
     };
   }
 
@@ -436,7 +436,7 @@ export class Certificates implements OnInit {
             cod_propietario: response.data.cod_propietario || '',
             cod_clasificador: response.data.cod_clasificador || '',
             fecha_emision: response.data.fecha_emision || '',
-            observaciones: response.data.observaciones || '',
+            comments: response.data.comments || '',
           };
           this.isEditMode = true;
           this.certificateDialog = true;

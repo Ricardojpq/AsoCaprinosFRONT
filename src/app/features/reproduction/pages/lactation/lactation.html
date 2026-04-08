@@ -1,0 +1,163 @@
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>
+
+<div class="p-4">
+  <div class="flex justify-between items-center mb-4">
+    <h1 class="text-2xl font-bold text-gray-800">Control de Lactancia</h1>
+  </div>
+
+  <!-- Estadísticas -->
+  @if (statistics()) {
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+      <p-card>
+        <div class="text-center">
+          <div class="text-3xl font-bold text-yellow-600">{{ statistics()!.en_calostro }}</div>
+          <div class="text-sm text-gray-600">En Calostro</div>
+        </div>
+      </p-card>
+      <p-card>
+        <div class="text-center">
+          <div class="text-3xl font-bold text-blue-600">{{ statistics()!.lactando }}</div>
+          <div class="text-sm text-gray-600">Lactando</div>
+        </div>
+      </p-card>
+      <p-card>
+        <div class="text-center">
+          <div class="text-3xl font-bold text-green-600">{{ statistics()!.destetados }}</div>
+          <div class="text-sm text-gray-600">Destetados</div>
+        </div>
+      </p-card>
+      <p-card>
+        <div class="text-center">
+          <div class="text-3xl font-bold text-gray-600">{{ statistics()!.total }}</div>
+          <div class="text-sm text-gray-600">Total</div>
+        </div>
+      </p-card>
+    </div>
+  }
+
+  <!-- Filtros de búsqueda -->
+  <div class="grid grid-cols-6 gap-4 mb-4 p-4 bg-gray-50 rounded-lg">
+    <div>
+      <label class="block text-sm font-medium text-gray-600 mb-1">Cría</label>
+      <input type="text" pInputText [(ngModel)]="filterCria" placeholder="Código cría" class="w-full">
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-600 mb-1">Madre</label>
+      <input type="text" pInputText [(ngModel)]="filterMother" placeholder="Nombre o código" class="w-full">
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-600 mb-1">Fecha Desde</label>
+      <p-datepicker [(ngModel)]="filterStartDate" dateFormat="dd/mm/yy" [showIcon]="true" placeholder="Desde" class="w-full"></p-datepicker>
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-600 mb-1">Fecha Hasta</label>
+      <p-datepicker [(ngModel)]="filterEndDate" dateFormat="dd/mm/yy" [showIcon]="true" placeholder="Hasta" class="w-full"></p-datepicker>
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-600 mb-1">Estado</label>
+      <p-select [options]="statusOptions" [(ngModel)]="filterStatus" optionLabel="label" optionValue="value" placeholder="Todos" class="w-full"></p-select>
+    </div>
+    <div class="flex items-end gap-2">
+      <p-button label="Filtrar" (onClick)="applyFilters()" styleClass="p-button-sm"></p-button>
+      <p-button label="Limpiar" (onClick)="clearFilters()" severity="secondary" styleClass="p-button-sm" [outlined]="true"></p-button>
+    </div>
+  </div>
+
+  <p-card>
+    @if (loading()) {
+      <div class="flex justify-center p-8">
+        <p-progressSpinner></p-progressSpinner>
+      </div>
+    } @else {
+      <p-table 
+        [value]="controls()" 
+        [paginator]="true" 
+        [rows]="10"
+        [totalRecords]="totalRecords()"
+        styleClass="p-datatable-striped">
+        <ng-template pTemplate="header">
+          <tr>
+            <th pSortableColumn="id">ID <p-sortIcon field="id"></p-sortIcon></th>
+            <th>Cría</th>
+            <th>Madre</th>
+            <th pSortableColumn="fecha_inicio">Fecha Inicio <p-sortIcon field="fecha_inicio"></p-sortIcon></th>
+            <th>Estado</th>
+            <th pSortableColumn="dias_totales">Días <p-sortIcon field="dias_totales"></p-sortIcon></th>
+            <th>Peso Destete</th>
+            <th>Acciones</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-control>
+          <tr>
+            <td>{{ control.id }}</td>
+            <td>{{ control.cria?.codigo_provisional || control.cria_id }}</td>
+            <td>{{ control.madre_info?.cod_animal ? (control.madre_info.cod_animal + ' - ' + control.madre_info.nomb_animal) : '-' }}</td>
+            <td>{{ control.fecha_inicio | date:'dd/MM/yyyy' }}</td>
+            <td>
+              <p-tag [value]="getStatusLabel(control.estado)" [severity]="getStatusSeverity(control.estado)"></p-tag>
+            </td>
+            <td>{{ control.dias_totales || '-' }}</td>
+            <td>{{ control.peso_destete ? (control.peso_destete + ' kg') : '-' }}</td>
+            <td>
+              <div class="flex gap-2">
+                @if (control.estado === 'CALOSTRO') {
+                  <p-button 
+                    pTooltip="Pasar a Lactancia"
+                    [rounded]="true" 
+                    [text]="true"
+                    severity="info"
+                    (onClick)="startLactation(control)">
+                    <lucide-icon [img]="arrowRightIcon" size="16"></lucide-icon>
+                  </p-button>
+                }
+                @if (control.estado === 'LACTANDO') {
+                  <p-button 
+                    pTooltip="Registrar Destete"
+                    [rounded]="true" 
+                    [text]="true"
+                    severity="success"
+                    (onClick)="openWeaningDialog (control)">
+                    <lucide-icon [img]="checkIcon" size="16"></lucide-icon>
+                  </p-button>
+                }
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="8" class="text-center p-4 text-gray-500">
+              No se encontraron registros de lactancia
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    }
+  </p-card>
+</div>
+
+<!-- Destete Dialog -->
+<p-dialog 
+  header="Registrar Destete" 
+  [(visible)]="showDesteteDialog"
+  [modal]="true"
+  [style]="{width: '400px'}">
+  <div class="flex flex-col gap-4">
+    <p class="text-gray-600">Ingrese el peso de la cría al momento del destete (opcional):</p>
+    <div>
+      <label class="block text-sm font-medium text-gray-600 mb-1">Peso (kg)</label>
+      <p-inputNumber 
+        [(ngModel)]="weaningWeight"
+        [minFractionDigits]="2"
+        [maxFractionDigits]="2"
+        placeholder="Ej: 15.50"
+        class="w-full">
+      </p-inputNumber>
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancelar" [text]="true" (onClick)="showDesteteDialog.set(false)"></p-button>
+    <p-button label="Registrar" (onClick)="registerWeaning()"></p-button>
+  </ng-template>
+</p-dialog>

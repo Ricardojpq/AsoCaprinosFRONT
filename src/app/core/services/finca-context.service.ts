@@ -6,13 +6,13 @@ import { Injectable } from '@angular/core';
 @Injectable({
   providedIn: 'root'
 })
-export class FincaContextService {
+export class FarmContextService {
   private readonly STORAGE_KEY = 'selected_finca';
 
   /**
    * Guarda el cod_finca seleccionado en localStorage
    */
-  setSelectedFinca(codFinca: number | null): void {
+  setSelectedFarm(codFinca: number | null): void {
     if (codFinca !== null) {
       localStorage.setItem(this.STORAGE_KEY, codFinca.toString());
     } else {
@@ -23,7 +23,7 @@ export class FincaContextService {
   /**
    * Obtiene el cod_finca seleccionado del localStorage
    */
-  getSelectedFinca(): number | null {
+  getSelectedFarm(): number | null {
     const stored = localStorage.getItem(this.STORAGE_KEY);
     return stored ? parseInt(stored, 10) : null;
   }
@@ -31,7 +31,7 @@ export class FincaContextService {
   /**
    * Obtiene el cod_finca como string (para URLs)
    */
-  getSelectedFincaString(): string | null {
+  getSelectedFarmString(): string | null {
     return localStorage.getItem(this.STORAGE_KEY);
   }
 
@@ -40,8 +40,8 @@ export class FincaContextService {
    * @param url URL base
    * @returns URL con ?cod_finca=X o &cod_finca=X si ya tiene parámetros
    */
-  appendFincaToUrl(url: string): string {
-    const fincaId = this.getSelectedFinca();
+  appendFarmToUrl(url: string): string {
+    const fincaId = this.getSelectedFarm();
     if (!fincaId) return url;
     
     const separator = url.includes('?') ? '&' : '?';
@@ -52,16 +52,16 @@ export class FincaContextService {
    * Obtiene los parámetros de query para filtrar por finca
    * @returns Objeto con cod_finca si está seleccionada
    */
-  getFincaQueryParams(): { cod_finca?: number } {
-    const fincaId = this.getSelectedFinca();
+  getFarmQueryParams(): { cod_finca?: number } {
+    const fincaId = this.getSelectedFarm();
     return fincaId ? { cod_finca: fincaId } : {};
   }
 
   /**
    * Obtiene los parámetros de query como string
    */
-  getFincaQueryParamsString(): { cod_finca?: string } {
-    const fincaId = this.getSelectedFincaString();
+  getFarmQueryParamsString(): { cod_finca?: string } {
+    const fincaId = this.getSelectedFarmString();
     return fincaId ? { cod_finca: fincaId } : {};
   }
 

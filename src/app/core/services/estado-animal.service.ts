@@ -31,7 +31,7 @@ export interface HistorialEstado {
   estado_id: number;
   fecha_inicio: string;
   fecha_fin?: string;
-  observaciones?: string;
+  comments?: string;
   tipo_estado?: TipoEstado;
   estado?: EstadoCatalogo;
   duracion_dias?: number;
@@ -41,14 +41,14 @@ export interface CambiarEstadoRequest {
   animal_id: number;
   tipo_estado: string;
   nuevo_estado: string;
-  observaciones?: string;
+  comments?: string;
 }
 
 export interface CambiarEstadoMasivoRequest {
   animal_ids: number[];
   tipo_estado: string;
   nuevo_estado: string;
-  observaciones?: string;
+  comments?: string;
 }
 
 export interface CambiarEstadoMasivoResponse {
@@ -68,7 +68,7 @@ export class EstadoAnimalService {
    * Obtener todos los tipos de estado disponibles
    */
   getTiposEstado(): Observable<ApiResponse<TipoEstado[]>> {
-    return this.http.get<ApiResponse<TipoEstado[]>>(`${this.apiUrl}/reproduccion/estados-animal/tipos`);
+    return this.http.get<ApiResponse<TipoEstado[]>>(`${this.apiUrl}/reproduction/estados-animal/tipos`);
   }
 
   /**
@@ -76,58 +76,58 @@ export class EstadoAnimalService {
    * @param tipoNombre Nombre del tipo de estado
    * @param sexo Opcional: filtrar por sexo del animal (M/H)
    */
-  getEstadosPorTipo(tipoNombre: string, sexo?: string): Observable<ApiResponse<EstadoCatalogo[]>> {
+  getStatusByType(tipoNombre: string, sexo?: string): Observable<ApiResponse<EstadoCatalogo[]>> {
     let params = new HttpParams();
     if (sexo) {
       params = params.set('sexo', sexo);
     }
-    return this.http.get<ApiResponse<EstadoCatalogo[]>>(`${this.apiUrl}/reproduccion/estados-animal/tipos/${tipoNombre}/estados`, { params });
+    return this.http.get<ApiResponse<EstadoCatalogo[]>>(`${this.apiUrl}/reproduction/estados-animal/tipos/${tipoNombre}/estados`, { params });
   }
 
   /**
    * Obtener animales con sus estados actuales
    */
-  getAnimalesConEstados(filters?: { cod_finca?: number; sexo?: string }): Observable<ApiResponse<any[]>> {
+  getAnimalWithStatus(filters?: { cod_finca?: number; sexo?: string }): Observable<ApiResponse<any[]>> {
     let params = new HttpParams();
     if (filters?.cod_finca) params = params.set('cod_finca', filters.cod_finca.toString());
     if (filters?.sexo) params = params.set('sexo', filters.sexo);
-    return this.http.get<ApiResponse<any[]>>(`${this.apiUrl}/reproduccion/estados-animal/animales`, { params });
+    return this.http.get<ApiResponse<any[]>>(`${this.apiUrl}/reproduction/estados-animal/animales`, { params });
   }
 
   /**
    * Obtener estados actuales de un animal específico
    */
   getEstadosAnimal(animalId: number): Observable<ApiResponse<any>> {
-    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/reproduccion/estados-animal/animal/${animalId}`);
+    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/reproduction/estados-animal/animal/${animalId}`);
   }
 
   /**
    * Obtener historial de estados de un animal
    */
-  getHistorialAnimal(animalId: number, tipo?: string): Observable<ApiResponse<HistorialEstado[]>> {
+  getAnimalHistory(animalId: number, tipo?: string): Observable<ApiResponse<HistorialEstado[]>> {
     let params = new HttpParams();
     if (tipo) params = params.set('tipo', tipo);
-    return this.http.get<ApiResponse<HistorialEstado[]>>(`${this.apiUrl}/reproduccion/estados-animal/animal/${animalId}/historial`, { params });
+    return this.http.get<ApiResponse<HistorialEstado[]>>(`${this.apiUrl}/reproduction/estados-animal/animal/${animalId}/historial`, { params });
   }
 
   /**
    * Cambiar estado de un animal
    */
-  cambiarEstado(data: CambiarEstadoRequest): Observable<ApiResponse<HistorialEstado>> {
-    return this.http.post<ApiResponse<HistorialEstado>>(`${this.apiUrl}/reproduccion/estados-animal/cambiar`, data);
+  changeStatus(data: CambiarEstadoRequest): Observable<ApiResponse<HistorialEstado>> {
+    return this.http.post<ApiResponse<HistorialEstado>>(`${this.apiUrl}/reproduction/estados-animal/cambiar`, data);
   }
 
   /**
    * Cambiar estado de múltiples animales
    */
-  cambiarEstadoMasivo(data: CambiarEstadoMasivoRequest): Observable<ApiResponse<CambiarEstadoMasivoResponse>> {
-    return this.http.post<ApiResponse<CambiarEstadoMasivoResponse>>(`${this.apiUrl}/reproduccion/estados-animal/cambiar-masivo`, data);
+  bulkUpdateStatus(data: CambiarEstadoMasivoRequest): Observable<ApiResponse<CambiarEstadoMasivoResponse>> {
+    return this.http.post<ApiResponse<CambiarEstadoMasivoResponse>>(`${this.apiUrl}/reproduction/estados-animal/cambiar-masivo`, data);
   }
 
   /**
    * Obtener fincas disponibles
    */
-  getFincas(): Observable<ApiResponse<any[]>> {
+  getFarms(): Observable<ApiResponse<any[]>> {
     return this.http.get<ApiResponse<any[]>>(`${this.apiUrl}/fincas`);
   }
 
@@ -138,7 +138,7 @@ export class EstadoAnimalService {
   /**
    * Obtener el estado actual de un animal para un tipo específico
    */
-  getEstadoActual(animal: any, tipoNombre: string): string {
+  getCurrentStatus(animal: any, tipoNombre: string): string {
     if (animal.estados_actuales && animal.estados_actuales[tipoNombre]) {
       return animal.estados_actuales[tipoNombre].estado?.nombre || '-';
     }
@@ -148,7 +148,7 @@ export class EstadoAnimalService {
   /**
    * Obtener severity para tags según el estado
    */
-  getEstadoSeverity(estado: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
+  getStatusSeverity(estado: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
     const severities: Record<string, 'success' | 'info' | 'warn' | 'danger' | 'secondary'> = {
       // Estados generales
       'ACTIVO': 'success',
@@ -182,7 +182,7 @@ export class EstadoAnimalService {
   /**
    * Humanizar nombre de tipo de estado
    */
-  humanizarNombreTipo(nombre: string): string {
+  humanizaNameType(nombre: string): string {
     const nombres: Record<string, string> = {
       'ESTATUS_GENERAL': 'General',
       'ESTATUS_PRODUCTIVO': 'Productivo',

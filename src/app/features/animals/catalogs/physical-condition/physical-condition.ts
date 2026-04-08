@@ -378,7 +378,7 @@ export class PhysicalCondition implements OnInit, OnDestroy {
     }
   }
 
-  // Helper para acceder a los controles del formulario
+  // Helper para acceder a los controls del formulario
   get f() {
     return this.physicalConditionForm.controls;
   }

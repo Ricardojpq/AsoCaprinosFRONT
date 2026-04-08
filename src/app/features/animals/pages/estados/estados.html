@@ -18,11 +18,11 @@
           <label class="text-sm font-medium text-gray-600 mb-1">Finca</label>
           <p-select 
             [options]="fincas()" 
-            [(ngModel)]="selectedFinca"
+            [(ngModel)]="selectedFarm"
             optionLabel="nomb_finca"
             optionValue="cod_finca"
             placeholder="Seleccione una finca"
-            (onChange)="loadAnimales()"
+            (onChange)="loadAnimals()"
             class="w-48">
           </p-select>
         </div>
@@ -30,11 +30,11 @@
           <label class="text-sm font-medium text-gray-600 mb-1">Sexo</label>
           <p-select 
             [options]="sexoOptions" 
-            [(ngModel)]="selectedSexo"
+            [(ngModel)]="selectedGender"
             optionLabel="label"
             optionValue="value"
             placeholder="Todos"
-            (onChange)="loadAnimales()"
+            (onChange)="loadAnimals()"
             class="w-32">
           </p-select>
         </div>
@@ -54,8 +54,8 @@
       <p-button
         styleClass="btn btn-sm btn-primary"
         label="Cambiar Estado"
-        (onClick)="openCambiarEstadoDialog()"
-        [disabled]="selectedAnimales().length === 0">
+        (onClick)="openChangeStatusDialog()"
+        [disabled]="selectedAnimals().length === 0">
         <lucide-icon [img]="refreshIcon" size="16" class="mr-2"></lucide-icon>
       </p-button>
     </ng-template>
@@ -69,10 +69,10 @@
       size="small"
       (onClick)="setActiveTipoEstadoTab(null)">
     </p-button>
-    @for (tipo of tiposEstado(); track tipo.id) {
+    @for (tipo of statusType(); track tipo.id) {
       <p-button 
         [styleClass]="'btn btn-sm ' + (activeTipoEstadoTab() === tipo.nombre ? ' btn-primary' : 'btn-secondary')"
-        [label]="humanizarNombreTipo(tipo.nombre) + ' (' + getConteoEstado(tipo.nombre) + ')'"
+        [label]="humanizaNameType(tipo.nombre) + ' (' + getConteoEstado(tipo.nombre) + ')'"
         size="small"
         (onClick)="setActiveTipoEstadoTab(tipo.nombre)">
       </p-button>
@@ -89,7 +89,7 @@
       [paginator]="true" 
       [rows]="15"
       [rowsPerPageOptions]="[10, 15, 25, 50]"
-      [(selection)]="selectedAnimales"
+      [(selection)]="selectedAnimals"
       [rowHover]="true"
       dataKey="id"
       currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} animales"
@@ -101,7 +101,7 @@
             <strong>{{ filteredAnimales.length }}</strong> animales encontrados
           </span>
           <span class="text-sm text-gray-500">
-            {{ selectedAnimales().length }} seleccionados
+            {{ selectedAnimals().length }} seleccionados
           </span>
         </div>
       </ng-template>
@@ -112,8 +112,8 @@
           </th>
           <th pSortableColumn="nomb_animal">Animal <p-sortIcon field="nomb_animal" /></th>
           <th style="width: 6rem">Sexo</th>
-          @for (tipo of tiposEstado(); track tipo.id) {
-            <th>{{ humanizarNombreTipo(tipo.nombre) }}</th>
+          @for (tipo of statusType(); track tipo.id) {
+            <th>{{ humanizaNameType(tipo.nombre) }}</th>
           }
           <th style="width: 10rem">Acciones</th>
         </tr>
@@ -136,12 +136,12 @@
               [style]="{'font-size': '0.75rem'}">
             </p-tag>
           </td>
-          @for (tipo of tiposEstado(); track tipo.id) {
+          @for (tipo of statusType(); track tipo.id) {
             <td>
-              @if (getEstadoActual(animal, tipo.nombre) !== '-') {
+              @if (getCurrentStatus(animal, tipo.nombre) !== '-') {
                 <p-tag 
-                  [value]="getEstadoActual(animal, tipo.nombre)" 
-                  [severity]="getEstadoSeverity(getEstadoActual(animal, tipo.nombre))"
+                  [value]="getCurrentStatus(animal, tipo.nombre)" 
+                  [severity]="getStatusSeverity(getCurrentStatus(animal, tipo.nombre))"
                   [style]="{'font-size': '0.75rem'}">
                 </p-tag>
               } @else {
@@ -156,7 +156,7 @@
                 [rounded]="true" 
                 [text]="true"
                 severity="primary"
-                (onClick)="openCambiarEstadoDialog(animal)">
+                (onClick)="openChangeStatusDialog(animal)">
                 <lucide-icon [img]="refreshIcon" size="16"></lucide-icon>
               </p-button>
               <p-button 
@@ -164,7 +164,7 @@
                 [rounded]="true" 
                 [text]="true"
                 severity="secondary"
-                (onClick)="openHistorialDialog(animal)">
+                (onClick)="openHistoryDialog(animal)">
                 <lucide-icon [img]="historyIcon" size="16"></lucide-icon>
               </p-button>
             </div>
@@ -173,7 +173,7 @@
       </ng-template>
       <ng-template pTemplate="emptymessage">
         <tr>
-          <td [attr.colspan]="4 + tiposEstado().length" class="text-center p-8 text-gray-500">
+          <td [attr.colspan]="4 + statusType().length" class="text-center p-8 text-gray-500">
             <div class="flex flex-col items-center gap-2">
               <lucide-icon [img]="searchIcon" size="48" class="text-gray-300"></lucide-icon>
               <span>No se encontraron animales</span>
@@ -187,39 +187,39 @@
 
 <!-- Dialog Cambiar Estado -->
 <p-dialog 
-  [header]="selectedAnimales().length > 1 ? 'Cambiar Estado (' + selectedAnimales().length + ' animales)' : 'Cambiar Estado'" 
-  [(visible)]="showCambiarEstadoDialog"
+  [header]="selectedAnimals().length > 1 ? 'Cambiar Estado (' + selectedAnimals().length + ' animales)' : 'Cambiar Estado'" 
+  [(visible)]="showChangeStatusDialog"
   [modal]="true"
   [style]="{width: '500px'}"
   [contentStyle]="{'overflow': 'visible'}">
   <div class="flex flex-col gap-4">
-    @if (selectedAnimales().length === 1) {
+    @if (selectedAnimals().length === 1) {
       <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-        <span class="font-semibold text-blue-800">{{ selectedAnimales()[0]?.nomb_animal || selectedAnimales()[0]?.cod_animal }}</span>
-        <span class="text-sm text-blue-600 ml-2">({{ selectedAnimales()[0]?.cod_animal }})</span>
+        <span class="font-semibold text-blue-800">{{ selectedAnimals()[0]?.nomb_animal || selectedAnimals()[0]?.cod_animal }}</span>
+        <span class="text-sm text-blue-600 ml-2">({{ selectedAnimals()[0]?.cod_animal }})</span>
       </div>
     } @else {
       <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-        <span class="font-semibold text-amber-800">{{ selectedAnimales().length }} animales seleccionados</span>
+        <span class="font-semibold text-amber-800">{{ selectedAnimals().length }} animales seleccionados</span>
       </div>
     }
     
     <div class="field">
       <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Estado *</label>
       <p-select 
-        [options]="tiposEstado()" 
-        [(ngModel)]="selectedTipoEstado"
+        [options]="statusType()" 
+        [(ngModel)]="selectedStatusType"
         optionLabel="nombre"
         optionValue="nombre"
         placeholder="Seleccione tipo de estado"
-        (onChange)="onTipoEstadoChange()"
+        (onChange)="onTypeStatusChange()"
         appendTo="body"
         class="w-full">
         <ng-template let-item pTemplate="item">
-          <span>{{ humanizarNombreTipo(item.nombre) }}</span>
+          <span>{{ humanizaNameType(item.nombre) }}</span>
         </ng-template>
         <ng-template let-item pTemplate="selectedItem">
-          <span>{{ humanizarNombreTipo(item.nombre) }}</span>
+          <span>{{ humanizaNameType(item.nombre) }}</span>
         </ng-template>
       </p-select>
     </div>
@@ -227,12 +227,12 @@
     <div class="field">
       <label class="block text-sm font-medium text-gray-700 mb-2">Nuevo Estado *</label>
       <p-select 
-        [options]="estadosDisponibles()" 
-        [(ngModel)]="selectedNuevoEstado"
+        [options]="availableStatus()" 
+        [(ngModel)]="selectedNewStatus"
         optionLabel="nombre"
         optionValue="nombre"
         placeholder="Seleccione nuevo estado"
-        [disabled]="!selectedTipoEstado()"
+        [disabled]="!selectedStatusType()"
         appendTo="body"
         class="w-full">
       </p-select>
@@ -242,7 +242,7 @@
       <label class="block text-sm font-medium text-gray-700 mb-2">Observaciones</label>
       <textarea 
         pTextarea 
-        [(ngModel)]="observaciones"
+        [(ngModel)]="comments"
         rows="2"
         placeholder="Observaciones opcionales..."
         class="w-full">
@@ -250,18 +250,18 @@
     </div>
 
     <!-- Estado actual del animal (solo si es 1) -->
-    @if (selectedAnimales().length === 1 && selectedTipoEstado()) {
+    @if (selectedAnimals().length === 1 && selectedStatusType()) {
       <div class="p-3 bg-gray-50 rounded-lg">
         <span class="text-sm text-gray-600">Estado actual: </span>
         <p-tag 
-          [value]="getEstadoActual(selectedAnimales()[0], selectedTipoEstado()!)" 
-          [severity]="getEstadoSeverity(getEstadoActual(selectedAnimales()[0], selectedTipoEstado()!))">
+          [value]="getCurrentStatus(selectedAnimals()[0], selectedStatusType()!)" 
+          [severity]="getStatusSeverity(getCurrentStatus(selectedAnimals()[0], selectedStatusType()!))">
         </p-tag>
-        @if (selectedNuevoEstado()) {
+        @if (selectedNewStatus()) {
           <lucide-icon [img]="chevronRightIcon" size="16" class="mx-2 text-gray-400 inline"></lucide-icon>
           <p-tag 
-            [value]="selectedNuevoEstado()!" 
-            [severity]="getEstadoSeverity(selectedNuevoEstado()!)">
+            [value]="selectedNewStatus()!" 
+            [severity]="getStatusSeverity(selectedNewStatus()!)">
           </p-tag>
         }
       </div>
@@ -272,11 +272,11 @@
     <p-button 
       label="Cancelar" 
       [text]="true" 
-      (onClick)="showCambiarEstadoDialog.set(false)" />
+      (onClick)="showChangeStatusDialog.set(false)" />
     <p-button 
       label="Cambiar Estado"
-      (onClick)="cambiarEstado()"
-      [disabled]="!selectedTipoEstado() || !selectedNuevoEstado() || savingEstado()"
+      (onClick)="changeStatus()"
+      [disabled]="!selectedStatusType() || !selectedNewStatus() || savingEstado()"
       [loading]="savingEstado()">
       <lucide-icon [img]="checkIcon" size="16" class="mr-2"></lucide-icon>
     </p-button>
@@ -286,20 +286,20 @@
 <!-- Dialog Historial -->
 <p-dialog 
   [header]="'Historial de Estados - ' + (selectedAnimalForChange()?.nomb_animal || selectedAnimalForChange()?.cod_animal)" 
-  [(visible)]="showHistorialDialog"
+  [(visible)]="showHistoryDialog"
   [modal]="true"
   [style]="{width: '750px'}">
   @if (loadingHistorial()) {
     <div class="flex justify-center p-8">
       <p-progressSpinner></p-progressSpinner>
     </div>
-  } @else if (historialAnimal().length === 0) {
+  } @else if (animalHistory().length === 0) {
     <div class="text-center p-8 text-gray-500">
       <lucide-icon [img]="historyIcon" size="48" class="text-gray-300 mb-2"></lucide-icon>
       <p>No hay historial de estados para este animal</p>
     </div>
   } @else {
-    <p-table [value]="historialAnimal()" styleClass="p-datatable-sm p-datatable-striped">
+    <p-table [value]="animalHistory()" styleClass="p-datatable-sm p-datatable-striped">
       <ng-template pTemplate="header">
         <tr>
           <th>Tipo</th>
@@ -312,12 +312,12 @@
       <ng-template pTemplate="body" let-item>
         <tr>
           <td>
-            <span class="text-sm font-medium">{{ humanizarNombreTipo(item.tipo_estado?.nombre) }}</span>
+            <span class="text-sm font-medium">{{ humanizaNameType(item.tipo_estado?.nombre) }}</span>
           </td>
           <td>
             <p-tag 
               [value]="item.estado?.nombre" 
-              [severity]="getEstadoSeverity(item.estado?.nombre)">
+              [severity]="getStatusSeverity(item.estado?.nombre)">
             </p-tag>
           </td>
           <td>{{ item.fecha_inicio | date:'dd/MM/yyyy' }}</td>
@@ -328,7 +328,7 @@
               <p-tag value="Actual" severity="success" [style]="{'font-size': '0.7rem'}"></p-tag>
             }
           </td>
-          <td class="text-sm text-gray-600">{{ item.observaciones || '-' }}</td>
+          <td class="text-sm text-gray-600">{{ item.comments || '-' }}</td>
         </tr>
       </ng-template>
     </p-table>
@@ -338,6 +338,6 @@
     <p-button 
       label="Cerrar" 
       [text]="true" 
-      (onClick)="showHistorialDialog.set(false)" />
+      (onClick)="showHistoryDialog.set(false)" />
   </ng-template>
 </p-dialog>

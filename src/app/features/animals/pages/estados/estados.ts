@@ -62,31 +62,31 @@ export class EstadosComponent implements OnInit {
 
   // Data
   animales = signal<any[]>([]);
-  tiposEstado = signal<any[]>([]);
-  estadosDisponibles = signal<any[]>([]);
+  statusType = signal<any[]>([]);
+  availableStatus = signal<any[]>([]);
   fincas = signal<any[]>([]);
   loading = signal(false);
 
   // Filters
-  selectedFinca = signal<number | null>(null);
-  selectedSexo = signal<string | null>(null);
+  selectedFarm = signal<number | null>(null);
+  selectedGender = signal<string | null>(null);
   searchTerm = signal('');
 
   // Selection
-  selectedAnimales = signal<any[]>([]);
+  selectedAnimals = signal<any[]>([]);
 
   // Dialog
   savingEstado = signal(false);
-  showCambiarEstadoDialog = signal(false);
-  showHistorialDialog = signal(false);
+  showChangeStatusDialog = signal(false);
+  showHistoryDialog = signal(false);
   selectedAnimalForChange = signal<any | null>(null);
-  historialAnimal = signal<any[]>([]);
+  animalHistory = signal<any[]>([]);
   loadingHistorial = signal(false);
 
   // Form
-  selectedTipoEstado = signal<string | null>(null);
-  selectedNuevoEstado = signal<string | null>(null);
-  observaciones = '';
+  selectedStatusType = signal<string | null>(null);
+  selectedNewStatus = signal<string | null>(null);
+  comments = '';
 
   // Active tab for tipo estado filter
   activeTipoEstadoTab = signal<string | null>(null);
@@ -98,12 +98,12 @@ export class EstadosComponent implements OnInit {
   ];
 
   ngOnInit(): void {
-    this.loadFincas();
-    this.loadTiposEstado();
+    this.loadFarms();
+    this.loadTypeStatus();
   }
 
-  loadFincas(): void {
-    this.estadoAnimalService.getFincas().subscribe({
+  loadFarms(): void {
+    this.estadoAnimalService.getFarms().subscribe({
       next: (response) => {
         const data = response.data;
         if (Array.isArray(data)) {
@@ -112,8 +112,8 @@ export class EstadosComponent implements OnInit {
           this.fincas.set((data as any).data);
         }
         if (this.fincas().length > 0) {
-          this.selectedFinca.set(this.fincas()[0].cod_finca);
-          this.loadAnimales();
+          this.selectedFarm.set(this.fincas()[0].cod_finca);
+          this.loadAnimals();
         }
       },
       error: () => {
@@ -126,10 +126,10 @@ export class EstadosComponent implements OnInit {
     });
   }
 
-  loadTiposEstado(): void {
+  loadTypeStatus(): void {
     this.estadoAnimalService.getTiposEstado().subscribe({
       next: (response) => {
-        this.tiposEstado.set(response.data);
+        this.statusType.set(response.data);
       },
       error: () => {
         this.messageService.add({
@@ -141,20 +141,20 @@ export class EstadosComponent implements OnInit {
     });
   }
 
-  loadAnimales(): void {
+  loadAnimals(): void {
     this.loading.set(true);
     const filters: any = {};
-    if (this.selectedFinca()) {
-      filters.cod_finca = this.selectedFinca();
+    if (this.selectedFarm()) {
+      filters.cod_finca = this.selectedFarm();
     }
-    if (this.selectedSexo()) {
-      filters.sexo = this.selectedSexo();
+    if (this.selectedGender()) {
+      filters.sexo = this.selectedGender();
     }
 
-    this.estadoAnimalService.getAnimalesConEstados(filters).subscribe({
+    this.estadoAnimalService.getAnimalWithStatus(filters).subscribe({
       next: (response) => {
         this.animales.set(response.data);
-        this.selectedAnimales.set([]);
+        this.selectedAnimals.set([]);
         this.loading.set(false);
       },
       error: () => {
@@ -183,7 +183,7 @@ export class EstadosComponent implements OnInit {
     // Filter by tipo estado tab
     if (this.activeTipoEstadoTab()) {
       result = result.filter(a => {
-        const estado = this.getEstadoActual(a, this.activeTipoEstadoTab()!);
+        const estado = this.getCurrentStatus(a, this.activeTipoEstadoTab()!);
         return estado !== '-';
       });
     }
@@ -191,31 +191,31 @@ export class EstadosComponent implements OnInit {
     return result;
   }
 
-  onTipoEstadoChange(): void {
-    if (this.selectedTipoEstado()) {
+  onTypeStatusChange(): void {
+    if (this.selectedStatusType()) {
       // Determinar el sexo para filtrar estados
       // Si hay un solo animal seleccionado, usar su sexo
       // Si hay múltiples, no filtrar (el backend validará cada uno)
-      const sexo = this.selectedAnimales().length === 1 
-        ? this.selectedAnimales()[0]?.sexo_animal 
+      const sexo = this.selectedAnimals().length === 1 
+        ? this.selectedAnimals()[0]?.sexo_animal 
         : undefined;
 
-      this.estadoAnimalService.getEstadosPorTipo(this.selectedTipoEstado()!, sexo).subscribe({
+      this.estadoAnimalService.getStatusByType(this.selectedStatusType()!, sexo).subscribe({
         next: (response) => {
-          this.estadosDisponibles.set(response.data);
+          this.availableStatus.set(response.data);
         }
       });
     } else {
-      this.estadosDisponibles.set([]);
+      this.availableStatus.set([]);
     }
-    this.selectedNuevoEstado.set(null);
+    this.selectedNewStatus.set(null);
   }
 
-  openCambiarEstadoDialog(animal?: any): void {
+  openChangeStatusDialog(animal?: any): void {
     if (animal) {
       this.selectedAnimalForChange.set(animal);
-      this.selectedAnimales.set([animal]);
-    } else if (this.selectedAnimales().length === 0) {
+      this.selectedAnimals.set([animal]);
+    } else if (this.selectedAnimals().length === 0) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Advertencia',
@@ -223,15 +223,15 @@ export class EstadosComponent implements OnInit {
       });
       return;
     }
-    this.selectedTipoEstado.set(null);
-    this.selectedNuevoEstado.set(null);
-    this.estadosDisponibles.set([]);
-    this.observaciones = '';
-    this.showCambiarEstadoDialog.set(true);
+    this.selectedStatusType.set(null);
+    this.selectedNewStatus.set(null);
+    this.availableStatus.set([]);
+    this.comments = '';
+    this.showChangeStatusDialog.set(true);
   }
 
-  cambiarEstado(): void {
-    if (!this.selectedTipoEstado() || !this.selectedNuevoEstado()) {
+  changeStatus(): void {
+    if (!this.selectedStatusType() || !this.selectedNewStatus()) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Advertencia',
@@ -241,14 +241,14 @@ export class EstadosComponent implements OnInit {
     }
 
     this.savingEstado.set(true);
-    const animalIds = this.selectedAnimales().map(a => a.id);
+    const animalIds = this.selectedAnimals().map(a => a.id);
 
     if (animalIds.length === 1) {
-      this.estadoAnimalService.cambiarEstado({
+      this.estadoAnimalService.changeStatus({
         animal_id: animalIds[0],
-        tipo_estado: this.selectedTipoEstado()!,
-        nuevo_estado: this.selectedNuevoEstado()!,
-        observaciones: this.observaciones || undefined
+        tipo_estado: this.selectedStatusType()!,
+        nuevo_estado: this.selectedNewStatus()!,
+        comments: this.comments || undefined
       }).subscribe({
         next: () => {
           this.savingEstado.set(false);
@@ -257,8 +257,8 @@ export class EstadosComponent implements OnInit {
             summary: 'Éxito',
             detail: 'Estado cambiado exitosamente'
           });
-          this.showCambiarEstadoDialog.set(false);
-          this.loadAnimales();
+          this.showChangeStatusDialog.set(false);
+          this.loadAnimals();
         },
         error: (error) => {
           this.savingEstado.set(false);
@@ -270,11 +270,11 @@ export class EstadosComponent implements OnInit {
         }
       });
     } else {
-      this.estadoAnimalService.cambiarEstadoMasivo({
+      this.estadoAnimalService.bulkUpdateStatus({
         animal_ids: animalIds,
-        tipo_estado: this.selectedTipoEstado()!,
-        nuevo_estado: this.selectedNuevoEstado()!,
-        observaciones: this.observaciones || undefined
+        tipo_estado: this.selectedStatusType()!,
+        nuevo_estado: this.selectedNewStatus()!,
+        comments: this.comments || undefined
       }).subscribe({
         next: (response) => {
           this.savingEstado.set(false);
@@ -283,8 +283,8 @@ export class EstadosComponent implements OnInit {
             summary: 'Éxito',
             detail: `Estado cambiado en ${response.data.exitosos} animales`
           });
-          this.showCambiarEstadoDialog.set(false);
-          this.loadAnimales();
+          this.showChangeStatusDialog.set(false);
+          this.loadAnimals();
         },
         error: (error) => {
           this.savingEstado.set(false);
@@ -298,15 +298,15 @@ export class EstadosComponent implements OnInit {
     }
   }
 
-  openHistorialDialog(animal: any): void {
+  openHistoryDialog(animal: any): void {
     this.selectedAnimalForChange.set(animal);
-    this.historialAnimal.set([]);
+    this.animalHistory.set([]);
     this.loadingHistorial.set(true);
-    this.showHistorialDialog.set(true);
+    this.showHistoryDialog.set(true);
 
-    this.estadoAnimalService.getHistorialAnimal(animal.id).subscribe({
+    this.estadoAnimalService.getAnimalHistory(animal.id).subscribe({
       next: (response: any) => {
-        this.historialAnimal.set(response.data?.data || response.data || []);
+        this.animalHistory.set(response.data?.data || response.data || []);
         this.loadingHistorial.set(false);
       },
       error: () => {
@@ -320,14 +320,14 @@ export class EstadosComponent implements OnInit {
     });
   }
 
-  getEstadoActual(animal: any, tipoNombre: string): string {
+  getCurrentStatus(animal: any, tipoNombre: string): string {
     if (animal.estados_actuales && animal.estados_actuales[tipoNombre]) {
       return animal.estados_actuales[tipoNombre].estado?.nombre || '-';
     }
     return '-';
   }
 
-  getEstadoSeverity(estado: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
+  getStatusSeverity(estado: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
     const severities: Record<string, 'success' | 'info' | 'warn' | 'danger' | 'secondary'> = {
       'ACTIVO': 'success',
       'DISPONIBLE': 'success',
@@ -349,7 +349,7 @@ export class EstadosComponent implements OnInit {
     return severities[estado] || 'secondary';
   }
 
-  humanizarNombreTipo(nombre: string): string {
+  humanizaNameType(nombre: string): string {
     const nombres: Record<string, string> = {
       'ESTATUS_GENERAL': 'General',
       'ESTATUS_PRODUCTIVO': 'Productivo',
@@ -360,7 +360,7 @@ export class EstadosComponent implements OnInit {
   }
 
   getConteoEstado(tipoNombre: string): number {
-    return this.animales().filter(a => this.getEstadoActual(a, tipoNombre) !== '-').length;
+    return this.animales().filter(a => this.getCurrentStatus(a, tipoNombre) !== '-').length;
   }
 
   setActiveTipoEstadoTab(tipo: string | null): void {

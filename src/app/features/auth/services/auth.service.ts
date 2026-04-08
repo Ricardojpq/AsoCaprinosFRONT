@@ -5,7 +5,7 @@ import { LoadingService } from '@core/services/loading.service';
 import { interval, Subscription } from 'rxjs';
 import { switchMap, catchError, tap } from 'rxjs/operators';
 import { JwtAuthService } from '@core/services/jwt-auth.service';
-import { FincaContextService } from '@core/services/finca-context.service';
+import { FarmContextService } from '@core/services/finca-context.service';
 import { User } from '../models/user';
 
 @Injectable({ providedIn: 'root' })
@@ -19,7 +19,7 @@ export class AuthService implements OnDestroy {
     private jwtAuthService: JwtAuthService,
     private router: Router, 
     private loadingService: LoadingService,
-    private fincaContext: FincaContextService
+    private farmContext: FarmContextService
   ) {
     this.initializeSession();
   }
@@ -131,7 +131,7 @@ export class AuthService implements OnDestroy {
     this.userSignal.set(null);
     this.isAuthenticatedSignal.set(false);
     this.errorSignal.set(null);
-    this.fincaContext.clear();
+    this.farmContext.clear();
   }
 
   /**
@@ -142,7 +142,7 @@ export class AuthService implements OnDestroy {
     if (fincas.length === 0) return;
 
     // Si ya hay una finca válida en localStorage, no cambiarla
-    const storedFinca = this.fincaContext.getSelectedFinca();
+    const storedFinca = this.farmContext.getSelectedFarm();
     if (storedFinca && fincas.some((f: any) => f.cod_finca === storedFinca)) {
       return;
     }
@@ -150,7 +150,7 @@ export class AuthService implements OnDestroy {
     // Seleccionar finca principal o la primera
     const principal = fincas.find((f: any) => f.es_principal);
     const defaultFinca = principal || fincas[0];
-    this.fincaContext.setSelectedFinca(defaultFinca.cod_finca);
+    this.farmContext.setSelectedFarm(defaultFinca.cod_finca);
   }
 
   validateSession(): Promise<boolean> {

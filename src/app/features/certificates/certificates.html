@@ -344,13 +344,13 @@
 
         <div class="grid grid-cols-12 gap-4">
           <div class="col-span-12">
-            <label for="observaciones" class="block font-bold mb-3"
+            <label for="comments" class="block font-bold mb-3"
               >Observaciones</label
             >
             <textarea
               pInputTextarea
-              id="observaciones"
-              [(ngModel)]="certificate.observaciones"
+              id="comments"
+              [(ngModel)]="certificate.comments"
               rows="3"
               fluid
               placeholder="Observaciones adicionales (opcional)"
@@ -501,7 +501,7 @@
             <textarea
               pInputTextarea
               id="editObservaciones"
-              [(ngModel)]="editCertificate.observaciones"
+              [(ngModel)]="editCertificate.comments"
               rows="3"
               fluid
               placeholder="Observaciones adicionales (opcional)"

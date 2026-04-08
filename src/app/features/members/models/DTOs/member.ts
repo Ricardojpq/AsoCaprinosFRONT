@@ -3,7 +3,7 @@ export interface MemberDto {
   cod_finca: number;
   estatus_socio?: string;
   fec_ingreso?: string;
-  observaciones?: string;
+  comments?: string;
   is_active: boolean;
   created_by?: number;
   updated_by?: number;

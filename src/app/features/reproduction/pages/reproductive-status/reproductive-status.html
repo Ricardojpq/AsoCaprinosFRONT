@@ -1,0 +1,468 @@
+<div class="card">
+  <p-toast />
+  <p-confirmDialog [style]="{ width: '450px' }" />
+
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h2 class="text-2xl font-bold text-gray-800 m-0">Estados Reproductivos</h2>
+      <p class="text-gray-500 mt-1">Gestione el ciclo reproductivo de los animales</p>
+    </div>
+    <p-button 
+      label="Ver Ciclo" 
+      [outlined]="true"
+      severity="info"
+      (onClick)="openTransicionesDialog()">
+      <lucide-icon [img]="infoIcon" size="16" class="mr-2"></lucide-icon>
+    </p-button>
+  </div>
+
+  <!-- Filters Toolbar -->
+  <p-toolbar class="mb-4">
+    <ng-template #start>
+      <div class="flex gap-4 items-end flex-wrap">
+        <div class="flex flex-col">
+          <label class="text-sm font-medium text-gray-600 mb-1">Finca</label>
+          <p-select 
+            [options]="fincas()" 
+            [(ngModel)]="selectedFarm"
+            optionLabel="nomb_finca"
+            optionValue="cod_finca"
+            placeholder="Seleccione una finca"
+            (onChange)="loadAnimals()"
+            class="w-48">
+          </p-select>
+        </div>
+        <div class="flex flex-col">
+          <label class="text-sm font-medium text-gray-600 mb-1">Sexo</label>
+          <p-select 
+            [options]="sexoOptions" 
+            [(ngModel)]="selectedGender"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Todos"
+            (onChange)="loadAnimals()"
+            class="w-32">
+          </p-select>
+        </div>
+        <div class="flex flex-col">
+          <label class="text-sm font-medium text-gray-600 mb-1">Buscar</label>
+          <input 
+            pInputText 
+            [(ngModel)]="searchTerm"
+            placeholder="Nombre o código..."
+            class="w-48" />
+        </div>
+      </div>
+    </ng-template>
+    <ng-template #end>
+      <p-button
+        styleClass="btn btn-sm btn-primary"
+        label="Cambiar Estado"
+        (onClick)="openChangeStatusDialog()"
+        [disabled]="selectedAnimals().length === 0">
+        <lucide-icon [img]="refreshIcon" size="16" class="mr-2"></lucide-icon>
+      </p-button>
+    </ng-template>
+  </p-toolbar>
+
+  <!-- Estado Filters (Cards) -->
+  <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-9 gap-2 mb-4">
+    <div 
+      class="p-3 rounded-lg border cursor-pointer transition-all hover:shadow-md"
+      [class.bg-gray-100]="selectedEstadoFiltro() === null"
+      [class.border-primary-500]="selectedEstadoFiltro() === null"
+      [class.border-gray-200]="selectedEstadoFiltro() !== null"
+      (click)="setEstadoFiltro(null)">
+      <div class="text-center">
+        <p class="text-xl font-bold text-gray-800">{{ animales().length }}</p>
+        <p class="text-xs text-gray-500">Todos</p>
+      </div>
+    </div>
+    @for (estado of estadosReproductivos(); track estado.id) {
+      <div 
+        class="p-3 rounded-lg border cursor-pointer transition-all hover:shadow-md"
+        [class.bg-gray-100]="selectedEstadoFiltro() === estado.nombre"
+        [class.border-primary-500]="selectedEstadoFiltro() === estado.nombre"
+        [class.border-gray-200]="selectedEstadoFiltro() !== estado.nombre"
+        (click)="setEstadoFiltro(estado.nombre)">
+        <div class="text-center">
+          <p class="text-xl font-bold" [class]="'text-' + getStatusSeverity(estado.nombre)">
+            {{ getConteoEstado(estado.nombre) }}
+          </p>
+          <p class="text-xs text-gray-500 truncate" [title]="estado.nombre">{{ estado.nombre }}</p>
+        </div>
+      </div>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="flex justify-center p-8">
+      <p-progressSpinner></p-progressSpinner>
+    </div>
+  } @else {
+    <p-table 
+      [value]="filteredAnimales" 
+      [paginator]="true" 
+      [rows]="15"
+      [rowsPerPageOptions]="[10, 15, 25, 50]"
+      [(selection)]="selectedAnimals"
+      [rowHover]="true"
+      dataKey="id"
+      currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} animales"
+      [showCurrentPageReport]="true"
+      styleClass="p-datatable-sm p-datatable-striped">
+      <ng-template pTemplate="caption">
+        <div class="flex items-center justify-between">
+          <span class="text-sm text-gray-600">
+            <strong>{{ filteredAnimales.length }}</strong> animales
+            @if (selectedEstadoFiltro()) {
+              en estado <strong>{{ selectedEstadoFiltro() }}</strong>
+            }
+          </span>
+          <span class="text-sm text-gray-500">
+            {{ selectedAnimals().length }} seleccionados
+          </span>
+        </div>
+      </ng-template>
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="width: 3rem">
+            <p-tableHeaderCheckbox />
+          </th>
+          <th pSortableColumn="nomb_animal">Animal <p-sortIcon field="nomb_animal" /></th>
+          <th style="width: 6rem">Sexo</th>
+          <th>Estado Actual</th>
+          <th>Transiciones Disponibles</th>
+          <th style="width: 8rem">Acciones</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-animal>
+        <tr>
+          <td>
+            <p-tableCheckbox [value]="animal" />
+          </td>
+          <td>
+            <div class="flex flex-col">
+              <span class="font-semibold">{{ animal.nomb_animal || animal.cod_animal }}</span>
+              <span class="text-xs text-gray-500">{{ animal.cod_animal }}</span>
+            </div>
+          </td>
+          <td>
+            <p-tag 
+              [value]="animal.sexo_animal === 'M' ? 'Macho' : 'Hembra'" 
+              [severity]="animal.sexo_animal === 'M' ? 'info' : 'warn'"
+              [style]="{'font-size': '0.75rem'}">
+            </p-tag>
+          </td>
+          <td>
+            @if (getEstadoReproductivo(animal) !== '-') {
+              <p-tag 
+                [value]="getEstadoReproductivo(animal)" 
+                [severity]="getStatusSeverity(getEstadoReproductivo(animal))">
+              </p-tag>
+            } @else {
+              <span class="text-gray-400">Sin estado</span>
+            }
+          </td>
+          <td>
+            <div class="flex gap-1 flex-wrap">
+              @for (transicion of getTransicionesDisponibles(animal); track transicion) {
+                <p-button 
+                  [label]="transicion"
+                  size="small"
+                  [outlined]="true"
+                  [severity]="getStatusSeverity(transicion)"
+                  pTooltip="Cambiar a {{ transicion }}"
+                  (onClick)="cambioRapido(animal, transicion)">
+                </p-button>
+              }
+              @if (getTransicionesDisponibles(animal).length === 0) {
+                <span class="text-gray-400 text-sm">-</span>
+              }
+            </div>
+          </td>
+          <td>
+            <div class="flex gap-1">
+              <p-button 
+                pTooltip="Cambiar Estado"
+                [rounded]="true" 
+                [text]="true"
+                severity="primary"
+                (onClick)="openChangeStatusDialog(animal)">
+                <lucide-icon [img]="refreshIcon" size="16"></lucide-icon>
+              </p-button>
+              <p-button 
+                pTooltip="Ver Historial"
+                [rounded]="true" 
+                [text]="true"
+                severity="secondary"
+                (onClick)="openHistoryDialog(animal)">
+                <lucide-icon [img]="historyIcon" size="16"></lucide-icon>
+              </p-button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="6" class="text-center p-8 text-gray-500">
+            <div class="flex flex-col items-center gap-2">
+              <lucide-icon [img]="searchIcon" size="48" class="text-gray-300"></lucide-icon>
+              <span>No se encontraron animales</span>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  }
+</div>
+
+<!-- Dialog Cambiar Estado -->
+<p-dialog 
+  [header]="selectedAnimals().length > 1 ? 'Cambiar Estado (' + selectedAnimals().length + ' animales)' : 'Cambiar Estado Reproductivo'" 
+  [(visible)]="showChangeStatusDialog"
+  [modal]="true"
+  [style]="{width: '500px'}"
+  [contentStyle]="{'overflow': 'visible'}">
+  <div class="flex flex-col gap-4">
+    @if (selectedAnimals().length === 1) {
+      <div class="p-3 rounded-lg"
+           [class.bg-blue-50]="selectedAnimals()[0]?.sexo_animal === 'M'"
+           [class.border-blue-200]="selectedAnimals()[0]?.sexo_animal === 'M'"
+           [class.bg-pink-50]="selectedAnimals()[0]?.sexo_animal === 'H'"
+           [class.border-pink-200]="selectedAnimals()[0]?.sexo_animal === 'H'"
+           [class.border]="true">
+        <div class="flex items-center justify-between">
+          <div>
+            <span class="font-semibold" 
+                  [class.text-blue-800]="selectedAnimals()[0]?.sexo_animal === 'M'"
+                  [class.text-pink-800]="selectedAnimals()[0]?.sexo_animal === 'H'">
+              {{ selectedAnimals()[0]?.nomb_animal || selectedAnimals()[0]?.cod_animal }}
+            </span>
+            <span class="text-sm ml-2"
+                  [class.text-blue-600]="selectedAnimals()[0]?.sexo_animal === 'M'"
+                  [class.text-pink-600]="selectedAnimals()[0]?.sexo_animal === 'H'">
+              ({{ selectedAnimals()[0]?.cod_animal }})
+            </span>
+            <p-tag 
+              [value]="selectedAnimals()[0]?.sexo_animal === 'M' ? 'Macho' : 'Hembra'" 
+              [severity]="selectedAnimals()[0]?.sexo_animal === 'M' ? 'info' : 'warn'"
+              [style]="{'font-size': '0.65rem', 'margin-left': '0.5rem'}">
+            </p-tag>
+          </div>
+          <p-tag 
+            [value]="getEstadoReproductivo(selectedAnimals()[0])" 
+            [severity]="getStatusSeverity(getEstadoReproductivo(selectedAnimals()[0]))">
+          </p-tag>
+        </div>
+      </div>
+    } @else {
+      <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+        <span class="font-semibold text-amber-800">{{ selectedAnimals().length }} animales seleccionados</span>
+      </div>
+    }
+    
+    <div class="field">
+      <label class="block text-sm font-medium text-gray-700 mb-2">Nuevo Estado Reproductivo *</label>
+      <p-select 
+        [options]="estadosDisponiblesParaTransicion()" 
+        [(ngModel)]="selectedNewStatus"
+        optionLabel="nombre"
+        optionValue="nombre"
+        placeholder="Seleccione nuevo estado"
+        appendTo="body"
+        class="w-full">
+        <ng-template let-item pTemplate="item">
+          <div class="flex items-center gap-2">
+            <p-tag [value]="item.nombre" [severity]="getStatusSeverity(item.nombre)" [style]="{'font-size': '0.75rem'}"></p-tag>
+          </div>
+        </ng-template>
+      </p-select>
+    </div>
+    
+    <div class="field">
+      <label class="block text-sm font-medium text-gray-700 mb-2">Observaciones</label>
+      <textarea 
+        pTextarea 
+        [(ngModel)]="comments"
+        rows="2"
+        placeholder="Observaciones opcionales..."
+        class="w-full">
+      </textarea>
+    </div>
+
+    <!-- Preview de transición -->
+    @if (selectedAnimals().length === 1 && selectedNewStatus()) {
+      <div class="p-3 bg-gray-50 rounded-lg flex items-center justify-center gap-3">
+        <p-tag 
+          [value]="getEstadoReproductivo(selectedAnimals()[0])" 
+          [severity]="getStatusSeverity(getEstadoReproductivo(selectedAnimals()[0]))">
+        </p-tag>
+        <lucide-icon [img]="arrowRightIcon" size="20" class="text-gray-400"></lucide-icon>
+        <p-tag 
+          [value]="selectedNewStatus()!" 
+          [severity]="getStatusSeverity(selectedNewStatus()!)">
+        </p-tag>
+      </div>
+    }
+  </div>
+  
+  <ng-template pTemplate="footer">
+    <p-button 
+      label="Cancelar" 
+      [text]="true" 
+      (onClick)="showChangeStatusDialog.set(false)" />
+    <p-button 
+      label="Cambiar Estado"
+      (onClick)="changeStatus()"
+      [disabled]="!selectedNewStatus()">
+      <lucide-icon [img]="checkIcon" size="16" class="mr-2"></lucide-icon>
+    </p-button>
+  </ng-template>
+</p-dialog>
+
+<!-- Dialog Historial -->
+<p-dialog 
+  [header]="'Historial Reproductivo - ' + (selectedAnimalForChange()?.nomb_animal || selectedAnimalForChange()?.cod_animal)" 
+  [(visible)]="showHistoryDialog"
+  [modal]="true"
+  [style]="{width: '700px'}">
+  @if (loadingHistorial()) {
+    <div class="flex justify-center p-8">
+      <p-progressSpinner></p-progressSpinner>
+    </div>
+  } @else if (animalHistory().length === 0) {
+    <div class="text-center p-8 text-gray-500">
+      <lucide-icon [img]="historyIcon" size="48" class="text-gray-300 mb-2"></lucide-icon>
+      <p>No hay historial reproductivo para este animal</p>
+    </div>
+  } @else {
+    <p-table [value]="animalHistory()" styleClass="p-datatable-sm p-datatable-striped">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Estado</th>
+          <th>Fecha Inicio</th>
+          <th>Fecha Fin</th>
+          <th>Duración</th>
+          <th>Observaciones</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-item>
+        <tr>
+          <td>
+            <p-tag 
+              [value]="item.estado?.nombre" 
+              [severity]="getStatusSeverity(item.estado?.nombre)">
+            </p-tag>
+          </td>
+          <td>{{ item.fecha_inicio | date:'dd/MM/yyyy' }}</td>
+          <td>
+            @if (item.fecha_fin) {
+              {{ item.fecha_fin | date:'dd/MM/yyyy' }}
+            } @else {
+              <p-tag value="Actual" severity="success" [style]="{'font-size': '0.7rem'}"></p-tag>
+            }
+          </td>
+          <td class="text-sm">
+            @if (item.fecha_fin) {
+              <!-- Calcular días -->
+              {{ item.duracion_dias || '-' }} días
+            } @else {
+              -
+            }
+          </td>
+          <td class="text-sm text-gray-600">{{ item.comments || '-' }}</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  }
+  
+  <ng-template pTemplate="footer">
+    <p-button 
+      label="Cerrar" 
+      [text]="true" 
+      (onClick)="showHistoryDialog.set(false)" />
+  </ng-template>
+</p-dialog>
+
+<!-- Dialog Ciclo Reproductivo -->
+<p-dialog 
+  header="Ciclo Reproductivo de la Hembra" 
+  [(visible)]="showTransicionesDialog"
+  [modal]="true"
+  [style]="{width: '600px'}">
+  <div class="p-4">
+    <div class="flex flex-col items-center gap-2">
+      <!-- Ciclo visual -->
+      <div class="flex items-center gap-2">
+        <p-tag value="CELO" severity="warn"></p-tag>
+        <lucide-icon [img]="arrowRightIcon" size="16" class="text-gray-400"></lucide-icon>
+        <p-tag value="EN_MONTA" severity="warn"></p-tag>
+        <lucide-icon [img]="arrowRightIcon" size="16" class="text-gray-400"></lucide-icon>
+        <p-tag value="PREÑADA" severity="info"></p-tag>
+      </div>
+      <lucide-icon [img]="chevronRightIcon" size="16" class="text-gray-400 rotate-90"></lucide-icon>
+      <div class="flex items-center gap-2">
+        <p-tag value="LACTANDO" severity="info"></p-tag>
+        <span class="text-gray-400">←</span>
+        <p-tag value="PARIDA" severity="info"></p-tag>
+      </div>
+      <lucide-icon [img]="chevronRightIcon" size="16" class="text-gray-400 rotate-90"></lucide-icon>
+      <div class="flex items-center gap-2">
+        <p-tag value="SECA" severity="secondary"></p-tag>
+        <lucide-icon [img]="arrowRightIcon" size="16" class="text-gray-400"></lucide-icon>
+        <p-tag value="DESCANSO" severity="success"></p-tag>
+        <lucide-icon [img]="arrowRightIcon" size="16" class="text-gray-400"></lucide-icon>
+        <p-tag value="CELO" severity="warn"></p-tag>
+      </div>
+    </div>
+
+    <div class="mt-6 border-t pt-4">
+      <h4 class="font-semibold mb-3">Transiciones Válidas (Hembras):</h4>
+      <div class="grid grid-cols-1 gap-2 text-sm">
+        @for (entry of transicionesHembra | keyvalue; track entry.key) {
+          <div class="flex items-center gap-2 p-2 bg-gray-50 rounded">
+            <p-tag [value]="$any(entry.key)" [severity]="getStatusSeverity($any(entry.key))" [style]="{'font-size': '0.7rem'}"></p-tag>
+            <lucide-icon [img]="arrowRightIcon" size="14" class="text-gray-400"></lucide-icon>
+            <div class="flex gap-1 flex-wrap">
+              @for (destino of $any(entry.value); track destino) {
+                <p-tag [value]="destino" [severity]="getStatusSeverity(destino)" [style]="{'font-size': '0.7rem'}"></p-tag>
+              }
+            </div>
+          </div>
+        }
+      </div>
+      <h4 class="font-semibold mb-3 mt-4">Transiciones Válidas (Machos):</h4>
+      <div class="grid grid-cols-1 gap-2 text-sm">
+        @for (entry of transicionesMacho | keyvalue; track entry.key) {
+          <div class="flex items-center gap-2 p-2 bg-gray-50 rounded">
+            <p-tag [value]="$any(entry.key)" [severity]="getStatusSeverity($any(entry.key))" [style]="{'font-size': '0.7rem'}"></p-tag>
+            <lucide-icon [img]="arrowRightIcon" size="14" class="text-gray-400"></lucide-icon>
+            <div class="flex gap-1 flex-wrap">
+              @for (destino of $any(entry.value); track destino) {
+                <p-tag [value]="destino" [severity]="getStatusSeverity(destino)" [style]="{'font-size': '0.7rem'}"></p-tag>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm">
+      <strong>Nota:</strong> Algunas transiciones ocurren automáticamente:
+      <ul class="mt-2 list-disc list-inside text-gray-600">
+        <li>PREÑADA → LACTANDO: Al registrar parto con crías vivas</li>
+        <li>LACTANDO → SECA: Al destetar todas las crías</li>
+        <li>EN_MONTA → PREÑADA/VACIA: Al registrar diagnóstico de preñez</li>
+      </ul>
+    </div>
+  </div>
+  
+  <ng-template pTemplate="footer">
+    <p-button 
+      label="Cerrar" 
+      [text]="true" 
+      (onClick)="showTransicionesDialog.set(false)" />
+  </ng-template>
+</p-dialog>
