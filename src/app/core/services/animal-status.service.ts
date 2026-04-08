@@ -68,7 +68,7 @@ export class AnimalStatusService {
    * Obtener todos los tipos de estado disponibles
    */
   getStatusTypes(): Observable<ApiResponse<StatusType[]>> {
-    return this.http.get<ApiResponse<StatusType[]>>(`${this.apiUrl}/reproduction/estados-animal/tipos`);
+    return this.http.get<ApiResponse<StatusType[]>>(`${this.apiUrl}/reproduccion/estados-animal/tipos`);
   }
 
   /**
@@ -81,7 +81,7 @@ export class AnimalStatusService {
     if (sexo) {
       params = params.set('sexo', sexo);
     }
-    return this.http.get<ApiResponse<StatusCatalog[]>>(`${this.apiUrl}/reproduction/estados-animal/tipos/${tipoNombre}/estados`, { params });
+    return this.http.get<ApiResponse<StatusCatalog[]>>(`${this.apiUrl}/reproduccion/estados-animal/tipos/${tipoNombre}/estados`, { params });
   }
 
   /**
@@ -91,14 +91,14 @@ export class AnimalStatusService {
     let params = new HttpParams();
     if (filters?.cod_finca) params = params.set('cod_finca', filters.cod_finca.toString());
     if (filters?.sexo) params = params.set('sexo', filters.sexo);
-    return this.http.get<ApiResponse<any[]>>(`${this.apiUrl}/reproduction/estados-animal/animales`, { params });
+    return this.http.get<ApiResponse<any[]>>(`${this.apiUrl}/reproduccion/estados-animal/animales`, { params });
   }
 
   /**
    * Obtener estados actuales de un animal específico
    */
   getAnimalStatuses(animalId: number): Observable<ApiResponse<any>> {
-    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/reproduction/estados-animal/animal/${animalId}`);
+    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/reproduccion/estados-animal/animal/${animalId}`);
   }
 
   /**
@@ -107,21 +107,21 @@ export class AnimalStatusService {
   getAnimalHistory(animalId: number, tipo?: string): Observable<ApiResponse<StatusHistory[]>> {
     let params = new HttpParams();
     if (tipo) params = params.set('tipo', tipo);
-    return this.http.get<ApiResponse<StatusHistory[]>>(`${this.apiUrl}/reproduction/estados-animal/animal/${animalId}/historial`, { params });
+    return this.http.get<ApiResponse<StatusHistory[]>>(`${this.apiUrl}/reproduccion/estados-animal/animal/${animalId}/historial`, { params });
   }
 
   /**
    * Cambiar estado de un animal
    */
   changeStatus(data: ChangeStatusRequest): Observable<ApiResponse<StatusHistory>> {
-    return this.http.post<ApiResponse<StatusHistory>>(`${this.apiUrl}/reproduction/estados-animal/cambiar`, data);
+    return this.http.post<ApiResponse<StatusHistory>>(`${this.apiUrl}/reproduccion/estados-animal/cambiar`, data);
   }
 
   /**
    * Cambiar estado de múltiples animales
    */
   bulkUpdateStatus(data: BulkChangeStatusRequest): Observable<ApiResponse<BulkChangeStatusResponse>> {
-    return this.http.post<ApiResponse<BulkChangeStatusResponse>>(`${this.apiUrl}/reproduction/estados-animal/cambiar-masivo`, data);
+    return this.http.post<ApiResponse<BulkChangeStatusResponse>>(`${this.apiUrl}/reproduccion/estados-animal/cambiar-masivo`, data);
   }
 
   /**

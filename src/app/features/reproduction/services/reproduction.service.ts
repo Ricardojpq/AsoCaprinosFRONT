@@ -115,49 +115,49 @@ export class ReproductionService {
     if (filters?.fecha_fin) params = params.set('fecha_fin', filters.fecha_fin);
     if (filters?.per_page) params = params.set('per_page', filters.per_page.toString());
     if (filters?.page) params = params.set('page', filters.page.toString());
-    return this.http.get<ApiResponse<PaginatedResponse<TemporadaMonta>>>(`${this.apiUrl}/reproduction/temporadas-monta`, { params });
+    return this.http.get<ApiResponse<PaginatedResponse<TemporadaMonta>>>(`${this.apiUrl}/reproduccion/temporadas-monta`, { params });
   }
 
   getActiveMatingSeasons(codFinca?: number): Observable<ApiResponse<TemporadaMonta[]>> {
     let params = new HttpParams();
     if (codFinca) params = params.set('cod_finca', codFinca.toString());
-    return this.http.get<ApiResponse<TemporadaMonta[]>>(`${this.apiUrl}/reproduction/temporadas-monta/activas`, { params });
+    return this.http.get<ApiResponse<TemporadaMonta[]>>(`${this.apiUrl}/reproduccion/temporadas-monta/activas`, { params });
   }
 
   getMatingSeason(id: number): Observable<ApiResponse<TemporadaMonta>> {
-    return this.http.get<ApiResponse<TemporadaMonta>>(`${this.apiUrl}/reproduction/temporadas-monta/${id}`);
+    return this.http.get<ApiResponse<TemporadaMonta>>(`${this.apiUrl}/reproduccion/temporadas-monta/${id}`);
   }
 
   getSeasonStatistics(id: number): Observable<ApiResponse<TemporadaMontaEstadisticas>> {
-    return this.http.get<ApiResponse<TemporadaMontaEstadisticas>>(`${this.apiUrl}/reproduction/temporadas-monta/${id}/statistics`);
+    return this.http.get<ApiResponse<TemporadaMontaEstadisticas>>(`${this.apiUrl}/reproduccion/temporadas-monta/${id}/estadisticas`);
   }
 
   createBreedingSeasons(data: CreateBreedingSeasonRequest): Observable<ApiResponse<TemporadaMonta>> {
-    return this.http.post<ApiResponse<TemporadaMonta>>(`${this.apiUrl}/reproduction/temporadas-monta`, data);
+    return this.http.post<ApiResponse<TemporadaMonta>>(`${this.apiUrl}/reproduccion/temporadas-monta`, data);
   }
 
   updateBreedingSeason(id: number, data: Partial<TemporadaMonta>): Observable<ApiResponse<TemporadaMonta>> {
-    return this.http.put<ApiResponse<TemporadaMonta>>(`${this.apiUrl}/reproduction/temporadas-monta/${id}`, data);
+    return this.http.put<ApiResponse<TemporadaMonta>>(`${this.apiUrl}/reproduccion/temporadas-monta/${id}`, data);
   }
 
   endMatingSeason(id: number): Observable<ApiResponse<TemporadaMonta>> {
-    return this.http.post<ApiResponse<TemporadaMonta>>(`${this.apiUrl}/reproduction/temporadas-monta/${id}/finalizar`, {});
+    return this.http.post<ApiResponse<TemporadaMonta>>(`${this.apiUrl}/reproduccion/temporadas-monta/${id}/finalizar`, {});
   }
 
   cancelMatingSeason(id: number): Observable<ApiResponse<TemporadaMonta>> {
-    return this.http.post<ApiResponse<TemporadaMonta>>(`${this.apiUrl}/reproduction/temporadas-monta/${id}/cancelar`, {});
+    return this.http.post<ApiResponse<TemporadaMonta>>(`${this.apiUrl}/reproduccion/temporadas-monta/${id}/cancelar`, {});
   }
 
   addFemalesToSeason(temporadaId: number, data: AgregarHembrasRequest): Observable<ApiResponse<TemporadaMontaHembra[]>> {
-    return this.http.post<ApiResponse<TemporadaMontaHembra[]>>(`${this.apiUrl}/reproduction/temporadas-monta/${temporadaId}/hembras`, data);
+    return this.http.post<ApiResponse<TemporadaMontaHembra[]>>(`${this.apiUrl}/reproduccion/temporadas-monta/${temporadaId}/hembras`, data);
   }
 
   confirmPregnancy(hembraId: number): Observable<ApiResponse<TemporadaMontaHembra>> {
-    return this.http.post<ApiResponse<TemporadaMontaHembra>>(`${this.apiUrl}/reproduction/temporadas-monta/hembras/${hembraId}/confirmar-prenez`, {});
+    return this.http.post<ApiResponse<TemporadaMontaHembra>>(`${this.apiUrl}/reproduccion/temporadas-monta/hembras/${hembraId}/confirmar-prenez`, {});
   }
 
   markEmpty(hembraId: number): Observable<ApiResponse<TemporadaMontaHembra>> {
-    return this.http.post<ApiResponse<TemporadaMontaHembra>>(`${this.apiUrl}/reproduction/temporadas-monta/hembras/${hembraId}/marcar-vacia`, {});
+    return this.http.post<ApiResponse<TemporadaMontaHembra>>(`${this.apiUrl}/reproduccion/temporadas-monta/hembras/${hembraId}/marcar-vacia`, {});
   }
 
   // =====================================================
@@ -165,11 +165,11 @@ export class ReproductionService {
   // =====================================================
 
   getAvailableFemales(codFinca: number): Observable<ApiResponse<any[]>> {
-    return this.http.get<ApiResponse<any[]>>(`${this.apiUrl}/reproduction/hembras-disponibles/${codFinca}`);
+    return this.http.get<ApiResponse<any[]>>(`${this.apiUrl}/reproduccion/hembras-disponibles/${codFinca}`);
   }
 
   getBreedingMales(codFinca: number): Observable<ApiResponse<any[]>> {
-    return this.http.get<ApiResponse<any[]>>(`${this.apiUrl}/reproduction/machos-reproductores/${codFinca}`);
+    return this.http.get<ApiResponse<any[]>>(`${this.apiUrl}/reproduccion/machos-reproductores/${codFinca}`);
   }
 
   // =====================================================
@@ -189,32 +189,32 @@ export class ReproductionService {
     if (filters?.fecha_fin) params = params.set('fecha_fin', filters.fecha_fin);
     if (filters?.per_page) params = params.set('per_page', filters.per_page.toString());
     if (filters?.page) params = params.set('page', filters.page.toString());
-    return this.http.get<ApiResponse<PaginatedResponse<Parto>>>(`${this.apiUrl}/reproduction/partos`, { params });
+    return this.http.get<ApiResponse<PaginatedResponse<Parto>>>(`${this.apiUrl}/reproduccion/partos`, { params });
   }
 
   getBirth(id: number): Observable<ApiResponse<Parto>> {
-    return this.http.get<ApiResponse<Parto>>(`${this.apiUrl}/reproduction/partos/${id}`);
+    return this.http.get<ApiResponse<Parto>>(`${this.apiUrl}/reproduccion/partos/${id}`);
   }
 
   getBirthOffspring(id: number): Observable<ApiResponse<Cria[]>> {
-    return this.http.get<ApiResponse<Cria[]>>(`${this.apiUrl}/reproduction/partos/${id}/crias`);
+    return this.http.get<ApiResponse<Cria[]>>(`${this.apiUrl}/reproduccion/partos/${id}/crias`);
   }
 
   getBirthStatistics(codFinca: number, fechaInicio?: string, fechaFin?: string): Observable<ApiResponse<PartoEstadisticas>> {
     let params = new HttpParams();
     if (fechaInicio) params = params.set('fecha_inicio', fechaInicio);
     if (fechaFin) params = params.set('fecha_fin', fechaFin);
-    return this.http.get<ApiResponse<PartoEstadisticas>>(`${this.apiUrl}/reproduction/partos/statistics/${codFinca}`, { params });
+    return this.http.get<ApiResponse<PartoEstadisticas>>(`${this.apiUrl}/reproduccion/partos/estadisticas/${codFinca}`, { params });
   }
 
   getUpcomingBirths(codFinca: number, dias?: number): Observable<ApiResponse<TemporadaMontaHembra[]>> {
     let params = new HttpParams();
     if (dias) params = params.set('dias', dias.toString());
-    return this.http.get<ApiResponse<TemporadaMontaHembra[]>>(`${this.apiUrl}/reproduction/partos/proximos/${codFinca}`, { params });
+    return this.http.get<ApiResponse<TemporadaMontaHembra[]>>(`${this.apiUrl}/reproduccion/partos/proximos/${codFinca}`, { params });
   }
 
   getPregnantFemales(codFinca: number): Observable<ApiResponse<any[]>> {
-    return this.http.get<ApiResponse<any[]>>(`${this.apiUrl}/reproduction/partos/hembras-prenadas/${codFinca}`);
+    return this.http.get<ApiResponse<any[]>>(`${this.apiUrl}/reproduccion/partos/hembras-prenadas/${codFinca}`);
   }
 
   getPersons(): Observable<ApiResponse<any[]>> {
@@ -222,31 +222,31 @@ export class ReproductionService {
   }
 
   createBirth(data: CreatePartoRequest): Observable<ApiResponse<Parto>> {
-    return this.http.post<ApiResponse<Parto>>(`${this.apiUrl}/reproduction/partos`, data);
+    return this.http.post<ApiResponse<Parto>>(`${this.apiUrl}/reproduccion/partos`, data);
   }
 
   updateBirth(id: number, data: Partial<Parto>): Observable<ApiResponse<Parto>> {
-    return this.http.put<ApiResponse<Parto>>(`${this.apiUrl}/reproduction/partos/${id}`, data);
+    return this.http.put<ApiResponse<Parto>>(`${this.apiUrl}/reproduccion/partos/${id}`, data);
   }
 
   updateBirthDetail(detalleId: number, data: any): Observable<ApiResponse<any>> {
-    return this.http.put<ApiResponse<any>>(`${this.apiUrl}/reproduction/partos/detalles/${detalleId}`, data);
+    return this.http.put<ApiResponse<any>>(`${this.apiUrl}/reproduccion/partos/detalles/${detalleId}`, data);
   }
 
   deleteBirth(id: number): Observable<ApiResponse<void>> {
-    return this.http.delete<ApiResponse<void>>(`${this.apiUrl}/reproduction/partos/${id}`);
+    return this.http.delete<ApiResponse<void>>(`${this.apiUrl}/reproduccion/partos/${id}`);
   }
 
   registerOffspring(partoDetalleId: number, data: CreateCriaRequest): Observable<ApiResponse<Cria>> {
-    return this.http.post<ApiResponse<Cria>>(`${this.apiUrl}/reproduction/partos/${partoDetalleId}/crias`, data);
+    return this.http.post<ApiResponse<Cria>>(`${this.apiUrl}/reproduccion/partos/${partoDetalleId}/crias`, data);
   }
 
   updateOffspring(criaId: number, data: Partial<Cria>): Observable<ApiResponse<Cria>> {
-    return this.http.put<ApiResponse<Cria>>(`${this.apiUrl}/reproduction/partos/crias/${criaId}`, data);
+    return this.http.put<ApiResponse<Cria>>(`${this.apiUrl}/reproduccion/partos/crias/${criaId}`, data);
   }
 
   deleteOffspring(criaId: number): Observable<ApiResponse<void>> {
-    return this.http.delete<ApiResponse<void>>(`${this.apiUrl}/reproduction/partos/crias/${criaId}`);
+    return this.http.delete<ApiResponse<void>>(`${this.apiUrl}/reproduccion/partos/crias/${criaId}`);
   }
 
   // =====================================================
@@ -272,43 +272,43 @@ export class ReproductionService {
     if (filters?.fecha_fin) params = params.set('fecha_fin', filters.fecha_fin);
     if (filters?.per_page) params = params.set('per_page', filters.per_page.toString());
     if (filters?.page) params = params.set('page', filters.page.toString());
-    return this.http.get<ApiResponse<PaginatedResponse<ControlLactancia>>>(`${this.apiUrl}/reproduction/lactancia`, { params });
+    return this.http.get<ApiResponse<PaginatedResponse<ControlLactancia>>>(`${this.apiUrl}/reproduccion/lactancia`, { params });
   }
 
   getLactationControl(id: number): Observable<ApiResponse<ControlLactancia>> {
-    return this.http.get<ApiResponse<ControlLactancia>>(`${this.apiUrl}/reproduction/lactancia/${id}`);
+    return this.http.get<ApiResponse<ControlLactancia>>(`${this.apiUrl}/reproduccion/lactancia/${id}`);
   }
 
   getColostrumOffspring(codFinca?: number): Observable<ApiResponse<ControlLactancia[]>> {
     let params = new HttpParams();
     if (codFinca) params = params.set('cod_finca', codFinca.toString());
-    return this.http.get<ApiResponse<ControlLactancia[]>>(`${this.apiUrl}/reproduction/lactancia/calostro`, { params });
+    return this.http.get<ApiResponse<ControlLactancia[]>>(`${this.apiUrl}/reproduccion/lactancia/calostro`, { params });
   }
 
   getNursingOffspring(codFinca?: number): Observable<ApiResponse<ControlLactancia[]>> {
     let params = new HttpParams();
     if (codFinca) params = params.set('cod_finca', codFinca.toString());
-    return this.http.get<ApiResponse<ControlLactancia[]>>(`${this.apiUrl}/reproduction/lactancia/lactando`, { params });
+    return this.http.get<ApiResponse<ControlLactancia[]>>(`${this.apiUrl}/reproduccion/lactancia/lactando`, { params });
   }
 
   getLactationStats(codFinca?: number): Observable<ApiResponse<LactanciaEstadisticas>> {
     let params = new HttpParams();
     if (codFinca) params = params.set('cod_finca', codFinca.toString());
-    return this.http.get<ApiResponse<LactanciaEstadisticas>>(`${this.apiUrl}/reproduction/lactancia/statistics`, { params });
+    return this.http.get<ApiResponse<LactanciaEstadisticas>>(`${this.apiUrl}/reproduccion/lactancia/estadisticas`, { params });
   }
 
   getUpcomingWeanings(codFinca: number, dias?: number): Observable<ApiResponse<ControlLactancia[]>> {
     let params = new HttpParams();
     if (dias) params = params.set('dias', dias.toString());
-    return this.http.get<ApiResponse<ControlLactancia[]>>(`${this.apiUrl}/reproduction/lactancia/proximos-destetes/${codFinca}`, { params });
+    return this.http.get<ApiResponse<ControlLactancia[]>>(`${this.apiUrl}/reproduccion/lactancia/proximos-destetes/${codFinca}`, { params });
   }
 
   startLactation(id: number): Observable<ApiResponse<ControlLactancia>> {
-    return this.http.post<ApiResponse<ControlLactancia>>(`${this.apiUrl}/reproduction/lactancia/${id}/iniciar-lactancia`, {});
+    return this.http.post<ApiResponse<ControlLactancia>>(`${this.apiUrl}/reproduccion/lactancia/${id}/iniciar-lactancia`, {});
   }
 
   registerWeaning(id: number, peso?: number): Observable<ApiResponse<ControlLactancia>> {
-    return this.http.post<ApiResponse<ControlLactancia>>(`${this.apiUrl}/reproduction/lactancia/${id}/destete`, { peso });
+    return this.http.post<ApiResponse<ControlLactancia>>(`${this.apiUrl}/reproduccion/lactancia/${id}/destete`, { peso });
   }
 
   // =====================================================
@@ -316,36 +316,36 @@ export class ReproductionService {
   // =====================================================
 
   getStatusTypes(): Observable<ApiResponse<any[]>> {
-    return this.http.get<ApiResponse<any[]>>(`${this.apiUrl}/reproduction/estados-animal/tipos`);
+    return this.http.get<ApiResponse<any[]>>(`${this.apiUrl}/reproduccion/estados-animal/tipos`);
   }
 
   getStatusByType(tipoNombre: string): Observable<ApiResponse<any[]>> {
-    return this.http.get<ApiResponse<any[]>>(`${this.apiUrl}/reproduction/estados-animal/tipos/${tipoNombre}/estados`);
+    return this.http.get<ApiResponse<any[]>>(`${this.apiUrl}/reproduccion/estados-animal/tipos/${tipoNombre}/estados`);
   }
 
   getAnimalWithStatus(filters?: { cod_finca?: number; sexo?: string }): Observable<ApiResponse<any[]>> {
     let params = new HttpParams();
     if (filters?.cod_finca) params = params.set('cod_finca', filters.cod_finca.toString());
     if (filters?.sexo) params = params.set('sexo', filters.sexo);
-    return this.http.get<ApiResponse<any[]>>(`${this.apiUrl}/reproduction/estados-animal/animales`, { params });
+    return this.http.get<ApiResponse<any[]>>(`${this.apiUrl}/reproduccion/estados-animal/animales`, { params });
   }
 
   getAnimalStatuses(animalId: number): Observable<ApiResponse<any>> {
-    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/reproduction/estados-animal/animal/${animalId}`);
+    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/reproduccion/estados-animal/animal/${animalId}`);
   }
 
   getAnimalHistory(animalId: number, tipo?: string): Observable<ApiResponse<any>> {
     let params = new HttpParams();
     if (tipo) params = params.set('tipo', tipo);
-    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/reproduction/estados-animal/animal/${animalId}/historial`, { params });
+    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/reproduccion/estados-animal/animal/${animalId}/historial`, { params });
   }
 
   changeAnimalStatus(data: { animal_id: number; tipo_estado: string; nuevo_estado: string; comments?: string }): Observable<ApiResponse<any>> {
-    return this.http.post<ApiResponse<any>>(`${this.apiUrl}/reproduction/estados-animal/cambiar`, data);
+    return this.http.post<ApiResponse<any>>(`${this.apiUrl}/reproduccion/estados-animal/cambiar`, data);
   }
 
   bulkUpdateStatus(data: { animal_ids: number[]; tipo_estado: string; nuevo_estado: string; comments?: string }): Observable<ApiResponse<any>> {
-    return this.http.post<ApiResponse<any>>(`${this.apiUrl}/reproduction/estados-animal/cambiar-masivo`, data);
+    return this.http.post<ApiResponse<any>>(`${this.apiUrl}/reproduccion/estados-animal/cambiar-masivo`, data);
   }
 
   // =====================================================
@@ -367,7 +367,7 @@ export class ReproductionService {
     if (filters?.fecha_fin) params = params.set('fecha_fin', filters.fecha_fin);
     if (filters?.per_page) params = params.set('per_page', filters.per_page.toString());
     if (filters?.page) params = params.set('page', filters.page.toString());
-    return this.http.get<ApiResponse<DiagnosticoResponse>>(`${this.apiUrl}/reproduction/diagnostico-prenez`, { params });
+    return this.http.get<ApiResponse<DiagnosticoResponse>>(`${this.apiUrl}/reproduccion/diagnostico-prenez`, { params });
   }
 
   getFemalesPendingDiagnosis(filters?: {
@@ -385,14 +385,14 @@ export class ReproductionService {
     if (filters?.fecha_fin) params = params.set('fecha_fin', filters.fecha_fin);
     if (filters?.per_page) params = params.set('per_page', filters.per_page.toString());
     if (filters?.page) params = params.set('page', filters.page.toString());
-    return this.http.get<ApiResponse<DiagnosticoResponse>>(`${this.apiUrl}/reproduction/diagnostico-prenez/pendientes`, { params });
+    return this.http.get<ApiResponse<DiagnosticoResponse>>(`${this.apiUrl}/reproduccion/diagnostico-prenez/pendientes`, { params });
   }
 
   registerPregnancyDiagnosis(data: { temporada_monta_hembra_id: number; resultado: 'PREÑADA' | 'VACIA' }): Observable<ApiResponse<TemporadaMontaHembra>> {
-    return this.http.post<ApiResponse<TemporadaMontaHembra>>(`${this.apiUrl}/reproduction/diagnostico-prenez`, data);
+    return this.http.post<ApiResponse<TemporadaMontaHembra>>(`${this.apiUrl}/reproduccion/diagnostico-prenez`, data);
   }
 
   registerBulkDiagnosis(diagnosticos: { temporada_monta_hembra_id: number; resultado: 'PREÑADA' | 'VACIA' }[]): Observable<ApiResponse<TemporadaMontaHembra[]>> {
-    return this.http.post<ApiResponse<TemporadaMontaHembra[]>>(`${this.apiUrl}/reproduction/diagnostico-prenez/masivo`, { diagnosticos });
+    return this.http.post<ApiResponse<TemporadaMontaHembra[]>>(`${this.apiUrl}/reproduccion/diagnostico-prenez/masivo`, { diagnosticos });
   }
 }
