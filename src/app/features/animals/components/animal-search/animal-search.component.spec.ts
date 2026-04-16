@@ -2,24 +2,22 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { Register } from './register';
-import { MessageService } from 'primeng/api';
+import { AnimalSearchComponent } from './animal-search.component';
 
-describe('Register', () => {
-  let component: Register;
-  let fixture: ComponentFixture<Register>;
+describe('AnimalSearchComponent', () => {
+  let component: AnimalSearchComponent;
+  let fixture: ComponentFixture<AnimalSearchComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Register, NoopAnimationsModule],
+      imports: [AnimalSearchComponent, NoopAnimationsModule],
       providers: [
         provideHttpClient(),
-        provideHttpClientTesting(),
-        MessageService
+        provideHttpClientTesting()
       ]
     }).compileComponents();
 
-    fixture = TestBed.createComponent(Register);
+    fixture = TestBed.createComponent(AnimalSearchComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

@@ -2,37 +2,32 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { AccountGeneral } from './account-general';
+import { AnimalFormComponent } from './animal-form.component';
+import { FarmContextService } from '@core/services/farm-context.service';
 import { MessageService } from 'primeng/api';
-import { AuthService } from '@features/auth/services/auth.service';
 import { signal } from '@angular/core';
 
-const mockMessageService = {
-  add: jasmine.createSpy('add'),
-  clear: jasmine.createSpy('clear')
-};
-
-const mockAuthService = {
-  user: signal(null),
-  isAuthenticated: signal(false)
-};
-
-describe('AccountGeneral', () => {
-  let component: AccountGeneral;
-  let fixture: ComponentFixture<AccountGeneral>;
+describe('AnimalFormComponent', () => {
+  let component: AnimalFormComponent;
+  let fixture: ComponentFixture<AnimalFormComponent>;
 
   beforeEach(async () => {
+    const farmContextService = {
+      getSelectedFarm: jasmine.createSpy('getSelectedFarm').and.returnValue(1),
+      farmId: signal(1)
+    };
+
     await TestBed.configureTestingModule({
-      imports: [AccountGeneral, NoopAnimationsModule],
+      imports: [AnimalFormComponent, NoopAnimationsModule],
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
-        { provide: MessageService, useValue: mockMessageService },
-        { provide: AuthService, useValue: mockAuthService }
+        { provide: FarmContextService, useValue: farmContextService },
+        MessageService
       ]
     }).compileComponents();
 
-    fixture = TestBed.createComponent(AccountGeneral);
+    fixture = TestBed.createComponent(AnimalFormComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

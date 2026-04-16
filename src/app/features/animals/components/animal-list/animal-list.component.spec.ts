@@ -2,16 +2,16 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { Register } from './register';
+import { AnimalListComponent } from './animal-list.component';
 import { MessageService } from 'primeng/api';
 
-describe('Register', () => {
-  let component: Register;
-  let fixture: ComponentFixture<Register>;
+describe('AnimalListComponent', () => {
+  let component: AnimalListComponent;
+  let fixture: ComponentFixture<AnimalListComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Register, NoopAnimationsModule],
+      imports: [AnimalListComponent, NoopAnimationsModule],
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
@@ -19,7 +19,7 @@ describe('Register', () => {
       ]
     }).compileComponents();
 
-    fixture = TestBed.createComponent(Register);
+    fixture = TestBed.createComponent(AnimalListComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

@@ -1,6 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { FarmsTable } from './farms-table';
+import { MessageService } from 'primeng/api';
 
 describe('FarmsTable', () => {
   let component: FarmsTable;
@@ -8,9 +11,13 @@ describe('FarmsTable', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [FarmsTable]
-    })
-    .compileComponents();
+      imports: [FarmsTable, NoopAnimationsModule],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        MessageService
+      ]
+    }).compileComponents();
 
     fixture = TestBed.createComponent(FarmsTable);
     component = fixture.componentInstance;

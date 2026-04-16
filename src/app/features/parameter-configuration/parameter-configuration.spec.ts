@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { ParameterConfiguration } from './parameter-configuration';
 
 describe('ParameterConfiguration', () => {
@@ -9,8 +8,7 @@ describe('ParameterConfiguration', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [ParameterConfiguration]
-    })
-    .compileComponents();
+    }).compileComponents();
 
     fixture = TestBed.createComponent(ParameterConfiguration);
     component = fixture.componentInstance;
