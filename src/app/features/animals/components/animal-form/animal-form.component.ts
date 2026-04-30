@@ -1,4 +1,5 @@
-import { Component, effect, input, output, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, effect, input, output, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -59,6 +60,7 @@ export class AnimalFormComponent implements OnInit {
   selectedPropietarioFinca: FincaDto | null = null;
 
   private messageService = inject(MessageService);
+  private destroyRef = inject(DestroyRef);
 
   constructor() {
     this.initializeForm();
@@ -106,12 +108,16 @@ export class AnimalFormComponent implements OnInit {
       }
     });
 
-    // Effect para sincronizar cod_finca_actual con cod_finca
-    this.animalForm.get('cod_finca')?.valueChanges.subscribe(codFinca => {
-      if (codFinca && !this.animalForm.get('cod_finca_actual')?.value) {
-        this.animalForm.patchValue({ cod_finca_actual: codFinca });
-      }
-    });
+    // Sincronizar cod_finca_actual con cod_finca.
+    // takeUntilDestroyed evita memory leak al destruir el componente.
+    // emitEvent: false evita disparar valueChanges del campo sincronizado (flujos circulares).
+    this.animalForm.get('cod_finca')?.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(codFinca => {
+        if (codFinca && !this.animalForm.get('cod_finca_actual')?.value) {
+          this.animalForm.patchValue({ cod_finca_actual: codFinca }, { emitEvent: false });
+        }
+      });
   }
 
   ngOnInit(): void {

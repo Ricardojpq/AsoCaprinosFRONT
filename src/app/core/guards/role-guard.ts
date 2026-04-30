@@ -1,5 +1,6 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router, ActivatedRouteSnapshot } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { JwtAuthService } from '@core/services/jwt-auth.service';
 
 /**
@@ -28,7 +29,7 @@ export const RoleGuard: CanActivateFn = async (route: ActivatedRouteSnapshot) =>
   if (!user) {
     // Intentar cargar el perfil
     try {
-      await jwtAuthService.loadUserProfile().toPromise();
+      await firstValueFrom(jwtAuthService.loadUserProfile());
       const loadedUser = jwtAuthService.getCurrentUser();
       if (loadedUser && requiredRoles.includes(loadedUser.perfil_id)) {
         return true;
@@ -66,7 +67,7 @@ export const SuperAdminGuard: CanActivateFn = async () => {
   
   if (!user) {
     try {
-      await jwtAuthService.loadUserProfile().toPromise();
+      await firstValueFrom(jwtAuthService.loadUserProfile());
       const loadedUser = jwtAuthService.getCurrentUser();
       if (loadedUser?.perfil_id === 1) {
         return true;

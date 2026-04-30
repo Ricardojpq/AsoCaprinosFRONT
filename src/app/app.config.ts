@@ -9,6 +9,8 @@ import Aura from '@primeuix/themes/aura';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { definePreset, updatePreset } from '@primeuix/themes';
 import { authInterceptor } from '@core/interceptors/auth-interceptor';
+import { errorInterceptor } from '@core/interceptors/error-interceptor';
+import { versionInterceptor } from '@core/interceptors/version-interceptor';
 
 export const AsoPreset = definePreset({
     semantic: {
@@ -94,7 +96,8 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
     provideHttpClient(
-      withInterceptors([authInterceptor]),
+      // Orden: auth (adjunta token + maneja 401) -> version (If-Match / ETag) -> error (timeout/retry/categorización)
+      withInterceptors([authInterceptor, versionInterceptor, errorInterceptor]),
       withFetch()
     ),
     provideAnimationsAsync(),

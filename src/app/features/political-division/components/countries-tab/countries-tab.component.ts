@@ -1,6 +1,7 @@
 import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { BaseComponent } from '@core/components/base.component';
 import { PoliticalDivisionService } from '../../Services/political-division-service';
 import { 
   PaisDto, 
@@ -38,7 +39,7 @@ import { BrushCleaning, LucideAngularModule, Pencil, Plus, RotateCcw, Search, Tr
     LucideAngularModule
   ]
 })
-export class CountriesTabComponent implements OnInit, OnChanges {
+export class CountriesTabComponent extends BaseComponent implements OnInit, OnChanges {
   readonly searchIcon = Search;
   readonly brushCleaningIcon = BrushCleaning;
   readonly plusIcon = Plus;
@@ -80,6 +81,7 @@ export class CountriesTabComponent implements OnInit, OnChanges {
     private politicalDivisionService: PoliticalDivisionService,
     private fb: FormBuilder
   ) {
+    super();
     this.initializeForm();
   }
 
@@ -203,7 +205,7 @@ export class CountriesTabComponent implements OnInit, OnChanges {
         capital_pais: formValue.capital_pais || undefined
       };
 
-      this.politicalDivisionService.createCountry(createDto).subscribe({
+      this.politicalDivisionService.createCountry(createDto).pipe(this.untilDestroyed()).subscribe({
         next: (response) => {
           this.loading = false;
           this.closeModal();
@@ -225,7 +227,7 @@ export class CountriesTabComponent implements OnInit, OnChanges {
         capital_pais: formValue.capital_pais || undefined
       };
 
-      this.politicalDivisionService.updateCountry(this.selectedCountryForEdit!.cod_pais, updateDto).subscribe({
+      this.politicalDivisionService.updateCountry(this.selectedCountryForEdit!.cod_pais, updateDto).pipe(this.untilDestroyed()).subscribe({
         next: (response) => {
           this.loading = false;
           this.closeModal();
@@ -250,7 +252,7 @@ export class CountriesTabComponent implements OnInit, OnChanges {
     if (confirm(`¿Está seguro de eliminar el país "${country.nom_pais}"?`)) {
       this.loading = true;
       
-      this.politicalDivisionService.deleteCountry(country.cod_pais).subscribe({
+      this.politicalDivisionService.deleteCountry(country.cod_pais).pipe(this.untilDestroyed()).subscribe({
         next: (response) => {
           this.loading = false;
           this.loadCountries();
@@ -321,7 +323,7 @@ export class CountriesTabComponent implements OnInit, OnChanges {
       sort_dir: this.sortOrder === 1 ? 'asc' : 'desc'
     };
 
-    this.politicalDivisionService.getCountries(params).subscribe({
+    this.politicalDivisionService.getCountries(params).pipe(this.untilDestroyed()).subscribe({
       next: (response) => {
         this.countries = response.data.data;
         this.totalRecords = response.data.total;

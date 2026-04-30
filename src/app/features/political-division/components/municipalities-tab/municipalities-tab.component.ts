@@ -15,6 +15,7 @@ import {
   ReactiveFormsModule,
   FormsModule,
 } from '@angular/forms';
+import { BaseComponent } from '@core/components/base.component';
 import { PoliticalDivisionService } from '../../Services/political-division-service';
 import {
   MunicipioDto,
@@ -60,7 +61,7 @@ import { LaravelApiResponse } from '@core/models/DTOs';
     LucideAngularModule
   ],
 })
-export class MunicipalitiesTabComponent implements OnInit, OnChanges {
+export class MunicipalitiesTabComponent extends BaseComponent implements OnInit, OnChanges {
   readonly searchIcon = Search;
   readonly brushCleaningIcon = BrushCleaning;
   readonly plusIcon = Plus;
@@ -108,6 +109,7 @@ export class MunicipalitiesTabComponent implements OnInit, OnChanges {
     private politicalDivisionService: PoliticalDivisionService,
     private fb: FormBuilder
   ) {
+    super();
     this.initializeForm();
   }
 
@@ -142,7 +144,7 @@ export class MunicipalitiesTabComponent implements OnInit, OnChanges {
   loadCountryOptions(): void {
     this.politicalDivisionService
       .getCountries({ page: 1, per_page: 100 })
-      .subscribe({
+      .pipe(this.untilDestroyed()).subscribe({
         next: (response: LaravelApiResponse<PaisDto>) => {
           this.countryOptions = response.data.data.map((country) => ({
             label: country.nom_pais,
@@ -167,7 +169,7 @@ export class MunicipalitiesTabComponent implements OnInit, OnChanges {
           per_page: 100,
           cod_pais: selectedCountryCode, // Filtrar por país en el backend
         })
-        .subscribe({
+        .pipe(this.untilDestroyed()).subscribe({
           next: (response: LaravelApiResponse<EstadoDto>) => {
             this.stateOptions = response.data.data.map((state) => ({
               label: state.nom_estado,
@@ -206,7 +208,7 @@ export class MunicipalitiesTabComponent implements OnInit, OnChanges {
       sort_dir: this.sortOrder === 1 ? 'asc' : 'desc',
     };
 
-    this.politicalDivisionService.getMunicipalities(params).subscribe({
+    this.politicalDivisionService.getMunicipalities(params).pipe(this.untilDestroyed()).subscribe({
       next: (response: LaravelApiResponse<MunicipioDto>) => {
         this.municipalities = response.data.data;
         this.totalRecords = response.data.total;
@@ -315,7 +317,7 @@ export class MunicipalitiesTabComponent implements OnInit, OnChanges {
         capital_municipio: formValue.capital_municipio || undefined,
       };
 
-      this.politicalDivisionService.createMunicipality(createDto).subscribe({
+      this.politicalDivisionService.createMunicipality(createDto).pipe(this.untilDestroyed()).subscribe({
         next: (response) => {
           this.loading = false;
           this.closeModal();
@@ -339,7 +341,7 @@ export class MunicipalitiesTabComponent implements OnInit, OnChanges {
           this.selectedMunicipalityForEdit!.cod_municipio,
           updateDto
         )
-        .subscribe({
+        .pipe(this.untilDestroyed()).subscribe({
           next: (response) => {
             this.loading = false;
             this.closeModal();
@@ -375,7 +377,7 @@ export class MunicipalitiesTabComponent implements OnInit, OnChanges {
 
     this.politicalDivisionService
       .deleteMunicipality(municipality.cod_municipio)
-      .subscribe({
+      .pipe(this.untilDestroyed()).subscribe({
         next: (response) => {
           this.loading = false;
           this.loadMunicipalities();

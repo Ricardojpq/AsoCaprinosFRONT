@@ -1,5 +1,10 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal, computed } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subject } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { FarmContextService } from '@core/services/farm-context.service';
+import { SyncService } from '@core/services/sync.service';
+import { ConflictError } from '@core/errors/app-errors';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ReproductionService } from '../../services/reproduction.service';
@@ -61,6 +66,19 @@ export class MatingSeason implements OnInit {
   private messageService = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
   private farmContext = inject(FarmContextService);
+  private sync = inject(SyncService);
+  private destroyRef = inject(DestroyRef);
+
+  // Race-condition guards: switchMap cancela requests obsoletos cuando
+  // el usuario dispara una segunda acción antes de que termine la primera.
+  private detailsRequest$ = new Subject<number>();
+  private resultRequest$ = new Subject<number>();
+
+  // Flag para bloquear operaciones mientras otra está en vuelo.
+  mutating = signal(false);
+
+  // Timestamp de la última sincronización con el backend (para indicador UX).
+  lastSync = signal<number | null>(null);
 
   // Lucide icons
   readonly plusIcon = Plus;
@@ -128,6 +146,59 @@ export class MatingSeason implements OnInit {
 
   ngOnInit(): void {
     this.loadSeasons();
+    this.setupDialogRequestPipelines();
+    this.setupAutoSync();
+  }
+
+  /**
+   * Evita race conditions: si el usuario abre detalle, cierra y abre otro
+   * rapidamente, switchMap cancela la petición anterior.
+   */
+  private setupDialogRequestPipelines(): void {
+    this.detailsRequest$
+      .pipe(
+        switchMap(id => this.reproductionService.getMatingSeason(id)),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe({
+        next: response => {
+          this.selectedSeason.set(response.data);
+          this.showDetailDialog.set(true);
+        },
+        error: () => {
+          this.showDetailDialog.set(true);
+        }
+      });
+
+    this.resultRequest$
+      .pipe(
+        switchMap(id => this.reproductionService.getMatingSeason(id)),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe({
+        next: response => {
+          this.selectedSeason.set(response.data);
+          this.showResultDialog.set(true);
+        },
+        error: () => {
+          this.showResultDialog.set(true);
+        }
+      });
+  }
+
+  /**
+   * Auto-sync de temporadas: revalida cada 60s, al recuperar el foco
+   * y al volver online. Previene mostrar stale data frente a automatizaciones
+   * del backend que alteran el estado de hembras / temporadas.
+   */
+  private setupAutoSync(): void {
+    this.sync
+      .register({ intervalMs: 60_000, refreshOnFocus: true, refreshOnReconnect: true, immediate: false })
+      .subscribe(() => {
+        // Evitar pisar una edición en curso o diálogos abiertos de creación.
+        if (this.mutating() || this.showCreateDialog() || this.showAddFemaleDialog()) return;
+        this.loadSeasons(/* silent */ true);
+      });
   }
 
   get selectedFarm(): number | null {
@@ -146,8 +217,8 @@ export class MatingSeason implements OnInit {
     this.loadSeasons();
   }
 
-  loadSeasons(): void {
-    this.loading.set(true);
+  loadSeasons(silent = false): void {
+    if (!silent) this.loading.set(true);
     const filters: any = {};
     // Usar finca del contexto global
     const farmId = this.farmContext.getSelectedFarm();
@@ -169,22 +240,44 @@ export class MatingSeason implements OnInit {
       filters.estado = this.filterStatus();
     }
 
-    this.reproductionService.getBreedingSeasons(filters).subscribe({
-      next: (response) => {
-        const responseData = response.data || { data: [], total: 0 };
-        this.seasons.set(responseData.data || []);
-        this.totalRecords.set(responseData.total || 0);
-        this.loading.set(false);
-      },
-      error: (error) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'Error al cargar seasons de monta'
-        });
-        this.loading.set(false);
-      }
-    });
+    this.reproductionService.getBreedingSeasons(filters)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          const responseData = response.data || { data: [], total: 0 };
+          this.seasons.set(responseData.data || []);
+          this.totalRecords.set(responseData.total || 0);
+          this.lastSync.set(Date.now());
+          this.loading.set(false);
+        },
+        error: () => {
+          // errorInterceptor ya muestra notificación; aquí sólo estado UI.
+          this.loading.set(false);
+        }
+      });
+  }
+
+  /**
+   * Helpers para mutaciones: bloquean UI (mutating signal) y detectan
+   * ConflictError (409) para reconciliar datos automáticamente.
+   */
+  private handleMutationSuccess(detail: string): void {
+    this.mutating.set(false);
+    this.messageService.add({ severity: 'success', summary: 'Éxito', detail });
+    this.loadSeasons();
+  }
+
+  private handleMutationError(error: any, fallback: string): void {
+    this.mutating.set(false);
+    if (error instanceof ConflictError) {
+      // Datos obsoletos: recargar para reconciliar con backend.
+      this.loadSeasons();
+      return;
+    }
+    // errorInterceptor ya muestra el toast; no duplicar.
+    if (!error?.status) {
+      this.messageService.add({ severity: 'error', summary: 'Error', detail: fallback });
+    }
   }
 
   openCreateDialog(): void {
@@ -361,27 +454,21 @@ export class MatingSeason implements OnInit {
       return;
     }
 
+    if (this.mutating()) return; // Anti-race: bloquear doble submit
+    this.mutating.set(true);
+
     const femalesIds = this.selectedFemales().map(h => h.id);
     this.reproductionService.addFemalesToSeason(temporada.id, {
       hembras_ids: femalesIds
-    }).subscribe({
-      next: () => {
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Éxito',
-          detail: 'Hembras agregadas exitosamente'
-        });
-        this.showAddFemaleDialog.set(false);
-        this.loadSeasons();
-      },
-      error: (error) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: error.error?.message || 'Error al agregar hembras'
-        });
-      }
-    });
+    })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.showAddFemaleDialog.set(false);
+          this.handleMutationSuccess('Hembras agregadas exitosamente');
+        },
+        error: (error) => this.handleMutationError(error, 'Error al agregar hembras')
+      });
   }
 
   // =====================================================
@@ -389,32 +476,15 @@ export class MatingSeason implements OnInit {
   // =====================================================
 
   openDetailsDialog(temporada: TemporadaMonta): void {
-    // Cargar la temporada completa desde el backend para asegurar que tenga todos los datos
-    this.reproductionService.getMatingSeason(temporada.id).subscribe({
-      next: (response) => {
-        this.selectedSeason.set(response.data);
-        this.showDetailDialog.set(true);
-      },
-      error: () => {
-        // Si falla, usar los datos que ya tenemos
-        this.selectedSeason.set(temporada);
-        this.showDetailDialog.set(true);
-      }
-    });
+    // Fallback inmediato con datos locales; switchMap cancelará si el usuario
+    // abre otro diálogo antes de que llegue la respuesta.
+    this.selectedSeason.set(temporada);
+    this.detailsRequest$.next(temporada.id);
   }
 
   openResultDialog(temporada: TemporadaMonta): void {
-    // Cargar la temporada completa desde el backend
-    this.reproductionService.getMatingSeason(temporada.id).subscribe({
-      next: (response) => {
-        this.selectedSeason.set(response.data);
-        this.showResultDialog.set(true);
-      },
-      error: () => {
-        this.selectedSeason.set(temporada);
-        this.showResultDialog.set(true);
-      }
-    });
+    this.selectedSeason.set(temporada);
+    this.resultRequest$.next(temporada.id);
   }
 
   getSummaryResults(): { prenadas: number; vacias: number; enMonta: number; total: number } {

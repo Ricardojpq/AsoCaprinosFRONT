@@ -1,5 +1,6 @@
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { firstValueFrom } from 'rxjs';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { UserManagementService, Usuario, Perfil, FincaDisponible, CreateUserRequest, UpdateUserRequest } from '@core/services/user-management.service';
 import { DialogModule } from 'primeng/dialog';
@@ -168,7 +169,7 @@ export class UserManagementComponent implements OnInit {
         params.is_active = this.filterActive();
       }
       
-      const response = await this.userService.getUsers(params).toPromise();
+      const response = await firstValueFrom(this.userService.getUsers(params));
 
       if (response) {
         this.usuarios.set(response.data);
@@ -184,7 +185,7 @@ export class UserManagementComponent implements OnInit {
 
   async loadPerfiles(): Promise<void> {
     try {
-      const perfiles = await this.userService.getPerfiles().toPromise();
+      const perfiles = await firstValueFrom(this.userService.getPerfiles());
       if (perfiles) {
         this.perfiles.set(perfiles);
       }
@@ -195,7 +196,7 @@ export class UserManagementComponent implements OnInit {
 
   async loadFarms(): Promise<void> {
     try {
-      const fincas = await this.userService.getAvailableFarms().toPromise();
+      const fincas = await firstValueFrom(this.userService.getAvailableFarms());
       if (fincas) {
         this.fincasDisponibles.set(fincas);
       }
@@ -301,7 +302,7 @@ export class UserManagementComponent implements OnInit {
           fincas: formData.fincas,
           finca_principal: formData.finca_principal
         };
-        await this.userService.createUser(createData).toPromise();
+        await firstValueFrom(this.userService.createUser(createData));
       } else {
         const updateData: UpdateUserRequest = {
           nombre_usuario: formData.nombre_usuario,
@@ -312,7 +313,7 @@ export class UserManagementComponent implements OnInit {
           fincas: formData.fincas,
           finca_principal: formData.finca_principal
         };
-        await this.userService.updateUser(this.selectedUser()!.id_usuario, updateData).toPromise();
+        await firstValueFrom(this.userService.updateUser(this.selectedUser()!.id_usuario, updateData));
       }
 
       this.closeModal();
@@ -372,13 +373,13 @@ export class UserManagementComponent implements OnInit {
     try {
       switch (action) {
         case 'delete':
-          await this.userService.deleteUser(user.id_usuario).toPromise();
+          await firstValueFrom(this.userService.deleteUser(user.id_usuario));
           break;
         case 'reactivate':
-          await this.userService.reactivateUser(user.id_usuario).toPromise();
+          await firstValueFrom(this.userService.reactivateUser(user.id_usuario));
           break;
         case 'reset-password':
-          const result = await this.userService.resetPassword(user.id_usuario).toPromise();
+          const result = await firstValueFrom(this.userService.resetPassword(user.id_usuario));
           if (result) {
             this.tempPassword.set(result.temp_password);
             this.showTempPasswordModal.set(true);

@@ -15,6 +15,7 @@ import {
   ReactiveFormsModule,
   FormsModule,
 } from '@angular/forms';
+import { BaseComponent } from '@core/components/base.component';
 import { PoliticalDivisionService } from '../../Services/political-division-service';
 import {
   PaisDto,
@@ -54,7 +55,7 @@ import { LaravelApiResponse, LaravelPaginationResponse } from '@core/models/DTOs
     LucideAngularModule
   ],
 })
-export class StatesTabComponent implements OnInit, OnChanges {
+export class StatesTabComponent extends BaseComponent implements OnInit, OnChanges {
   readonly searchIcon = Search;
   readonly brushCleaningIcon = BrushCleaning;
   readonly plusIcon = Plus;
@@ -98,6 +99,7 @@ export class StatesTabComponent implements OnInit, OnChanges {
     private politicalDivisionService: PoliticalDivisionService,
     private fb: FormBuilder
   ) {
+    super();
     this.initializeForm();
   }
 
@@ -186,7 +188,7 @@ export class StatesTabComponent implements OnInit, OnChanges {
         capital_estado: formValue.capital_estado || undefined,
       };
 
-      this.politicalDivisionService.createState(createDto).subscribe({
+      this.politicalDivisionService.createState(createDto).pipe(this.untilDestroyed()).subscribe({
         next: (response) => {
           this.loading = false;
           this.closeModal();
@@ -208,7 +210,7 @@ export class StatesTabComponent implements OnInit, OnChanges {
 
       this.politicalDivisionService
         .updateState(this.selectedStateForEdit!.cod_estado, updateDto)
-        .subscribe({
+        .pipe(this.untilDestroyed()).subscribe({
           next: (response) => {
             this.loading = false;
             this.closeModal();
@@ -227,7 +229,7 @@ export class StatesTabComponent implements OnInit, OnChanges {
     if (confirm(`¿Está seguro de eliminar el estado "${state.nom_estado}"?`)) {
       this.loading = true;
 
-      this.politicalDivisionService.deleteState(state.cod_estado).subscribe({
+      this.politicalDivisionService.deleteState(state.cod_estado).pipe(this.untilDestroyed()).subscribe({
         next: (response) => {
           this.loading = false;
           this.loadStates();
@@ -278,7 +280,7 @@ export class StatesTabComponent implements OnInit, OnChanges {
   loadCountryOptions(): void {
     this.politicalDivisionService
       .getCountries({ page: 1, per_page: 100 })
-      .subscribe({
+      .pipe(this.untilDestroyed()).subscribe({
         next: (response: LaravelApiResponse<PaisDto>) => {
           this.countryOptions = response.data.data.map((country) => ({
             label: country.nom_pais,
@@ -313,7 +315,7 @@ export class StatesTabComponent implements OnInit, OnChanges {
       sort_dir: this.sortOrder === 1 ? 'asc' : 'desc',
     };
 
-    this.politicalDivisionService.getStates(params).subscribe({
+    this.politicalDivisionService.getStates(params).pipe(this.untilDestroyed()).subscribe({
       next: ({data}) => {
         this.states = data.data;
         this.totalRecords = data.total;

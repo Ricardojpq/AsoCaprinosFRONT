@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, inject, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Subject, takeUntil, debounceTime, distinctUntilChanged, Observable } from 'rxjs';
+import { Subject, takeUntil, debounceTime, distinctUntilChanged, Observable, firstValueFrom } from 'rxjs';
 import { MessageService, ConfirmationService, LazyLoadEvent } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
@@ -113,9 +113,9 @@ export class Animals implements OnInit, OnDestroy, CanComponentDeactivate {
 
     // Cargar todos los catálogos en paralelo
     Promise.all([
-      razas$.toPromise(),
-      colores$.toPromise(),
-      tiposPelo$.toPromise()
+      firstValueFrom(razas$),
+      firstValueFrom(colores$),
+      firstValueFrom(tiposPelo$)
     ]).then(([razas, colores, tiposPelo]) => {
       const catalogOptions: CatalogOptions = {
         sex: [

@@ -15,6 +15,7 @@ import {
   ReactiveFormsModule,
   FormsModule,
 } from '@angular/forms';
+import { BaseComponent } from '@core/components/base.component';
 import { PoliticalDivisionService } from '../../Services/political-division-service';
 import {
   ParroquiaDto,
@@ -70,7 +71,7 @@ import { LaravelApiResponse } from '@core/models/DTOs';
     LucideAngularModule,
   ],
 })
-export class ParishesTabComponent implements OnInit, OnChanges {
+export class ParishesTabComponent extends BaseComponent implements OnInit, OnChanges {
   readonly searchIcon = Search;
   readonly brushCleaningIcon = BrushCleaning;
   readonly plusIcon = Plus;
@@ -121,6 +122,7 @@ export class ParishesTabComponent implements OnInit, OnChanges {
     private politicalDivisionService: PoliticalDivisionService,
     private fb: FormBuilder
   ) {
+    super();
     this.initializeForm();
   }
 
@@ -140,7 +142,7 @@ export class ParishesTabComponent implements OnInit, OnChanges {
   loadCountryOptions(): void {
     this.politicalDivisionService
       .getCountries({ page: 1, per_page: 100 })
-      .subscribe({
+      .pipe(this.untilDestroyed()).subscribe({
         next: (response: LaravelApiResponse<PaisDto>) => {
           this.countryOptions = response.data.data.map((country) => ({
             label: country.nom_pais,
@@ -160,7 +162,7 @@ export class ParishesTabComponent implements OnInit, OnChanges {
     return new Promise((resolve, reject) => {
       this.politicalDivisionService
         .getStates({ page: 1, per_page: 100 })
-        .subscribe({
+        .pipe(this.untilDestroyed()).subscribe({
           next: (response: LaravelApiResponse<EstadoDto>) => {
             this.allStateOptions = response.data.data.map((state) => ({
               label: state.nom_estado,
@@ -184,7 +186,7 @@ export class ParishesTabComponent implements OnInit, OnChanges {
     return new Promise((resolve, reject) => {
       this.politicalDivisionService
         .getMunicipalities({ page: 1, per_page: 100 })
-        .subscribe({
+        .pipe(this.untilDestroyed()).subscribe({
           next: (response: LaravelApiResponse<MunicipioDto>) => {
             this.allMunicipalityOptions = response.data.data.map(
               (municipality) => ({
@@ -215,7 +217,7 @@ export class ParishesTabComponent implements OnInit, OnChanges {
           per_page: 100,
           cod_pais: selectedCountryCode, // Filtrar por país en el backend
         })
-        .subscribe({
+        .pipe(this.untilDestroyed()).subscribe({
           next: (response: LaravelApiResponse<EstadoDto>) => {
             this.stateOptions = response.data.data.map((state) => ({
               label: state.nom_estado,
@@ -251,7 +253,7 @@ export class ParishesTabComponent implements OnInit, OnChanges {
           per_page: 100,
           cod_estado: selectedStateCode, // Filtrar por estado en el backend
         })
-        .subscribe({
+        .pipe(this.untilDestroyed()).subscribe({
           next: (response: LaravelApiResponse<MunicipioDto>) => {
             this.municipalityOptions = response.data.data.map(
               (municipality) => ({
@@ -292,7 +294,7 @@ export class ParishesTabComponent implements OnInit, OnChanges {
       sort_dir: this.sortOrder === 1 ? 'asc' : 'desc',
     };
 
-    this.politicalDivisionService.getParishes(params).subscribe({
+    this.politicalDivisionService.getParishes(params).pipe(this.untilDestroyed()).subscribe({
       next: (response: LaravelApiResponse<ParroquiaDto>) => {
         this.parishes = response.data.data;
         this.totalRecords = response.data.total;
@@ -418,7 +420,7 @@ export class ParishesTabComponent implements OnInit, OnChanges {
         cod_municipio: formValue.cod_municipio,
       };
 
-      this.politicalDivisionService.createParish(createDto).subscribe({
+      this.politicalDivisionService.createParish(createDto).pipe(this.untilDestroyed()).subscribe({
         next: (response) => {
           this.loading = false;
           this.closeModal();
@@ -438,7 +440,7 @@ export class ParishesTabComponent implements OnInit, OnChanges {
 
       this.politicalDivisionService
         .updateParish(this.selectedParishForEdit!.cod_parroquia, updateDto)
-        .subscribe({
+        .pipe(this.untilDestroyed()).subscribe({
           next: (response) => {
             this.loading = false;
             this.closeModal();
@@ -474,7 +476,7 @@ export class ParishesTabComponent implements OnInit, OnChanges {
 
     this.politicalDivisionService
       .deleteParish(parish.cod_parroquia)
-      .subscribe({
+      .pipe(this.untilDestroyed()).subscribe({
         next: (response) => {
           this.loading = false;
           this.loadParishes();
