@@ -82,10 +82,6 @@ export class LayoutService {
                 this.handleDarkModeTransition(config);
             }
         });
-
-        effect(() => {
-
-        })
     }
 
     private handleDarkModeTransition(config: layoutConfig): void {

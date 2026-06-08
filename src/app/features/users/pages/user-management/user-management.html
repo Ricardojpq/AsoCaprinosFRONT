@@ -1,477 +1,642 @@
 <div class="card">
-<p-toast></p-toast>
-<p-confirmDialog></p-confirmDialog>
+  <p-toast></p-toast>
+  <p-confirmDialog></p-confirmDialog>
 
-<div class="user-management-container">
-  <!-- Header -->
-  <div class="page-header">
-    <div class="header-content">
-      <h1 class="page-title">Gestión de Usuarios</h1>
-      <p class="page-subtitle">Administra usuarios, roles y permisos del sistema</p>
-    </div>
-    <p-button 
-      styleClass="btn btn-primary btn-sm"
-      label="Nuevo Usuario" 
-      (onClick)="openCreateModal()"
-    >
-      <lucide-icon [img]="userPlusIcon" class="mr-2" size="16"></lucide-icon>
-    </p-button>
-  </div>
-
-  <!-- Filtros -->
-  <div class="filters-section">
-    <span class="p-input-icon-left">
-      <lucide-icon [img]="searchIcon" size="16" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></lucide-icon>
-      <input 
-        type="text" 
-        pInputText
-        placeholder="Buscar por nombre o email..." 
-        [ngModel]="searchTerm()"
-        (ngModelChange)="searchTerm.set($event)"
-        (keyup.enter)="onSearch()"
-        class="w-64"
-      />
-    </span>
-    
-    <div class="filter-group">
-      <p-select
-        [options]="perfilesOptions()"
-        [ngModel]="filterPerfil()"
-        (ngModelChange)="filterPerfil.set($event); onFilterChange()"
-        placeholder="Todos los perfiles"
-        [showClear]="true"
-        class="w-48"
-      ></p-select>
-
-      <p-select
-        [options]="statusOptions"
-        [ngModel]="filterActive()"
-        (ngModelChange)="filterActive.set($event); onFilterChange()"
-        placeholder="Todos los estados"
-        [showClear]="true"
-        class="w-40"
-      ></p-select>
-
-      <p-button 
-        label="Limpiar filtros" 
-        severity="secondary"
-        [text]="true"
-        (onClick)="clearFilters()"
+  <div class="p-6 max-w-[1400px] mx-auto">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6 flex-wrap gap-4">
+      <div class="flex-1">
+        <h1 class="text-[1.75rem] font-semibold text-gray-900 dark:text-white m-0">Gestión de Usuarios</h1>
+        <p class="text-gray-500 dark:text-gray-400 mt-1 text-sm">
+          Administra usuarios, roles y permisos del sistema
+        </p>
+      </div>
+      <p-button
+        label="Nuevo Usuario"
+        (onClick)="openCreateModal()"
+        styleClass="btn btn-sm btn-primary"
       >
-        <lucide-icon [img]="filterXIcon" class="mr-2" size="16"></lucide-icon>
+        <lucide-icon [img]="userPlusIcon" class="mr-2" size="16"></lucide-icon>
       </p-button>
     </div>
+
+    <!-- Filtros -->
+    <div class="flex gap-4 mb-6 flex-wrap items-center">
+      <p-iconfield>
+        <p-inputicon>
+          <lucide-icon
+            [img]="searchIcon"
+            size="16"
+            class="text-gray-400"
+          ></lucide-icon>
+        </p-inputicon>
+        <input
+          type="text"
+          pInputText
+          placeholder="Buscar por nombre o email..."
+          [ngModel]="searchTerm()"
+          (ngModelChange)="searchTerm.set($event)"
+          (keyup.enter)="onSearch()"
+          class="w-64"
+        />
+      </p-iconfield>
+      <div class="flex gap-3 items-center flex-wrap">
+        <p-select
+          [options]="perfilesOptions()"
+          [ngModel]="filterPerfil()"
+          (ngModelChange)="filterPerfil.set($event); onFilterChange()"
+          placeholder="Todos los perfiles"
+          [showClear]="true"
+          class="w-48"
+        ></p-select>
+
+        <p-select
+          [options]="statusOptions"
+          [ngModel]="filterActive()"
+          (ngModelChange)="filterActive.set($event); onFilterChange()"
+          placeholder="Todos los estados"
+          [showClear]="true"
+          class="w-40"
+        ></p-select>
+
+        <p-button
+          label="Limpiar filtros"
+          [text]="true"
+          (onClick)="clearFilters()"
+          styleClass="btn btn-sm btn-secondary"
+        >
+          <lucide-icon [img]="filterXIcon" class="mr-2" size="16"></lucide-icon>
+        </p-button>
+      </div>
+    </div>
+
+    <!-- Tabla de usuarios con PrimeNG Table -->
+    <p-table
+      [value]="usuarios()"
+      [loading]="loading()"
+      [paginator]="true"
+      [rows]="perPage"
+      [totalRecords]="totalItems()"
+      [lazy]="true"
+      (onLazyLoad)="onLazyLoad($event)"
+      [rowHover]="true"
+      styleClass="p-datatable-sm"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Usuario</th>
+          <th>Email</th>
+          <th>Perfil</th>
+          <th>Fincas</th>
+          <th>Estado</th>
+          <th style="width: 150px">Acciones</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-user>
+        <tr [class.opacity-50]="!user.is_active">
+          <td>
+            <div class="flex items-center gap-3">
+              <p-avatar
+                [label]="(user.nombre_usuario?.charAt(0) || '') + (user.apellido_usuario?.charAt(0) || '')"
+                shape="circle"
+                class="font-semibold text-xs uppercase"
+                size="normal"
+              ></p-avatar>
+              <span class="font-medium"
+                >{{ user.nombre_usuario }} {{ user.apellido_usuario }}</span
+              >
+            </div>
+          </td>
+          <td>{{ user.email }}</td>
+          <td>
+            <p-tag
+              [value]="getPerfilName(user.id_perfil_usuario)"
+              [severity]="getPerfilSeverity(user.id_perfil_usuario)"
+            ></p-tag>
+          </td>
+          <td>
+            <span [pTooltip]="getFarmNames(user)" tooltipPosition="top">
+              {{ getFarmNames(user) | slice: 0 : 25
+              }}{{ getFarmNames(user).length > 25 ? "..." : "" }}
+            </span>
+          </td>
+          <td>
+            <p-tag
+              [value]="user.is_active ? 'Activo' : 'Inactivo'"
+              [severity]="user.is_active ? 'success' : 'danger'"
+            ></p-tag>
+          </td>
+          <td>
+            <div class="flex gap-2 justify-content-center">
+              <button
+                pButton
+                [rounded]="true"
+                [text]="true"
+                severity="info"
+                pTooltip="Ver detalles"
+                tooltipPosition="top"
+                (click)="openViewModal(user)"
+                class="p-button-icon-only btn-action btn-action-view"
+              >
+                <lucide-icon [img]="eyeIcon" [size]="18"></lucide-icon>
+              </button>
+              <button
+                pButton
+                [rounded]="true"
+                [text]="true"
+                severity="warn"
+                pTooltip="Editar"
+                tooltipPosition="top"
+                (click)="openEditModal(user)"
+                class="p-button-icon-only btn-action btn-action-edit"
+              >
+                <lucide-icon [img]="pencilIcon" [size]="18"></lucide-icon>
+              </button>
+              <button
+                pButton
+                [rounded]="true"
+                [text]="true"
+                severity="secondary"
+                pTooltip="Resetear contraseña"
+                tooltipPosition="top"
+                (click)="confirmResetPassword(user)"
+                class="p-button-icon-only btn-action"
+              >
+                <lucide-icon [img]="keyIcon" [size]="18"></lucide-icon>
+              </button>
+              @if (user.is_active) {
+                <button
+                  pButton
+                  [rounded]="true"
+                  [text]="true"
+                  severity="danger"
+                  pTooltip="Desactivar"
+                  tooltipPosition="top"
+                  (click)="confirmDelete(user)"
+                  class="p-button-icon-only btn-action btn-action-delete"
+                >
+                  <lucide-icon [img]="banIcon" [size]="18"></lucide-icon>
+                </button>
+              } @else {
+                <button
+                  pButton
+                  [rounded]="true"
+                  [text]="true"
+                  severity="success"
+                  pTooltip="Reactivar"
+                  tooltipPosition="top"
+                  (click)="confirmReactivate(user)"
+                  class="p-button-icon-only btn-action btn-action-success"
+                >
+                  <lucide-icon
+                    [img]="checkCircleIcon"
+                    [size]="18"
+                  ></lucide-icon>
+                </button>
+              }
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="6" class="text-center py-12">
+            <div class="flex flex-col items-center gap-3">
+              <lucide-icon
+                [img]="usersIcon"
+                size="48"
+                class="text-gray-300 dark:text-gray-600"
+              ></lucide-icon>
+              <p class="text-gray-500 dark:text-gray-400">No se encontraron usuarios</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
   </div>
 
-  <!-- Tabla de usuarios con PrimeNG Table -->
-  <p-table 
-    [value]="usuarios()" 
-    [loading]="loading()"
-    [paginator]="true"
-    [rows]="perPage"
-    [totalRecords]="totalItems()"
-    [lazy]="true"
-    (onLazyLoad)="onLazyLoad($event)"
-    [rowHover]="true"
-    class="p-datatable-sm"
+  <!-- Modal de Usuario con PrimeNG Dialog -->
+  <p-dialog
+    [header]="
+      modalMode() === 'create'
+        ? 'Nuevo Usuario'
+        : modalMode() === 'edit'
+          ? 'Editar Usuario'
+          : 'Detalles del Usuario'
+    "
+    [(visible)]="showModalVisible"
+    [modal]="true"
+    [style]="{ width: '600px' }"
+    [closable]="true"
+    (onHide)="closeModal()"
+    appendTo="body"
   >
-    <ng-template pTemplate="header">
-      <tr>
-        <th>Usuario</th>
-        <th>Email</th>
-        <th>Perfil</th>
-        <th>Fincas</th>
-        <th>Estado</th>
-        <th style="width: 150px">Acciones</th>
-      </tr>
-    </ng-template>
-    <ng-template pTemplate="body" let-user>
-      <tr [class.opacity-50]="!user.is_active">
-        <td>
-          <div class="flex items-center gap-3">
-            <div class="user-avatar">
-              {{ user.nombre_usuario?.charAt(0) }}{{ user.apellido_usuario?.charAt(0) }}
-            </div>
-            <span class="font-medium">{{ user.nombre_usuario }} {{ user.apellido_usuario }}</span>
+    @if (modalMode() === "view") {
+      <!-- Vista de solo lectura -->
+      <div class="flex flex-col gap-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="text-sm text-gray-500 block mb-1"
+              >Nombre completo</label
+            >
+            <span class="font-medium"
+              >{{ selectedUser()?.nombre_usuario }}
+              {{ selectedUser()?.apellido_usuario }}</span
+            >
           </div>
-        </td>
-        <td>{{ user.email }}</td>
-        <td>
-          <p-tag 
-            [value]="getPerfilName(user.id_perfil_usuario)" 
-            [severity]="getPerfilSeverity(user.id_perfil_usuario)"
-          ></p-tag>
-        </td>
-        <td>
-          <span [pTooltip]="getFarmNames(user)" tooltipPosition="top">
-            {{ getFarmNames(user) | slice:0:25 }}{{ getFarmNames(user).length > 25 ? '...' : '' }}
-          </span>
-        </td>
-        <td>
-          <p-tag 
-            [value]="user.is_active ? 'Activo' : 'Inactivo'" 
-            [severity]="user.is_active ? 'success' : 'danger'"
-          ></p-tag>
-        </td>
-        <td>
-          <div class="flex gap-2 justify-content-center">
-            <button 
-              pButton
-              [rounded]="true" 
-              [text]="true"
-              severity="info"
-              pTooltip="Ver detalles"
-              tooltipPosition="top"
-              (click)="openViewModal(user)"
-              class="p-button-icon-only btn-action btn-action-view">
-              <lucide-icon [img]="eyeIcon" [size]="18"></lucide-icon>
-            </button>
-            <button 
-              pButton
-              [rounded]="true" 
-              [text]="true"
-              severity="warn"
-              pTooltip="Editar"
-              tooltipPosition="top"
-              (click)="openEditModal(user)"
-              class="p-button-icon-only btn-action btn-action-edit">
-              <lucide-icon [img]="pencilIcon" [size]="18"></lucide-icon>
-            </button>
-            <button 
-              pButton
-              [rounded]="true" 
-              [text]="true"
-              severity="secondary"
-              pTooltip="Resetear contraseña"
-              tooltipPosition="top"
-              (click)="confirmResetPassword(user)"
-              class="p-button-icon-only btn-action">
-              <lucide-icon [img]="keyIcon" [size]="18"></lucide-icon>
-            </button>
-            @if (user.is_active) {
-              <button 
-                pButton
-                [rounded]="true" 
-                [text]="true"
-                severity="danger"
-                pTooltip="Desactivar"
-                tooltipPosition="top"
-                (click)="confirmDelete(user)"
-                class="p-button-icon-only btn-action btn-action-delete">
-                <lucide-icon [img]="banIcon" [size]="18"></lucide-icon>
-              </button>
-            } @else {
-              <button 
-                pButton
-                [rounded]="true" 
-                [text]="true"
-                severity="success"
-                pTooltip="Reactivar"
-                tooltipPosition="top"
-                (click)="confirmReactivate(user)"
-                class="p-button-icon-only btn-action btn-action-success">
-                <lucide-icon [img]="checkCircleIcon" [size]="18"></lucide-icon>
-              </button>
+          <div>
+            <label class="text-sm text-gray-500 block mb-1">Email</label>
+            <span>{{ selectedUser()?.email }}</span>
+          </div>
+          <div>
+            <label class="text-sm text-gray-500 block mb-1">Perfil</label>
+            <p-tag
+              [value]="getPerfilName(selectedUser()?.id_perfil_usuario || 0)"
+              [severity]="
+                getPerfilSeverity(selectedUser()?.id_perfil_usuario || 0)
+              "
+            ></p-tag>
+          </div>
+          <div>
+            <label class="text-sm text-gray-500 block mb-1">Estado</label>
+            <p-tag
+              [value]="selectedUser()?.is_active ? 'Activo' : 'Inactivo'"
+              [severity]="selectedUser()?.is_active ? 'success' : 'danger'"
+            ></p-tag>
+          </div>
+        </div>
+        <div>
+          <label class="text-sm text-gray-500 block mb-1"
+            >Fincas asignadas</label
+          >
+          <span>{{ selectedUser() ? getFarmNames(selectedUser()!) : "" }}</span>
+        </div>
+      </div>
+      <ng-template pTemplate="footer">
+        <p-button
+          label="Cerrar"
+          severity="secondary"
+          (onClick)="closeModal()"
+        ></p-button>
+        <p-button label="Editar" (onClick)="openEditModal(selectedUser()!)">
+          <lucide-icon [img]="pencilIcon" class="mr-2" size="16"></lucide-icon>
+        </p-button>
+      </ng-template>
+    } @else {
+      <!-- Formulario de creación/edición -->
+      <form [formGroup]="userForm" (ngSubmit)="saveUser()">
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div class="flex flex-col gap-2">
+            <label for="nombre_usuario">Nombre *</label>
+            <input
+              pInputText
+              id="nombre_usuario"
+              formControlName="nombre_usuario"
+              class="w-full"
+            />
+            @if (
+              userForm.get("nombre_usuario")?.invalid &&
+              userForm.get("nombre_usuario")?.touched
+            ) {
+              <small class="text-red-500">El nombre es requerido</small>
             }
           </div>
-        </td>
-      </tr>
-    </ng-template>
-    <ng-template pTemplate="emptymessage">
-      <tr>
-        <td colspan="6" class="text-center py-8 ">
-          <lucide-icon [img]="usersIcon" size="48" class="text-gray-300 mb-3 flex justify-center"></lucide-icon>
-          <p class="text-gray-500">No se encontraron usuarios</p>
-        </td>
-      </tr>
-    </ng-template>
-  </p-table>
-</div>
+          <div class="flex flex-col gap-2">
+            <label for="apellido_usuario">Apellido *</label>
+            <input
+              pInputText
+              id="apellido_usuario"
+              formControlName="apellido_usuario"
+              class="w-full"
+            />
+            @if (
+              userForm.get("apellido_usuario")?.invalid &&
+              userForm.get("apellido_usuario")?.touched
+            ) {
+              <small class="text-red-500">El apellido es requerido</small>
+            }
+          </div>
+        </div>
 
-<!-- Modal de Usuario con PrimeNG Dialog -->
-<p-dialog 
-  [header]="modalMode() === 'create' ? 'Nuevo Usuario' : modalMode() === 'edit' ? 'Editar Usuario' : 'Detalles del Usuario'"
-  [(visible)]="showModalVisible"
-  [modal]="true"
-  [style]="{ width: '600px' }"
-  [closable]="true"
-  (onHide)="closeModal()"
-  appendTo="body"
->
-  @if (modalMode() === 'view') {
-    <!-- Vista de solo lectura -->
-    <div class="flex flex-col gap-4">
-      <div class="grid grid-cols-2 gap-4">
-        <div>
-          <label class="text-sm text-gray-500 block mb-1">Nombre completo</label>
-          <span class="font-medium">{{ selectedUser()?.nombre_usuario }} {{ selectedUser()?.apellido_usuario }}</span>
-        </div>
-        <div>
-          <label class="text-sm text-gray-500 block mb-1">Email</label>
-          <span>{{ selectedUser()?.email }}</span>
-        </div>
-        <div>
-          <label class="text-sm text-gray-500 block mb-1">Perfil</label>
-          <p-tag [value]="getPerfilName(selectedUser()?.id_perfil_usuario || 0)" [severity]="getPerfilSeverity(selectedUser()?.id_perfil_usuario || 0)"></p-tag>
-        </div>
-        <div>
-          <label class="text-sm text-gray-500 block mb-1">Estado</label>
-          <p-tag [value]="selectedUser()?.is_active ? 'Activo' : 'Inactivo'" [severity]="selectedUser()?.is_active ? 'success' : 'danger'"></p-tag>
-        </div>
-      </div>
-      <div>
-        <label class="text-sm text-gray-500 block mb-1">Fincas asignadas</label>
-        <span>{{ selectedUser() ? getFarmNames(selectedUser()!) : '' }}</span>
-      </div>
-    </div>
-    <ng-template pTemplate="footer">
-      <p-button label="Cerrar" severity="secondary" (onClick)="closeModal()"></p-button>
-      <p-button label="Editar" (onClick)="openEditModal(selectedUser()!)">
-        <lucide-icon [img]="pencilIcon" class="mr-2" size="16"></lucide-icon>
-      </p-button>
-    </ng-template>
-  } @else {
-    <!-- Formulario de creación/edición -->
-    <form [formGroup]="userForm" (ngSubmit)="saveUser()">
-      <div class="grid grid-cols-2 gap-4 mb-4">
-        <div class="flex flex-col gap-2">
-          <label for="nombre_usuario">Nombre *</label>
-          <input pInputText id="nombre_usuario" formControlName="nombre_usuario" class="w-full" />
-          @if (userForm.get('nombre_usuario')?.invalid && userForm.get('nombre_usuario')?.touched) {
-            <small class="text-red-500">El nombre es requerido</small>
-          }
-        </div>
-        <div class="flex flex-col gap-2">
-          <label for="apellido_usuario">Apellido *</label>
-          <input pInputText id="apellido_usuario" formControlName="apellido_usuario" class="w-full" />
-          @if (userForm.get('apellido_usuario')?.invalid && userForm.get('apellido_usuario')?.touched) {
-            <small class="text-red-500">El apellido es requerido</small>
-          }
-        </div>
-      </div>
-
-      <div class="flex flex-col gap-2 mb-4">
-        <label for="email">Email *</label>
-        <input pInputText type="email" id="email" formControlName="email" class="w-full" />
-        @if (userForm.get('email')?.invalid && userForm.get('email')?.touched) {
-          <small class="text-red-500">Ingrese un email válido</small>
-        }
-        @if (formErrors()['email']) {
-          @for (error of formErrors()['email']; track error) {
-            <small class="text-red-500">{{ error }}</small>
-          }
-        }
-      </div>
-
-      @if (modalMode() === 'create') {
         <div class="flex flex-col gap-2 mb-4">
-          <label for="password">Contraseña *</label>
-          <p-password id="password" formControlName="password" [toggleMask]="true" styleClass="w-full" inputStyleClass="w-full"></p-password>
-          <small class="text-gray-500">Mínimo 8 caracteres, incluir mayúscula, minúscula, número y carácter especial (@$!%*?&)</small>
-          @if (userForm.get('password')?.invalid && userForm.get('password')?.touched) {
-            <small class="text-red-500">La contraseña no cumple los requisitos</small>
+          <label for="email">Email *</label>
+          <input
+            pInputText
+            type="email"
+            id="email"
+            formControlName="email"
+            class="w-full"
+          />
+          @if (
+            userForm.get("email")?.invalid && userForm.get("email")?.touched
+          ) {
+            <small class="text-red-500">Ingrese un email válido</small>
           }
-          @if (formErrors()['password']) {
-            @for (error of formErrors()['password']; track error) {
+          @if (formErrors()["email"]) {
+            @for (error of formErrors()["email"]; track error) {
               <small class="text-red-500">{{ error }}</small>
             }
           }
         </div>
-      }
 
-      <div class="flex flex-col gap-2 mb-4">
-        <label for="id_perfil_usuario">Perfil/Rol *</label>
-        <p-select 
-          id="id_perfil_usuario" 
-          formControlName="id_perfil_usuario"
-          [options]="perfilesParaCrearOptions()"
-          placeholder="Seleccione un perfil"
-          styleClass="w-full"
-          appendTo="body"
-        ></p-select>
-      </div>
-
-      <div class="flex flex-col gap-2 mb-4">
-        <div class="flex items-center justify-between">
-          <label>Fincas asignadas</label>
-          <p-button 
-            label="Asignar Fincas" 
-            severity="secondary" 
-            [text]="true"
-            size="small"
-            (onClick)="openFarmsModal()"
-          >
-            <lucide-icon [img]="mapPinIcon" class="mr-1" size="14"></lucide-icon>
-          </p-button>
-        </div>
-        @if (userForm.get('fincas')?.value?.length > 0) {
-          <div class="p-3 border rounded-lg bg-gray-50 dark:bg-gray-800">
-            <div class="flex flex-wrap gap-2">
-              @for (codFinca of userForm.get('fincas')?.value; track codFinca) {
-                <p-tag 
-                  [value]="getFarmName(codFinca)" 
-                  [severity]="userForm.get('finca_principal')?.value === codFinca ? 'success' : 'secondary'"
-                ></p-tag>
+        @if (modalMode() === "create") {
+          <div class="flex flex-col gap-2 mb-4">
+            <label for="password">Contraseña *</label>
+            <p-password
+              id="password"
+              formControlName="password"
+              [toggleMask]="true"
+              styleClass="w-full"
+              inputStyleClass="w-full"
+            ></p-password>
+            <small class="text-gray-500"
+              >Mínimo 8 caracteres, incluir mayúscula, minúscula, número y
+              carácter especial (@$!%*?&)</small
+            >
+            @if (
+              userForm.get("password")?.invalid &&
+              userForm.get("password")?.touched
+            ) {
+              <small class="text-red-500"
+                >La contraseña no cumple los requisitos</small
+              >
+            }
+            @if (formErrors()["password"]) {
+              @for (error of formErrors()["password"]; track error) {
+                <small class="text-red-500">{{ error }}</small>
               }
-            </div>
-            @if (userForm.get('fincas')?.value?.length > 1) {
-              <div class="mt-3 pt-3 border-t">
-                <label class="text-sm text-gray-500">Finca principal:</label>
-                <p-select 
-                  formControlName="finca_principal"
-                  [options]="fincasPrincipalesOptions()"
-                  placeholder="Seleccione la finca principal"
-                  styleClass="w-full mt-1"
-                  appendTo="body"
-                ></p-select>
-              </div>
             }
           </div>
-        } @else {
-          <div class="p-3 border rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-500 text-sm">
-            No hay fincas asignadas. Haga clic en "Asignar Fincas" para agregar.
+        }
+
+        <div class="flex flex-col gap-2 mb-4">
+          <label for="id_perfil_usuario">Perfil/Rol *</label>
+          <p-select
+            id="id_perfil_usuario"
+            formControlName="id_perfil_usuario"
+            [options]="perfilesParaCrearOptions()"
+            placeholder="Seleccione un perfil"
+            styleClass="w-full"
+            appendTo="body"
+          ></p-select>
+        </div>
+
+        <div class="flex flex-col gap-2 mb-4">
+          <div class="flex items-center justify-between">
+            <label>Fincas asignadas</label>
+            <p-button
+              label="Asignar Fincas"
+              severity="secondary"
+              [text]="true"
+              size="small"
+              (onClick)="openFarmsModal()"
+            >
+              <lucide-icon
+                [img]="mapPinIcon"
+                class="mr-1"
+                size="14"
+              ></lucide-icon>
+            </p-button>
+          </div>
+          @if (userForm.get("fincas")?.value?.length > 0) {
+            <div class="p-3 border rounded-lg bg-gray-50 dark:bg-gray-800">
+              <div class="flex flex-wrap gap-2">
+                @for (
+                  codFinca of userForm.get("fincas")?.value;
+                  track codFinca
+                ) {
+                  <p-tag
+                    [value]="getFarmName(codFinca)"
+                    [severity]="
+                      userForm.get('finca_principal')?.value === codFinca
+                        ? 'success'
+                        : 'secondary'
+                    "
+                  ></p-tag>
+                }
+              </div>
+              @if (userForm.get("fincas")?.value?.length > 1) {
+                <div class="mt-3 pt-3 border-t">
+                  <label class="text-sm text-gray-500">Finca principal:</label>
+                  <p-select
+                    formControlName="finca_principal"
+                    [options]="fincasPrincipalesOptions()"
+                    placeholder="Seleccione la finca principal"
+                    styleClass="w-full mt-1"
+                    appendTo="body"
+                  ></p-select>
+                </div>
+              }
+            </div>
+          } @else {
+            <div
+              class="p-3 border rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-500 text-sm"
+            >
+              No hay fincas asignadas. Haga clic en "Asignar Fincas" para
+              agregar.
+            </div>
+          }
+        </div>
+
+        @if (modalMode() === "edit") {
+          <div class="flex items-center gap-2 mb-4">
+            <p-checkbox
+              formControlName="is_active"
+              [binary]="true"
+              inputId="is_active"
+            ></p-checkbox>
+            <label for="is_active">Usuario activo</label>
           </div>
         }
-      </div>
-
-      @if (modalMode() === 'edit') {
-        <div class="flex items-center gap-2 mb-4">
-          <p-checkbox formControlName="is_active" [binary]="true" inputId="is_active"></p-checkbox>
-          <label for="is_active">Usuario activo</label>
-        </div>
-      }
-
       </form>
-    <div class="flex justify-end gap-2 mt-4 pt-4 ">
-      <p-button label="Cancelar" severity="secondary" (onClick)="closeModal()"></p-button>
-      <p-button 
-        [label]="modalMode() === 'create' ? 'Crear Usuario' : 'Guardar Cambios'" 
-        (onClick)="saveUser()"
-        [loading]="formLoading()"
-      >
+      <div class="flex justify-end gap-2 mt-4 pt-4">
+        <p-button
+          label="Cancelar"
+          severity="secondary"
+          (onClick)="closeModal()"
+        ></p-button>
+        <p-button
+          [label]="
+            modalMode() === 'create' ? 'Crear Usuario' : 'Guardar Cambios'
+          "
+          (onClick)="saveUser()"
+          [loading]="formLoading()"
+        >
+          <lucide-icon [img]="checkIcon" class="mr-2" size="16"></lucide-icon>
+        </p-button>
+      </div>
+    }
+  </p-dialog>
+
+  <!-- Modal de Asignación de Fincas -->
+  <p-dialog
+    header="Asignar Fincas"
+    [(visible)]="showFincasModalVisible"
+    [modal]="true"
+    [style]="{ width: '500px' }"
+    [closable]="true"
+    appendTo="body"
+  >
+    <div class="flex flex-col gap-4">
+      <p class="text-sm text-gray-500">
+        Seleccione las fincas que desea asignar al usuario:
+      </p>
+      <div class="border rounded-lg overflow-hidden">
+        <p-table
+          [value]="fincasDisponibles()"
+          [(selection)]="selectedFincasTemp"
+          dataKey="cod_finca"
+          [scrollable]="true"
+          scrollHeight="300px"
+        >
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="width: 50px">
+                <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+              </th>
+              <th>Nombre de la Finca</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-finca>
+            <tr>
+              <td>
+                <p-tableCheckbox [value]="finca"></p-tableCheckbox>
+              </td>
+              <td>{{ finca.nomb_finca }}</td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="2" class="text-center py-4 text-gray-500">
+                No hay fincas disponibles
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+      <div class="text-sm text-gray-500">
+        {{ selectedFincasTemp.length }} finca(s) seleccionada(s)
+      </div>
+    </div>
+    <ng-template pTemplate="footer">
+      <p-button
+        label="Cancelar"
+        severity="secondary"
+        (onClick)="closeFarmsModal()"
+      ></p-button>
+      <p-button label="Aceptar" (onClick)="confirmFincasSelection()">
         <lucide-icon [img]="checkIcon" class="mr-2" size="16"></lucide-icon>
       </p-button>
-    </div>
-  }
-</p-dialog>
+    </ng-template>
+  </p-dialog>
 
-<!-- Modal de Asignación de Fincas -->
-<p-dialog 
-  header="Asignar Fincas"
-  [(visible)]="showFincasModalVisible"
-  [modal]="true"
-  [style]="{ width: '500px' }"
-  [closable]="true"
-  appendTo="body"
->
-  <div class="flex flex-col gap-4">
-    <p class="text-sm text-gray-500">Seleccione las fincas que desea asignar al usuario:</p>
-    <div class="border rounded-lg overflow-hidden">
-      <p-table 
-        [value]="fincasDisponibles()" 
-        [(selection)]="selectedFincasTemp"
-        dataKey="cod_finca"
-        [scrollable]="true"
-        scrollHeight="300px"
+  <!-- Modal de Confirmación con PrimeNG Dialog -->
+  <p-dialog
+    header="Confirmar acción"
+    [(visible)]="showConfirmModalVisible"
+    [modal]="true"
+    [style]="{ width: '450px' }"
+    [closable]="true"
+    (onHide)="closeConfirmModal()"
+  >
+    <div class="flex flex-col gap-4">
+      @switch (confirmAction()) {
+        @case ("delete") {
+          <p>
+            ¿Está seguro de desactivar al usuario
+            <strong
+              >{{ confirmUser()?.nombre_usuario }}
+              {{ confirmUser()?.apellido_usuario }}</strong
+            >?
+          </p>
+          <p class="text-gray-500 text-sm">
+            El usuario no podrá acceder al sistema pero sus datos se
+            conservarán.
+          </p>
+        }
+        @case ("reactivate") {
+          <p>
+            ¿Está seguro de reactivar al usuario
+            <strong
+              >{{ confirmUser()?.nombre_usuario }}
+              {{ confirmUser()?.apellido_usuario }}</strong
+            >?
+          </p>
+        }
+        @case ("reset-password") {
+          <p>
+            ¿Está seguro de resetear la contraseña del usuario
+            <strong
+              >{{ confirmUser()?.nombre_usuario }}
+              {{ confirmUser()?.apellido_usuario }}</strong
+            >?
+          </p>
+          <p class="text-gray-500 text-sm">
+            Se generará una contraseña temporal que deberá proporcionar al
+            usuario.
+          </p>
+        }
+      }
+    </div>
+    <ng-template pTemplate="footer">
+      <p-button
+        label="Cancelar"
+        severity="secondary"
+        (onClick)="closeConfirmModal()"
+      ></p-button>
+      <p-button
+        label="Confirmar"
+        [severity]="confirmAction() === 'delete' ? 'danger' : 'primary'"
+        [loading]="formLoading()"
+        (onClick)="executeConfirmAction()"
+      ></p-button>
+    </ng-template>
+  </p-dialog>
+
+  <!-- Modal de Contraseña Temporal con PrimeNG Dialog -->
+  <p-dialog
+    header="Contraseña Temporal"
+    [(visible)]="showTempPasswordModalVisible"
+    [modal]="true"
+    [style]="{ width: '450px' }"
+    [closable]="false"
+  >
+    <div class="flex flex-col gap-4">
+      <p>La contraseña ha sido reseteada exitosamente.</p>
+      <div
+        class="flex items-center gap-3 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg"
       >
-        <ng-template pTemplate="header">
-          <tr>
-            <th style="width: 50px">
-              <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
-            </th>
-            <th>Nombre de la Finca</th>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-finca>
-          <tr>
-            <td>
-              <p-tableCheckbox [value]="finca"></p-tableCheckbox>
-            </td>
-            <td>{{ finca.nomb_finca }}</td>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="emptymessage">
-          <tr>
-            <td colspan="2" class="text-center py-4 text-gray-500">No hay fincas disponibles</td>
-          </tr>
-        </ng-template>
-      </p-table>
+        <code class="text-lg font-bold text-primary flex-1">{{
+          tempPassword()
+        }}</code>
+        <p-button
+          severity="secondary"
+          [text]="true"
+          pTooltip="Copiar"
+          (onClick)="copyTempPassword()"
+        >
+          <lucide-icon [img]="copyIcon" size="16"></lucide-icon>
+        </p-button>
+      </div>
+      <div
+        class="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg"
+      >
+        <p class="text-yellow-800 dark:text-yellow-200 text-sm">
+          <lucide-icon
+            [img]="alertIcon"
+            class="mr-2 inline"
+            size="16"
+          ></lucide-icon>
+          <strong>Importante:</strong> Proporcione esta contraseña al usuario de
+          forma segura. El usuario deberá cambiarla en su próximo inicio de
+          sesión.
+        </p>
+      </div>
     </div>
-    <div class="text-sm text-gray-500">
-      {{ selectedFincasTemp.length }} finca(s) seleccionada(s)
-    </div>
-  </div>
-  <ng-template pTemplate="footer">
-    <p-button label="Cancelar" severity="secondary" (onClick)="closeFarmsModal()"></p-button>
-    <p-button label="Aceptar" (onClick)="confirmFincasSelection()">
-      <lucide-icon [img]="checkIcon" class="mr-2" size="16"></lucide-icon>
-    </p-button>
-  </ng-template>
-</p-dialog>
-
-<!-- Modal de Confirmación con PrimeNG Dialog -->
-<p-dialog 
-  header="Confirmar acción"
-  [(visible)]="showConfirmModalVisible"
-  [modal]="true"
-  [style]="{ width: '450px' }"
-  [closable]="true"
-  (onHide)="closeConfirmModal()"
->
-  <div class="flex flex-col gap-4">
-    @switch (confirmAction()) {
-      @case ('delete') {
-        <p>¿Está seguro de desactivar al usuario <strong>{{ confirmUser()?.nombre_usuario }} {{ confirmUser()?.apellido_usuario }}</strong>?</p>
-        <p class="text-gray-500 text-sm">El usuario no podrá acceder al sistema pero sus datos se conservarán.</p>
-      }
-      @case ('reactivate') {
-        <p>¿Está seguro de reactivar al usuario <strong>{{ confirmUser()?.nombre_usuario }} {{ confirmUser()?.apellido_usuario }}</strong>?</p>
-      }
-      @case ('reset-password') {
-        <p>¿Está seguro de resetear la contraseña del usuario <strong>{{ confirmUser()?.nombre_usuario }} {{ confirmUser()?.apellido_usuario }}</strong>?</p>
-        <p class="text-gray-500 text-sm">Se generará una contraseña temporal que deberá proporcionar al usuario.</p>
-      }
-    }
-  </div>
-  <ng-template pTemplate="footer">
-    <p-button label="Cancelar" severity="secondary" (onClick)="closeConfirmModal()"></p-button>
-    <p-button 
-      label="Confirmar" 
-      [severity]="confirmAction() === 'delete' ? 'danger' : 'primary'"
-      [loading]="formLoading()"
-      (onClick)="executeConfirmAction()"
-    ></p-button>
-  </ng-template>
-</p-dialog>
-
-<!-- Modal de Contraseña Temporal con PrimeNG Dialog -->
-<p-dialog 
-  header="Contraseña Temporal"
-  [(visible)]="showTempPasswordModalVisible"
-  [modal]="true"
-  [style]="{ width: '450px' }"
-  [closable]="false"
->
-  <div class="flex flex-col gap-4">
-    <p>La contraseña ha sido reseteada exitosamente.</p>
-    <div class="flex items-center gap-3 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
-      <code class="text-lg font-bold text-primary flex-1">{{ tempPassword() }}</code>
-      <p-button severity="secondary" [text]="true" pTooltip="Copiar" (onClick)="copyTempPassword()">
-        <lucide-icon [img]="copyIcon" size="16"></lucide-icon>
+    <ng-template pTemplate="footer">
+      <p-button label="Entendido" (onClick)="closeTempPasswordModal()">
+        <lucide-icon [img]="checkIcon" class="mr-2" size="16"></lucide-icon>
       </p-button>
-    </div>
-    <div class="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-      <p class="text-yellow-800 dark:text-yellow-200 text-sm">
-        <lucide-icon [img]="alertIcon" class="mr-2 inline" size="16"></lucide-icon>
-        <strong>Importante:</strong> Proporcione esta contraseña al usuario de forma segura. 
-        El usuario deberá cambiarla en su próximo inicio de sesión.
-      </p>
-    </div>
-  </div>
-  <ng-template pTemplate="footer">
-    <p-button label="Entendido" (onClick)="closeTempPasswordModal()">
-      <lucide-icon [img]="checkIcon" class="mr-2" size="16"></lucide-icon>
-    </p-button>
-  </ng-template>
-</p-dialog>
+    </ng-template>
+  </p-dialog>
 </div>

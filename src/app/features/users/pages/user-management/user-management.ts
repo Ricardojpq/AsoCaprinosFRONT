@@ -14,15 +14,18 @@ import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
+import { AvatarModule } from 'primeng/avatar';
 import { PasswordModule } from 'primeng/password';
 import { LucideAngularModule, UserPlus, Search, FilterX, Eye, Pencil, KeyRound, Ban, CheckCircle, Users, Copy, Check, AlertTriangle, MapPin } from 'lucide-angular';
+import { IconFieldModule } from "primeng/iconfield";
+import { InputIconModule } from "primeng/inputicon";
 
 @Component({
   selector: 'app-user-management',
   standalone: true,
   imports: [
-    CommonModule, 
-    FormsModule, 
+    CommonModule,
+    FormsModule,
     ReactiveFormsModule,
     DialogModule,
     ButtonModule,
@@ -34,12 +37,14 @@ import { LucideAngularModule, UserPlus, Search, FilterX, Eye, Pencil, KeyRound, 
     TooltipModule,
     ConfirmDialogModule,
     ToastModule,
+    AvatarModule,
     PasswordModule,
-    LucideAngularModule
-  ],
+    LucideAngularModule,
+    IconFieldModule,
+    InputIconModule
+],
   providers: [ConfirmationService, MessageService],
-  templateUrl: './user-management.html',
-  styleUrl: './user-management.css'
+  templateUrl: './user-management.html'
 })
 export class UserManagementComponent implements OnInit {
   // Iconos de Lucide

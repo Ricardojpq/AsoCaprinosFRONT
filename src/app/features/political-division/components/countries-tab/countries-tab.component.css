@@ -1,3 +1,5 @@
+@reference "tailwindcss";
+
 .countries-tab-container {
   @apply p-4;
 }

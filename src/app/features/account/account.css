@@ -1,3 +1,5 @@
+@reference "tailwindcss";
+
 /* Estilos personalizados para los tabs */
 .account-tabs {
   @apply w-full;
