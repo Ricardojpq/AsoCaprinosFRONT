@@ -86,7 +86,7 @@ export class EstadosReproductivosComponent implements OnInit {
 
   // Form
   selectedNewStatus = signal<string | null>(null);
-  comments = '';
+  observaciones = '';
 
   sexoOptions = [
     { label: 'Todos', value: null },
@@ -261,7 +261,7 @@ export class EstadosReproductivosComponent implements OnInit {
       return;
     }
     this.selectedNewStatus.set(null);
-    this.comments = '';
+    this.observaciones = '';
     this.showChangeStatusDialog.set(true);
   }
 
@@ -282,7 +282,7 @@ export class EstadosReproductivosComponent implements OnInit {
         animal_id: animalIds[0],
         tipo_estado: 'ESTATUS_REPRODUCTIVO',
         nuevo_estado: this.selectedNewStatus()!,
-        comments: this.comments || undefined
+        observaciones: this.observaciones || undefined
       }).subscribe({
         next: () => {
           this.messageService.add({
@@ -306,7 +306,7 @@ export class EstadosReproductivosComponent implements OnInit {
         animal_ids: animalIds,
         tipo_estado: 'ESTATUS_REPRODUCTIVO',
         nuevo_estado: this.selectedNewStatus()!,
-        comments: this.comments || undefined
+        observaciones: this.observaciones || undefined
       }).subscribe({
         next: (response) => {
           this.messageService.add({
@@ -341,7 +341,7 @@ export class EstadosReproductivosComponent implements OnInit {
           animal_id: animal.id,
           tipo_estado: 'ESTATUS_REPRODUCTIVO',
           nuevo_estado: nuevoEstado,
-          comments: `Cambio rápido: ${this.getReproductiveStatus(animal)} → ${nuevoEstado}`
+          observaciones: `Cambio rápido: ${this.getReproductiveStatus(animal)} → ${nuevoEstado}`
         }).subscribe({
           next: () => {
             this.messageService.add({

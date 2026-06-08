@@ -4,8 +4,16 @@ import { modulePermissionGuard } from '@core/guards/module-permission.guard';
 export const REPRODUCCION_ROUTES: Routes = [
   {
     path: '',
-    redirectTo: 'temporadas-monta',
+    redirectTo: 'dashboard',
     pathMatch: 'full'
+  },
+  {
+    path: 'dashboard',
+    canActivate: [modulePermissionGuard('Reproduction')],
+    loadComponent: () =>
+      import('./pages/dashboard/dashboard').then(
+        (c) => c.DashboardReproduccionComponent
+      ),
   },
   {
     path: 'temporadas-monta',
@@ -46,5 +54,11 @@ export const REPRODUCCION_ROUTES: Routes = [
     canActivate: [modulePermissionGuard('Reproduction/estados-reproductivos')],
     loadComponent: () =>
       import('./pages/reproductive-status/reproductive-status').then((c) => c.EstadosReproductivosComponent),
+  },
+  {
+    path: 'tatuar-crias',
+    canActivate: [modulePermissionGuard('Reproduction/tatuar-crias')],
+    loadComponent: () =>
+      import('./pages/tattoo/tattoo').then((c) => c.TatuarCriasComponent),
   },
 ];

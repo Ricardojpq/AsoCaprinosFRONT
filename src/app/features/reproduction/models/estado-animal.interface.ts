@@ -23,7 +23,7 @@ export interface AnimalStatusHistory {
   estado_id: number;
   fecha_inicio: string;
   fecha_fin?: string;
-  comments?: string;
+  observaciones?: string;
   tipo_estado?: StatusType;
   estado?: StatusCatalog;
   animal?: any;
@@ -60,13 +60,15 @@ export const REPRODUCTIVE_STATUSES = {
   SECA: 'SECA'
 } as const;
 
-// Constantes para etapas evolutivas
+// Constantes para etapas evolutivas (NOMENCLATURA CAPRINA - GAP-001)
 export const EVOLUTIONARY_STAGES = {
   CRIA: 'CRIA',
-  CORDERO: 'CORDERO',
-  CORDERA: 'CORDERA',
-  BORREGO: 'BORREGO',
-  BORREGA: 'BORREGA',
-  CARNERO: 'CARNERO',
-  OVEJA: 'OVEJA'
+  // Macho
+  CABRITO: 'CABRITO',
+  CABRITON: 'CABRITON',
+  CHIVO: 'CHIVO',
+  // Hembra
+  CABRITA: 'CABRITA',
+  CABRITONA: 'CABRITONA',
+  CABRA: 'CABRA',
 } as const;

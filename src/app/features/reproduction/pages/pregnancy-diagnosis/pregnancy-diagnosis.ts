@@ -22,7 +22,7 @@ import { DatePickerModule } from 'primeng/datepicker';
 import { LucideAngularModule } from 'lucide-angular';
 import { Check, CheckCircle, Clock, RefreshCw, Heart, XCircle, CheckSquare, Inbox } from 'lucide-angular';
 import { ReproductionService } from '../../services/reproduction.service';
-import { TemporadaMontaHembra } from '../../models/temporada-monta.interface';
+import { TemporadaMontaHembra, TemporadaMonta } from '../../models/temporada-monta.interface';
 
 interface HembraDiagnostico extends TemporadaMontaHembra {
   selected?: boolean;
@@ -81,7 +81,7 @@ export class DiagnosticoPrenezComponent implements OnInit {
   private farmContext = inject(FarmContextService);
 
   // Signals
-  diasEsperaDiagnostico = signal<number>(30);
+  diasEsperaDiagnostico = signal<number>(45);
   hembrasElegibles = signal<HembraDiagnostico[]>([]);
   hembrasPendientes = signal<HembraDiagnostico[]>([]);
   loading = signal(false);
@@ -92,11 +92,14 @@ export class DiagnosticoPrenezComponent implements OnInit {
   filterBusqueda = '';
   filterStartDate: Date | null = null;
   filterEndDate: Date | null = null;
+  filterTemporada = signal<number | null>(null);
+  temporadasFinalizadas = signal<TemporadaMonta[]>([]);
   
   // Filtros para pendientes
   filterBusquedaPendientes = '';
   filterFechaInicioPendientes: Date | null = null;
   filterFechaFinPendientes: Date | null = null;
+  filterTemporadaPendientes = signal<number | null>(null);
 
   // Computed
   hembrasSeleccionadas = computed(() => 
@@ -122,6 +125,7 @@ export class DiagnosticoPrenezComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadData();
+    this.loadTemporadasFinalizadas();
   }
 
   get selectedFarm(): number | null {
@@ -163,6 +167,17 @@ export class DiagnosticoPrenezComponent implements OnInit {
     this.loadPendingFemales();
   }
 
+  loadTemporadasFinalizadas(): void {
+    const farmId = this.selectedFarm;
+    if (!farmId) return;
+    this.reproductionService.getBreedingSeasons({ cod_finca: farmId, estado: 'FINALIZADA', per_page: 100 })
+      .subscribe({
+        next: (response) => {
+          this.temporadasFinalizadas.set(response.data?.data || []);
+        }
+      });
+  }
+
   loadEligibleFemales(): void {
     this.loading.set(true);
     const filters: any = { per_page: 100 };
@@ -171,6 +186,7 @@ export class DiagnosticoPrenezComponent implements OnInit {
     if (this.filterBusqueda) filters.busqueda = this.filterBusqueda;
     if (this.filterStartDate) filters.fecha_inicio = this.formatDateForApi(this.filterStartDate);
     if (this.filterEndDate) filters.fecha_fin = this.formatDateForApi(this.filterEndDate);
+    if (this.filterTemporada()) filters.temporada_id = this.filterTemporada();
 
     this.reproductionService.getFemalesForDiagnosis(filters).subscribe({
       next: (response) => {
@@ -201,6 +217,7 @@ export class DiagnosticoPrenezComponent implements OnInit {
     if (this.filterBusquedaPendientes) filters.busqueda = this.filterBusquedaPendientes;
     if (this.filterFechaInicioPendientes) filters.fecha_inicio = this.formatDateForApi(this.filterFechaInicioPendientes);
     if (this.filterFechaFinPendientes) filters.fecha_fin = this.formatDateForApi(this.filterFechaFinPendientes);
+    if (this.filterTemporadaPendientes()) filters.temporada_id = this.filterTemporadaPendientes();
 
     this.reproductionService.getFemalesPendingDiagnosis(filters).subscribe({
       next: (response) => {

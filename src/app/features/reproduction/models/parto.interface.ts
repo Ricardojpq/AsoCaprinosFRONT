@@ -3,7 +3,7 @@ export interface Parto {
   cod_finca: number;
   fecha: string;
   responsable_id?: string;
-  comments?: string;
+  observaciones?: string;
   finca?: any;
   responsable?: any;
   detalles?: PartoDetalle[];
@@ -24,7 +24,7 @@ export interface PartoDetalle {
   causa_aborto?: string;
   estado_madre_post_parto: 'NORMAL' | 'COMPLICACIONES' | 'FALLECIDA';
   tipo_parto: 'NATURAL' | 'ASISTIDO' | 'CESAREA';
-  comments?: string;
+  observaciones?: string;
   hembra?: any;
   crias?: Cria[];
   created_at?: string;
@@ -39,7 +39,7 @@ export interface Cria {
   sexo: 'M' | 'H';
   peso_nacimiento?: number;
   estado_nacimiento: 'VIVO' | 'MUERTO' | 'DEBIL';
-  comments?: string;
+  observaciones?: string;
   control_lactancia?: ControlLactancia;
   created_at?: string;
   updated_at?: string;
@@ -53,7 +53,7 @@ export interface ControlLactancia {
   fecha_destete?: string;
   peso_destete?: number;
   estado: 'CALOSTRO' | 'LACTANDO' | 'DESTETADO';
-  comments?: string;
+  observaciones?: string;
   dias_calostro?: number;
   dias_lactancia?: number;
   dias_totales?: number;
@@ -83,7 +83,7 @@ export interface CreatePartoRequest {
   cod_finca: number;
   fecha: string;
   responsable_id?: string;
-  comments?: string;
+  observaciones?: string;
   detalles: CreatePartoDetalleRequest[];
 }
 
@@ -94,7 +94,7 @@ export interface CreatePartoDetalleRequest {
   hubo_aborto?: boolean;
   causa_aborto?: string;
   estado_madre_post_parto?: 'NORMAL' | 'COMPLICACIONES' | 'FALLECIDA';
-  comments?: string;
+  observaciones?: string;
   crias?: CreateCriaRequest[];
 }
 
@@ -102,5 +102,5 @@ export interface CreateCriaRequest {
   sexo: 'M' | 'H';
   peso_nacimiento?: number;
   estado_nacimiento?: 'VIVO' | 'MUERTO' | 'DEBIL';
-  comments?: string;
+  observaciones?: string;
 }

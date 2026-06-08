@@ -1,0 +1,108 @@
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>
+
+<div class="p-4">
+  <div class="flex justify-between items-center mb-4">
+    <div>
+      <h2 class="text-2xl font-bold text-gray-800 m-0">Tatuar Crías</h2>
+      <p class="text-gray-600 mt-1">Registre el tatuaje oficial de las crías nacidas</p>
+    </div>
+    <p-button
+      [rounded]="true"
+      [text]="true"
+      [loading]="loading()"
+      pTooltip="Actualizar"
+      (onClick)="loadCrias()">
+      <lucide-icon [img]="refreshIcon" size="18"></lucide-icon>
+    </p-button>
+  </div>
+
+  <p-table
+    [value]="crias()"
+    [loading]="loading()"
+    [paginator]="true"
+    [rows]="10"
+    [rowsPerPageOptions]="[5, 10, 20]"
+    styleClass="p-datatable-sm">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Código Provisional</th>
+        <th>Sexo</th>
+        <th>Peso (kg)</th>
+        <th>Estado</th>
+        <th>Madre</th>
+        <th>Parto #</th>
+        <th>Acción</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-cria>
+      <tr>
+        <td class="font-semibold">{{ cria.codigo_provisional || '-' }}</td>
+        <td>
+          <p-tag [value]="cria.sexo === 'M' ? 'Macho' : 'Hembra'" [severity]="cria.sexo === 'M' ? 'info' : 'warn'" />
+        </td>
+        <td>{{ cria.peso_nacimiento || '-' }}</td>
+        <td>{{ cria.estado_nacimiento || '-' }}</td>
+        <td>{{ cria.parto_detalle?.hembra?.nomb_animal || cria.parto_detalle?.hembra?.cod_animal || '-' }}</td>
+        <td>#{{ cria.parto_detalle?.parto_id || '-' }}</td>
+        <td>
+          <p-button
+            label="Tatuar"
+            size="small"
+            (onClick)="openTattooDialog(cria)">
+            <lucide-icon [img]="checkIcon" size="14" class="mr-1"></lucide-icon>
+          </p-button>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr><td colspan="7" class="text-center text-gray-500">No hay crías pendientes de tatuar</td></tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- Tattoo Dialog -->
+<p-dialog
+  [(visible)]="showTattooDialog"
+  [modal]="true"
+  [style]="{width: '450px'}"
+  header="Tatuar Cría"
+  [closable]="true">
+  <ng-template pTemplate="content">
+    @if (tattooingCria()) {
+      <div class="flex flex-col gap-4">
+        <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <p class="text-sm text-blue-800">
+            <strong>Cría:</strong> {{ tattooingCria()!.codigo_provisional || 'Sin código' }}
+            | <strong>Sexo:</strong> {{ tattooingCria()!.sexo === 'M' ? 'Macho' : 'Hembra' }}
+          </p>
+          <p class="text-sm text-blue-700 mt-1">
+            <strong>Madre:</strong> {{ tattooingCria()!.parto_detalle?.hembra?.nomb_animal || tattooingCria()!.parto_detalle?.hembra?.cod_animal || 'N/A' }}
+          </p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">Código del Animal *</label>
+          <div class="flex gap-2">
+            <input type="text" pInputText [(ngModel)]="codAnimal"
+              placeholder="Ej: 42"
+              class="flex-1">
+            <p-button
+              [rounded]="true"
+              [text]="true"
+              size="small"
+              pTooltip="Sugerir siguiente código disponible"
+              (onClick)="fetchSugeridoCodAnimal()">
+              <lucide-icon [img]="sparklesIcon" size="16"></lucide-icon>
+            </p-button>
+          </div>
+          <p class="text-xs text-gray-500 mt-1">Código único que identificará al animal en el sistema</p>
+        </div>
+      </div>
+    }
+  </ng-template>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancelar" [text]="true" (onClick)="showTattooDialog.set(false)"></p-button>
+    <p-button label="Tatuar" severity="success" (onClick)="tatuarCria()" [disabled]="!codAnimal.trim()"></p-button>
+  </ng-template>
+</p-dialog>
