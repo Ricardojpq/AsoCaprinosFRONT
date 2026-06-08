@@ -1,7 +1,9 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZoneChangeDetection } from '@angular/core';
+import { ApplicationConfig, isDevMode, provideBrowserGlobalErrorListeners, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptors, withFetch } from '@angular/common/http';
 import { provideAngularSvgIcon } from 'angular-svg-icon';
+import { provideTransloco } from '@jsverse/transloco';
+import { TranslocoHttpLoader } from '@core/services/transloco-http-loader';
 
 import { routes } from './app.routes';
 import { providePrimeNG } from 'primeng/config';
@@ -113,6 +115,15 @@ export const appConfig: ApplicationConfig = {
         }
       }
     }),
-    provideAngularSvgIcon()
+    provideAngularSvgIcon(),
+    provideTransloco({
+      config: {
+        availableLangs: ['es', 'en'],
+        defaultLang: 'es',
+        reRenderOnLangChange: true,
+        prodMode: !isDevMode(),
+      },
+      loader: TranslocoHttpLoader,
+    }),
   ]
 };

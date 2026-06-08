@@ -140,12 +140,12 @@ export class ReproductionService {
     return this.http.put<ApiResponse<TemporadaMonta>>(`${this.apiUrl}/reproduccion/temporadas-monta/${id}`, data);
   }
 
-  endMatingSeason(id: number): Observable<ApiResponse<TemporadaMonta>> {
-    return this.http.post<ApiResponse<TemporadaMonta>>(`${this.apiUrl}/reproduccion/temporadas-monta/${id}/finalizar`, {});
+  endMatingSeason(id: number, body?: { corral_destino_hembras_id: number; corral_destino_macho_id: number }): Observable<ApiResponse<TemporadaMonta>> {
+    return this.http.post<ApiResponse<TemporadaMonta>>(`${this.apiUrl}/reproduccion/temporadas-monta/${id}/finalizar`, body || {});
   }
 
-  cancelMatingSeason(id: number): Observable<ApiResponse<TemporadaMonta>> {
-    return this.http.post<ApiResponse<TemporadaMonta>>(`${this.apiUrl}/reproduccion/temporadas-monta/${id}/cancelar`, {});
+  cancelMatingSeason(id: number, body?: { corral_destino_hembras_id: number; corral_destino_macho_id: number }): Observable<ApiResponse<TemporadaMonta>> {
+    return this.http.post<ApiResponse<TemporadaMonta>>(`${this.apiUrl}/reproduccion/temporadas-monta/${id}/cancelar`, body || {});
   }
 
   addFemalesToSeason(temporadaId: number, data: AgregarHembrasRequest): Observable<ApiResponse<TemporadaMontaHembra[]>> {
@@ -158,6 +158,22 @@ export class ReproductionService {
 
   markEmpty(hembraId: number): Observable<ApiResponse<TemporadaMontaHembra>> {
     return this.http.post<ApiResponse<TemporadaMontaHembra>>(`${this.apiUrl}/reproduccion/temporadas-monta/hembras/${hembraId}/marcar-vacia`, {});
+  }
+
+  // =====================================================
+  // CORRALES
+  // =====================================================
+
+  getCorrales(codFinca: number): Observable<ApiResponse<any[]>> {
+    return this.http.get<ApiResponse<any[]>>(`${this.apiUrl}/corrales?cod_finca=${codFinca}`);
+  }
+
+  // =====================================================
+  // RAZAS (clasificadores)
+  // =====================================================
+
+  getRazas(): Observable<ApiResponse<any[]>> {
+    return this.http.get<ApiResponse<any[]>>(`${this.apiUrl}/clasificadores/razas`);
   }
 
   // =====================================================
@@ -340,11 +356,11 @@ export class ReproductionService {
     return this.http.get<ApiResponse<any>>(`${this.apiUrl}/reproduccion/estados-animal/animal/${animalId}/historial`, { params });
   }
 
-  changeAnimalStatus(data: { animal_id: number; tipo_estado: string; nuevo_estado: string; comments?: string }): Observable<ApiResponse<any>> {
+  changeAnimalStatus(data: { animal_id: number; tipo_estado: string; nuevo_estado: string; observaciones?: string }): Observable<ApiResponse<any>> {
     return this.http.post<ApiResponse<any>>(`${this.apiUrl}/reproduccion/estados-animal/cambiar`, data);
   }
 
-  bulkUpdateStatus(data: { animal_ids: number[]; tipo_estado: string; nuevo_estado: string; comments?: string }): Observable<ApiResponse<any>> {
+  bulkUpdateStatus(data: { animal_ids: number[]; tipo_estado: string; nuevo_estado: string; observaciones?: string }): Observable<ApiResponse<any>> {
     return this.http.post<ApiResponse<any>>(`${this.apiUrl}/reproduccion/estados-animal/cambiar-masivo`, data);
   }
 

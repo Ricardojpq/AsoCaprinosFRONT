@@ -31,7 +31,8 @@ export const RoleGuard: CanActivateFn = async (route: ActivatedRouteSnapshot) =>
     try {
       await firstValueFrom(jwtAuthService.loadUserProfile());
       const loadedUser = jwtAuthService.getCurrentUser();
-      if (loadedUser && requiredRoles.includes(loadedUser.perfil_id)) {
+      // Convertir a número ya que backend devuelve string
+      if (loadedUser && requiredRoles.includes(Number(loadedUser.perfil_id))) {
         return true;
       }
     } catch {
@@ -41,7 +42,8 @@ export const RoleGuard: CanActivateFn = async (route: ActivatedRouteSnapshot) =>
   }
 
   // Verificar si el usuario tiene alguno de los roles requeridos
-  if (user && requiredRoles.includes(user.perfil_id)) {
+  // Convertir a número ya que backend devuelve string
+  if (user && requiredRoles.includes(Number(user.perfil_id))) {
     return true;
   }
 
@@ -53,6 +55,7 @@ export const RoleGuard: CanActivateFn = async (route: ActivatedRouteSnapshot) =>
 
 /**
  * Guard específico para SuperAdmin (perfil_id = 1)
+ * Nota: El backend devuelve perfil_id como string, por eso usamos == o Number()
  */
 export const SuperAdminGuard: CanActivateFn = async () => {
   const jwtAuthService = inject(JwtAuthService);
@@ -64,12 +67,13 @@ export const SuperAdminGuard: CanActivateFn = async () => {
   }
 
   const user = jwtAuthService.getCurrentUser();
-  
+
   if (!user) {
     try {
       await firstValueFrom(jwtAuthService.loadUserProfile());
       const loadedUser = jwtAuthService.getCurrentUser();
-      if (loadedUser?.perfil_id === 1) {
+      // Convertir a número para comparación ya que backend devuelve string
+      if (Number(loadedUser?.perfil_id) === 1) {
         return true;
       }
     } catch {
@@ -78,11 +82,12 @@ export const SuperAdminGuard: CanActivateFn = async () => {
     }
   }
 
-  if (user?.perfil_id === 1) {
+  // Convertir a número para comparación ya que backend devuelve string
+  if (Number(user?.perfil_id) === 1) {
     return true;
   }
 
-  console.warn('🚫 SuperAdminGuard: Acceso denegado. Solo SuperAdmin puede acceder.');
+  console.warn('🚫 SuperAdminGuard: Acceso denegado. Solo SuperAdmin puede acceder. perfil_id:', user?.perfil_id);
   router.navigate(['/Dashboard']);
   return false;
 };

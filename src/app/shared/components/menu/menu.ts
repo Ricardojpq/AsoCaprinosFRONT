@@ -23,6 +23,9 @@ import {
   Tractor,
   Baby,
   Dna,
+  Grid3x3,
+  Tags,
+  GitFork,
 } from 'lucide-angular';
 @Component({
   selector: 'app-menu',
@@ -50,6 +53,9 @@ export class Menu {
   readonly tractorIcon = Tractor;
   readonly babyIcon = Baby;
   readonly dnaIcon = Dna;
+  readonly grid3x3Icon = Grid3x3;
+  readonly tagsIcon = Tags;
+  readonly gitForkIcon = GitFork;
 
   constructor() {
     // Recargar menú cuando cambien los permisos
@@ -149,6 +155,7 @@ export class Menu {
             items: [
               { label: 'Registrar Animal', routerLink: ['Animals'] },
               { label: 'Gestión de Estados', routerLink: ['Animals/Estados'] },
+              { label: 'Árbol Genealógico', routerLink: ['Animals/Pedigree'] },
               {
                 label: 'Catálogos',
                 routerLink: ['AnimalCatalogs'],
@@ -202,6 +209,15 @@ export class Menu {
       {
         items: [
           {
+            label: 'Corrales',
+            icon: this.grid3x3Icon,
+            routerLink: ['Corrals'],
+          },
+        ],
+      },
+      {
+        items: [
+          {
             label: 'Reproducción',
             icon: this.dnaIcon,
             items: [
@@ -210,6 +226,7 @@ export class Menu {
               { label: 'Partos', routerLink: ['Reproduction/partos'] },
               { label: 'Lactancia', routerLink: ['Reproduction/lactancia'] },
               { label: 'Estados Reproductivos', routerLink: ['Reproduction/estados-reproductivos'] },
+              { label: 'Tatuar Crías', routerLink: ['Reproduction/tatuar-crias'] },
             ],
           },
         ],

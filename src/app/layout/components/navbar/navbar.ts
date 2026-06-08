@@ -9,10 +9,12 @@ import { StyleClassModule } from 'primeng/styleclass';
 import { AvatarModule } from 'primeng/avatar';
 import { ButtonModule } from 'primeng/button';
 import { AuthService } from '@features/auth/services/auth.service';
+import { NotificationBellComponent } from '../notification-bell/notification-bell';
+import { LangToggleComponent } from '../lang-toggle/lang-toggle';
 
 @Component({
   selector: 'app-navbar',
-  imports: [CommonModule, RouterModule, StyleClassModule, LucideAngularModule, ThemeToggle, AvatarModule, ButtonModule],
+  imports: [CommonModule, RouterModule, StyleClassModule, LucideAngularModule, ThemeToggle, AvatarModule, ButtonModule, NotificationBellComponent, LangToggleComponent],
   templateUrl: './navbar.html',
   styleUrl: './navbar.css'
 })

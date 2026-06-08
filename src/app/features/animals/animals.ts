@@ -15,10 +15,13 @@ import { AnimalListComponent } from './components/animal-list/animal-list.compon
 import { AnimalSearchComponent } from './components/animal-search/animal-search.component';
 import { AnimalSelectionTable } from './components/animal-selection-table/animal-selection-table';
 import { AnimalToolbarComponent } from './components/animal-toolbar/animal-toolbar.component';
+import { AnimalFiltersComponent } from './components/animal-filters/animal-filters.component';
 import { FarmsTableComponent } from './components/farms-table/farms-table.component';
 import { AnimalDto, AnimalCreateDto, AnimalUpdateDto } from './models';
 import { CatalogOptions } from './models/interfaces';
 import { AnimalsService } from './services/animals-service';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 
 @Component({
@@ -37,7 +40,8 @@ import { AnimalsService } from './services/animals-service';
        AnimalListComponent,
        AnimalFormComponent,
        FarmsTableComponent,
-       AnimalSelectionTable
+       AnimalSelectionTable,
+       AnimalFiltersComponent
 ],
 })
 export class Animals implements OnInit, OnDestroy, CanComponentDeactivate {
@@ -48,6 +52,7 @@ export class Animals implements OnInit, OnDestroy, CanComponentDeactivate {
   readonly state = inject(AnimalsState);
   private animalsService = inject(AnimalsService);
   private catalogsService = inject(CatalogsService);
+  private http = inject(HttpClient);
   private messageService = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
 
@@ -110,13 +115,18 @@ export class Animals implements OnInit, OnDestroy, CanComponentDeactivate {
     const razas$ = this.catalogsService.getAllBreeds$();
     const colores$ = this.catalogsService.getAllColors$();
     const tiposPelo$ = this.catalogsService.getAllHairTypes$();
+    const farmId = localStorage.getItem('selected_finca');
+    const corrales$ = farmId
+      ? this.http.get<{data: any[]}>(`${environment.apiUrl}/api/v1/corrales/finca/${farmId}`)
+      : this.http.get<{data: any[]}>(`${environment.apiUrl}/api/v1/corrales`);
 
-    // Cargar todos los catálogos en paralelo
     Promise.all([
       firstValueFrom(razas$),
       firstValueFrom(colores$),
-      firstValueFrom(tiposPelo$)
-    ]).then(([razas, colores, tiposPelo]) => {
+      firstValueFrom(tiposPelo$),
+      firstValueFrom(corrales$),
+    ]).then(([razas, colores, tiposPelo, corralesRes]) => {
+      const corralesData = (corralesRes as any).data || corralesRes || [];
       const catalogOptions: CatalogOptions = {
         sex: [
           { label: 'Macho', value: 'M' },
@@ -168,7 +178,12 @@ export class Animals implements OnInit, OnDestroy, CanComponentDeactivate {
         })) || [],
         earInfo: [],
         hornInfo: [],
-        registryType: []
+        registryType: [],
+        corrales: (Array.isArray(corralesData) ? corralesData : []).map((c: any) => ({
+          label: `${c.nombre} (${c.tipo || 'GENERAL'})`,
+          value: c.id,
+          tipo: c.tipo,
+        })),
       };
 
       this.state.setCatalogOptions(catalogOptions);
@@ -250,6 +265,16 @@ export class Animals implements OnInit, OnDestroy, CanComponentDeactivate {
    */
   onClearSearch(): void {
     this.state.setGlobalFilter('');
+    this.state.setCurrentPage(1);
+    this.loadAnimals();
+  }
+
+  /**
+   * Aplica filtros avanzados desde el panel de filtros
+   */
+  onApplyAdvancedFilters(filters: any): void {
+    const current = this.state.filters();
+    this.state.setFilters({ ...current, ...filters });
     this.state.setCurrentPage(1);
     this.loadAnimals();
   }

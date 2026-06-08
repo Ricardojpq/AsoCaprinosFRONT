@@ -265,7 +265,7 @@ export class Partos implements OnInit {
     this.editParto = {
       id: parto.id,
       fecha: parto.fecha,
-      comments: parto.comments || ''
+      observaciones: parto.observaciones || ''
     };
     this.showEditDialog.set(true);
   }
@@ -282,7 +282,7 @@ export class Partos implements OnInit {
 
     this.reproductionService.updateBirth(this.editParto.id, {
       fecha: this.editParto.fecha,
-      comments: this.editParto.comments
+      observaciones: this.editParto.observaciones
     }).subscribe({
       next: () => {
         this.messageService.add({
@@ -313,7 +313,7 @@ export class Partos implements OnInit {
       hembra: detalle.hembra,
       tipo_parto: detalle.tipo_parto || 'NATURAL',
       estado_madre_post_parto: detalle.estado_madre_post_parto || 'NORMAL',
-      comments: detalle.comments || ''
+      observaciones: detalle.observaciones || ''
     });
     this.showEditDetalleDialog.set(true);
   }
@@ -325,7 +325,7 @@ export class Partos implements OnInit {
     this.reproductionService.updateBirthDetail(detalle.id, {
       tipo_parto: detalle.tipo_parto,
       estado_madre_post_parto: detalle.estado_madre_post_parto,
-      comments: detalle.comments
+      observaciones: detalle.observaciones
     }).subscribe({
       next: () => {
         this.messageService.add({
@@ -379,7 +379,7 @@ export class Partos implements OnInit {
       sexo: cria.sexo || 'M',
       peso_nacimiento: cria.peso_nacimiento,
       estado_nacimiento: cria.estado_nacimiento || 'VIVO',
-      comments: cria.comments || ''
+      observaciones: cria.observaciones || ''
     });
     this.showEditCriaDialog.set(true);
   }
@@ -392,7 +392,7 @@ export class Partos implements OnInit {
       sexo: cria.sexo,
       peso_nacimiento: cria.peso_nacimiento,
       estado_nacimiento: cria.estado_nacimiento,
-      comments: cria.comments
+      observaciones: cria.observaciones
     }).subscribe({
       next: () => {
         this.messageService.add({
@@ -584,6 +584,12 @@ export class Partos implements OnInit {
   }
 
   selectHembraParaParto(hembraData: any): void {
+    // Auto-set fecha del parto desde fecha_parto_estimada de la hembra (editable)
+    const fechaEstimada = hembraData.fecha_parto_estimada || hembraData.hembra?.fecha_parto_estimada;
+    if (fechaEstimada) {
+      this.newParto.fecha = fechaEstimada;
+    }
+    
     this.currentHembraDetalle.set({
       hembra_id: hembraData.hembra?.id,
       temporada_monta_hembra_id: hembraData.id,
@@ -593,7 +599,8 @@ export class Partos implements OnInit {
       crias_vivas: 1,
       crias_muertas: 0,
       estado_madre_post_parto: 'NORMAL',
-      comments: ''
+      observaciones: '',
+      crias: []
     });
     this.showSelectHembraDialog.set(false);
     this.showDetalleHembraDialog.set(true);
@@ -606,6 +613,12 @@ export class Partos implements OnInit {
   saveFemaleDetail(): void {
     const detalle = this.currentHembraDetalle();
     if (!detalle) return;
+
+    // Actualizar conteos basado en crias manuales
+    const crias = detalle.crias || [];
+    detalle.numero_crias = crias.length;
+    detalle.crias_vivas = crias.filter((c: any) => c.estado_nacimiento === 'VIVO' || c.estado_nacimiento === 'DEBIL').length;
+    detalle.crias_muertas = crias.filter((c: any) => c.estado_nacimiento === 'MUERTO').length;
 
     // Validar
     if (detalle.numero_crias < 1) {
@@ -637,6 +650,41 @@ export class Partos implements OnInit {
     this.currentHembraDetalle.set(null);
   }
 
+  addCriaToDetalle(): void {
+    const detalle = this.currentHembraDetalle();
+    if (!detalle) return;
+    const crias = detalle.crias || [];
+    detalle.crias = [...crias, { sexo: 'H', peso_nacimiento: undefined, estado_nacimiento: 'VIVO', observaciones: '' }];
+    this.currentHembraDetalle.set({...detalle});
+  }
+
+  removeCriaFromDetalle(index: number): void {
+    const detalle = this.currentHembraDetalle();
+    if (!detalle) return;
+    const crias = [...(detalle.crias || [])];
+    crias.splice(index, 1);
+    detalle.crias = crias;
+    this.currentHembraDetalle.set({...detalle});
+  }
+
+  getPartoSummary(): { machos: number; hembras: number; pesoPromedio: number; total: number } {
+    const detalles = this.detallesPartoTemp();
+    let machos = 0, hembras = 0, pesoTotal = 0, pesoCount = 0;
+    for (const d of detalles) {
+      const crias = d.crias || [];
+      for (const c of crias) {
+        if (c.sexo === 'M') machos++; else hembras++;
+        if (c.peso_nacimiento) { pesoTotal += c.peso_nacimiento; pesoCount++; }
+      }
+    }
+    return {
+      machos,
+      hembras,
+      pesoPromedio: pesoCount > 0 ? Math.round((pesoTotal / pesoCount) * 100) / 100 : 0,
+      total: machos + hembras
+    };
+  }
+
   removeDetailTemp(index: number): void {
     this.detallesPartoTemp.update(detalles => detalles.filter((_, i) => i !== index));
   }
@@ -664,13 +712,13 @@ export class Partos implements OnInit {
       cod_finca: this.newParto.cod_finca,
       fecha: this.newParto.fecha,
       responsable_id: this.newParto.responsable_id,
-      comments: this.newParto.comments,
+      observaciones: this.newParto.observaciones,
       detalles: this.detallesPartoTemp().map((d: any) => ({
         hembra_id: d.hembra_id,
         temporada_monta_hembra_id: d.temporada_monta_hembra_id,
         tipo_parto: d.tipo_parto,
         estado_madre_post_parto: d.estado_madre_post_parto,
-        comments: d.comments,
+        observaciones: d.observaciones,
         crias: this.generarCrias(d)
       }))
     };
@@ -704,20 +752,22 @@ export class Partos implements OnInit {
   }
 
   private generarCrias(detalle: any): any[] {
-    const crias: any[] = [];
-    // Generar crías vivas
-    for (let i = 0; i < (detalle.crias_vivas || 0); i++) {
-      crias.push({
-        sexo: 'H', // Por defecto, se puede cambiar después
-        estado_nacimiento: 'VIVO'
-      });
+    // Usar crias definidas manualmente en el detalle (sub-tabla editable)
+    if (detalle.crias && detalle.crias.length > 0) {
+      return detalle.crias.map((c: any) => ({
+        sexo: c.sexo || 'H',
+        peso_nacimiento: c.peso_nacimiento || undefined,
+        estado_nacimiento: c.estado_nacimiento || 'VIVO',
+        observaciones: c.observaciones || undefined
+      }));
     }
-    // Generar crías muertas
+    // Fallback: generar basado en conteos numéricos
+    const crias: any[] = [];
+    for (let i = 0; i < (detalle.crias_vivas || 0); i++) {
+      crias.push({ sexo: 'H', estado_nacimiento: 'VIVO' });
+    }
     for (let i = 0; i < (detalle.crias_muertas || 0); i++) {
-      crias.push({
-        sexo: 'H',
-        estado_nacimiento: 'MUERTO'
-      });
+      crias.push({ sexo: 'H', estado_nacimiento: 'MUERTO' });
     }
     return crias;
   }

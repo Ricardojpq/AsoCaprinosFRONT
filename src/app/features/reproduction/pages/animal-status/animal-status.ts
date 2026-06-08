@@ -79,7 +79,7 @@ export class AnimalStatus implements OnInit {
   // Form
   selectedStatusType = signal<string | null>(null);
   selectedNewStatus = signal<string | null>(null);
-  comments = '';
+  observaciones = '';
 
   sexoOptions = [
     { label: 'Todos', value: null },
@@ -186,7 +186,7 @@ export class AnimalStatus implements OnInit {
     this.selectedStatusType.set(null);
     this.selectedNewStatus.set(null);
     this.availableStatus.set([]);
-    this.comments = '';
+    this.observaciones = '';
     this.showChangeStatusDialog.set(true);
   }
 
@@ -207,7 +207,7 @@ export class AnimalStatus implements OnInit {
         animal_id: animalIds[0],
         tipo_estado: this.selectedStatusType()!,
         nuevo_estado: this.selectedNewStatus()!,
-        comments: this.comments || undefined
+        observaciones: this.observaciones || undefined
       }).subscribe({
         next: () => {
           this.messageService.add({
@@ -231,7 +231,7 @@ export class AnimalStatus implements OnInit {
         animal_ids: animalIds,
         tipo_estado: this.selectedStatusType()!,
         nuevo_estado: this.selectedNewStatus()!,
-        comments: this.comments || undefined
+        observaciones: this.observaciones || undefined
       }).subscribe({
         next: (response) => {
           this.messageService.add({

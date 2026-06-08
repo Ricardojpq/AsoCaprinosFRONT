@@ -1,3 +1,5 @@
+@reference "tailwindcss";
+
 .states-tab-container {
   @apply p-4;
 }

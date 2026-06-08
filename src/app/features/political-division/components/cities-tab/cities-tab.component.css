@@ -1,3 +1,5 @@
+@reference "tailwindcss";
+
 .cities-tab-container {
   @apply p-4;
 }

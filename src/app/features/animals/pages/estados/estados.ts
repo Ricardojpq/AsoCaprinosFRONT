@@ -248,7 +248,7 @@ export class EstadosComponent implements OnInit {
         animal_id: animalIds[0],
         tipo_estado: this.selectedStatusType()!,
         nuevo_estado: this.selectedNewStatus()!,
-        comments: this.comments || undefined
+        observaciones: this.comments || undefined
       }).subscribe({
         next: () => {
           this.savingEstado.set(false);
@@ -274,7 +274,7 @@ export class EstadosComponent implements OnInit {
         animal_ids: animalIds,
         tipo_estado: this.selectedStatusType()!,
         nuevo_estado: this.selectedNewStatus()!,
-        comments: this.comments || undefined
+        observaciones: this.comments || undefined
       }).subscribe({
         next: (response) => {
           this.savingEstado.set(false);

@@ -1,4 +1,4 @@
-import { Component, DestroyRef, effect, input, output, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, effect, input, output, OnInit, inject, computed } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -28,7 +28,7 @@ import { FarmContextService } from '../../../../core/services/farm-context.servi
     InputNumberModule,
     SelectModule,
     DatePickerModule,
-    TabsModule
+    TabsModule,
   ],
   templateUrl: './animal-form.component.html',
   styleUrl: './animal-form.component.css'
@@ -125,6 +125,20 @@ export class AnimalFormComponent implements OnInit {
   }
 
   /**
+   * Corrales filtrados por sexo (P2-02: validación M+H en frontend).
+   * Macho → MACHOS, CRIAS, GENERAL. Hembra → HEMBRAS, CRIAS, GENERAL.
+   */
+  readonly filteredCorrales = computed(() => {
+    const corrales = this.catalogOptions()?.corrales || [];
+    const sexo = this.animalForm?.get('sexo_animal')?.value;
+    if (!sexo) return corrales;
+    if (sexo === 'M') {
+      return corrales.filter(c => c.tipo === 'MACHOS' || c.tipo === 'CRIAS' || c.tipo === 'GENERAL');
+    }
+    return corrales.filter(c => c.tipo === 'HEMBRAS' || c.tipo === 'CRIAS' || c.tipo === 'GENERAL');
+  });
+
+  /**
    * Inicializa el formulario con todas las validaciones
    */
   private initializeForm(): void {
@@ -143,6 +157,7 @@ export class AnimalFormComponent implements OnInit {
       cod_raza: [null, [Validators.required]],
       cod_color: [null],
       cod_tipo_pelo: [null],
+      cod_corral: [null],
       origen: ['N', [Validators.required]],
 
       // === FINCAS ===
@@ -224,6 +239,7 @@ export class AnimalFormComponent implements OnInit {
       cod_raza: animal.cod_raza,
       cod_color: animal.cod_color,
       cod_tipo_pelo: animal.cod_tipo_pelo,
+      cod_corral: animal.cod_corral,
       origen: animal.origen,
       cod_finca_actual: animal.cod_finca_actual,
       cod_finca_padre: animal.cod_finca_padre,
@@ -365,16 +381,9 @@ export class AnimalFormComponent implements OnInit {
     if (formValue.cod_padre) dto.cod_padre = formValue.cod_padre;
     if (formValue.cod_finca_madre) dto.cod_finca_madre = formValue.cod_finca_madre;
     if (formValue.cod_madre) dto.cod_madre = formValue.cod_madre;
-    if (formValue.peso_actual) dto.peso_actual = formValue.peso_actual;
-    if (formValue.peso_al_nacer) dto.peso_al_nacer = formValue.peso_al_nacer;
-    if (formValue.peso_destete) dto.peso_destete = formValue.peso_destete;
-    if (formValue.fec_destete) dto.fec_destete = this.formatDateToString(formValue.fec_destete);
-    if (formValue.tatuaje) dto.tatuaje = formValue.tatuaje;
-    if (formValue.codigo_aso) dto.cod_asociacion = formValue.codigo_aso;
-    if (formValue.porcen_sangre) dto.porcen_sangre = formValue.porcen_sangre;
-    if (formValue.observac) dto.observac = formValue.observac;
-
-    return dto as AnimalCreateDto;
+    if (formValue.cod_corral) dto.cod_corral = formValue.cod_corral;
+    if (formValue.origen) dto.origen = formValue.origen;
+    return dto;
   }
 
   /**

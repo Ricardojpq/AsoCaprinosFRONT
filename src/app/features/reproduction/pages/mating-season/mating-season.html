@@ -224,9 +224,38 @@
           [(ngModel)]="newSeason.fecha_inicio"
           dateFormat="dd/mm/yy"
           [showIcon]="true"
+          [minDate]="minDate"
           appendTo="body"
           class="w-full">
         </p-datepicker>
+      </div>
+
+      <!-- Modalidad de Corral -->
+      <div>
+        <label class="block text-sm font-medium text-gray-600 mb-1">Modalidad de Corral *</label>
+        <p-select 
+          [options]="modalidadCorralOptions"
+          [(ngModel)]="newSeason.modalidad_corral"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Seleccione modalidad"
+          class="w-full">
+        </p-select>
+      </div>
+
+      <!-- Corral -->
+      <div>
+        <label class="block text-sm font-medium text-gray-600 mb-1">Corral</label>
+        <p-select 
+          [options]="corrales()"
+          [(ngModel)]="newSeason.corral_id"
+          optionLabel="nombre"
+          optionValue="id"
+          placeholder="Seleccione corral (opcional)"
+          [loading]="loadingCorrales()"
+          [showClear]="true"
+          class="w-full">
+        </p-select>
       </div>
 
       <!-- Observaciones -->
@@ -234,7 +263,7 @@
         <label class="block text-sm font-medium text-gray-600 mb-1">Observaciones</label>
         <textarea 
           pInputTextarea 
-          [(ngModel)]="newSeason.comments"
+          [(ngModel)]="newSeason.observaciones"
           rows="3"
           placeholder="Observaciones opcionales..."
           class="w-full">
@@ -280,11 +309,11 @@
       
       <div class="mb-4 p-3 bg-pink-50 border border-pink-200 rounded-lg">
         <p class="text-pink-800 text-sm">
-          <strong>Nota:</strong> Solo se muestran hembras con estado reproductivo <strong>CELO</strong>, etapa evolutiva (OVEJA/BORREGA) y estatus general ACTIVO.
+          <strong>Nota:</strong> Solo se muestran hembras con estado reproductivo <strong>CELO</strong>, etapa evolutiva (CABRA/CABRITONA) y estatus general ACTIVO.
         </p>
       </div>
 
-      <!-- Búsqueda -->
+      <!-- Búsqueda y filtro raza -->
       <div class="flex gap-2">
         <p-iconfield iconPosition="left" class="flex-1">
           <p-inputicon>
@@ -297,6 +326,15 @@
             [(ngModel)]="femaleSearchTerm"
             class="w-full">
         </p-iconfield>
+        <p-select 
+          [options]="razas()"
+          [(ngModel)]="filterRaza"
+          optionLabel="descripcion"
+          optionValue="id"
+          placeholder="Raza"
+          [showClear]="true"
+          styleClass="w-40">
+        </p-select>
         <p-button 
           label="Todas" 
           size="small" 
@@ -609,8 +647,8 @@
                 <div class="flex items-center gap-3">
                   <span class="text-sm text-gray-500">{{ hembra.fecha_monta | date:'dd/MM/yyyy' }}</span>
                   <p-tag 
-                    [value]="hembra.estado_reproduction" 
-                    [severity]="getReproductionStatusSeverity(hembra.estado_reproduction)">
+                    [value]="hembra.estado_reproduccion" 
+                    [severity]="getReproductionStatusSeverity(hembra.estado_reproduccion)">
                   </p-tag>
                 </div>
               </div>
@@ -686,12 +724,12 @@
                 <td>{{ hembra.fecha_monta | date:'dd/MM/yyyy' }}</td>
                 <td>
                   <p-tag 
-                    [value]="hembra.estado_reproduction" 
-                    [severity]="getReproductionStatusSeverity(hembra.estado_reproduction)">
+                    [value]="hembra.estado_reproduccion" 
+                    [severity]="getReproductionStatusSeverity(hembra.estado_reproduccion)">
                   </p-tag>
                 </td>
                 <td>{{ hembra.fecha_confirmacion_prenez ? (hembra.fecha_confirmacion_prenez | date:'dd/MM/yyyy') : '-' }}</td>
-                <td>{{ hembra.comments || '-' }}</td>
+                <td>{{ hembra.observaciones || '-' }}</td>
               </tr>
             </ng-template>
           </p-table>
@@ -780,5 +818,57 @@
   </ng-template>
   <ng-template pTemplate="footer">
     <p-button label="Cerrar" [text]="true" (onClick)="showSearchFemaleDialog.set(false)"></p-button>
+  </ng-template>
+</p-dialog>
+
+<!-- Diálogo Finalizar/Cancelar Temporada con Corrales Destino -->
+<p-dialog 
+  [(visible)]="showEndSeasonDialog" 
+  [modal]="true"
+  [style]="{width: '500px'}"
+  header="Finalizar Temporada de Monta"
+  [closable]="true">
+  
+  <ng-template pTemplate="content">
+    <div class="flex flex-col gap-4">
+      <p class="text-gray-700">
+        Seleccione los corrales destino para reubicar a los animales al finalizar la temporada.
+      </p>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-600 mb-1">Corral Destino para Hembras *</label>
+        <p-select 
+          [options]="corrales()"
+          [(ngModel)]="corralDestinoHembrasId"
+          optionLabel="nombre"
+          optionValue="id"
+          placeholder="Seleccione corral para hembras"
+          [loading]="loadingCorrales()"
+          class="w-full">
+        </p-select>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-600 mb-1">Corral Destino para Macho *</label>
+        <p-select 
+          [options]="corrales()"
+          [(ngModel)]="corralDestinoMachoId"
+          optionLabel="nombre"
+          optionValue="id"
+          placeholder="Seleccione corral para el macho"
+          [loading]="loadingCorrales()"
+          class="w-full">
+        </p-select>
+      </div>
+    </div>
+  </ng-template>
+
+  <ng-template pTemplate="footer">
+    <p-button label="Cancelar" [text]="true" (onClick)="showEndSeasonDialog.set(false)"></p-button>
+    <p-button 
+      label="Confirmar Finalización" 
+      severity="success"
+      (onClick)="confirmEndSeason()">
+    </p-button>
   </ng-template>
 </p-dialog>

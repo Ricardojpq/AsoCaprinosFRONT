@@ -9,6 +9,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ReproductionService } from '../../services/reproduction.service';
 import { TemporadaMonta, CreateBreedingSeasonRequest } from '../../models';
+import { formatDateLocal } from '@core/utils/date-utils';
 
 // PrimeNG imports
 import { TableModule } from 'primeng/table';
@@ -113,8 +114,23 @@ export class MatingSeason implements OnInit {
   newSeason: CreateBreedingSeasonRequest = {
     cod_finca: 0,
     macho_id: 0,
-    fecha_inicio: ''
+    fecha_inicio: '',
+    modalidad_corral: 'HEMBRAS_AL_MACHO',
+    corral_id: undefined
   };
+
+  // Corrales disponibles para selección
+  corrales = signal<any[]>([]);
+  loadingCorrales = signal(false);
+  
+  // Corrales destino para finalizar/cancelar
+  showEndSeasonDialog = signal(false);
+  corralDestinoHembrasId: number | null = null;
+  corralDestinoMachoId: number | null = null;
+
+  // Filtro de raza para hembras
+  filterRaza = signal<string | null>(null);
+  razas = signal<any[]>([]);
 
   // Available animals
   maleSearchTerm = signal<any[]>([]);
@@ -136,12 +152,20 @@ export class MatingSeason implements OnInit {
   filterEndDate = signal<Date | null>(null);
   filterStatus = signal<string | null>(null);
 
+  // Fecha mínima para datepicker (hoy, bloquea fechas pasadas)
+  minDate = new Date();
+
   // Computed
   statusOptions = [
     { label: 'Todas', value: null },
     { label: 'Activa', value: 'ACTIVA' },
     { label: 'Finalizada', value: 'FINALIZADA' },
     { label: 'Cancelada', value: 'CANCELADA' }
+  ];
+
+  modalidadCorralOptions = [
+    { label: 'Hembras al Macho', value: 'HEMBRAS_AL_MACHO' },
+    { label: 'Todos a Corral Nuevo', value: 'TODOS_A_CORRAL_NUEVO' }
   ];
 
   ngOnInit(): void {
@@ -231,10 +255,10 @@ export class MatingSeason implements OnInit {
       filters.buscar = this.filterSearch();
     }
     if (this.filterStartDate()) {
-      filters.fecha_inicio = this.filterStartDate()?.toISOString().split('T')[0];
+      filters.fecha_inicio = formatDateLocal(this.filterStartDate()!);
     }
     if (this.filterEndDate()) {
-      filters.fecha_fin = this.filterEndDate()?.toISOString().split('T')[0];
+      filters.fecha_fin = formatDateLocal(this.filterEndDate()!);
     }
     if (this.filterStatus()) {
       filters.estado = this.filterStatus();
@@ -284,16 +308,21 @@ export class MatingSeason implements OnInit {
     this.newSeason = {
       cod_finca: this.selectedFarm || 0,
       macho_id: 0,
-      fecha_inicio: new Date().toISOString().split('T')[0]
+      fecha_inicio: formatDateLocal(new Date()),
+      modalidad_corral: 'HEMBRAS_AL_MACHO',
+      corral_id: undefined
     };
     this.selectedMacho.set(null);
     this.selectedFemales.set([]);
     this.femaleSearchTerm = '';
+    this.filterRaza.set(null);
     
-    // Cargar machos y hembras disponibles
+    // Cargar machos, hembras y corrales disponibles
     if (this.selectedFarm) {
       this.loadAvailableMales(this.selectedFarm);
       this.loadAvailableFemales(this.selectedFarm);
+      this.loadCorrales(this.selectedFarm);
+      this.loadRazas();
     }
     
     this.showCreateDialog.set(true);
@@ -366,6 +395,15 @@ export class MatingSeason implements OnInit {
       return;
     }
 
+    if (!this.newSeason.modalidad_corral) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Advertencia',
+        detail: 'Seleccione la modalidad de corral'
+      });
+      return;
+    }
+
     if (this.selectedFemales().length === 0) {
       this.messageService.add({
         severity: 'warn',
@@ -419,7 +457,12 @@ export class MatingSeason implements OnInit {
     this.loadingFemale.set(true);
     this.reproductionService.getAvailableFemales(codFinca).subscribe({
       next: (response) => {
-        this.hembrasDisponibles.set(response.data);
+        let hembras = response.data || [];
+        // Filtrar por raza si hay filtro activo
+        if (this.filterRaza()) {
+          hembras = hembras.filter((h: any) => h.cod_raza === this.filterRaza());
+        }
+        this.hembrasDisponibles.set(hembras);
         this.loadingFemale.set(false);
       },
       error: () => {
@@ -494,62 +537,100 @@ export class MatingSeason implements OnInit {
     }
     const females = season.hembras;
     return {
-      prenadas: females.filter(h => h.estado_reproduction === 'PREÑADA').length,
-      vacias: females.filter(h => h.estado_reproduction === 'VACIA').length,
-      enMonta: females.filter(h => h.estado_reproduction === 'EN_MONTA').length,
+      prenadas: females.filter(h => h.estado_reproduccion === 'PREÑADA').length,
+      vacias: females.filter(h => h.estado_reproduccion === 'VACIA').length,
+      enMonta: females.filter(h => h.estado_reproduccion === 'EN_MONTA').length,
       total: females.length
     };
   }
 
   endMatingSeason(temporada: TemporadaMonta): void {
-    this.confirmationService.confirm({
-      message: '¿Está seguro de finalizar esta temporada de monta?',
-      header: 'Confirmar Finalización',
-      icon: 'pi pi-exclamation-triangle',
-      accept: () => {
-        this.reproductionService.endMatingSeason(temporada.id).subscribe({
-          next: () => {
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Éxito',
-              detail: 'Temporada finalizada exitosamente'
-            });
-            this.loadSeasons();
-          },
-          error: (error) => {
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Error',
-              detail: error.error?.message || 'Error al finalizar temporada'
-            });
-          }
+    this.selectedSeason.set(temporada);
+    this.corralDestinoHembrasId = null;
+    this.corralDestinoMachoId = null;
+    if (this.selectedFarm) {
+      this.loadCorrales(this.selectedFarm);
+    }
+    this.showEndSeasonDialog.set(true);
+  }
+
+  confirmEndSeason(): void {
+    const temporada = this.selectedSeason();
+    if (!temporada) return;
+    
+    if (!this.corralDestinoHembrasId || !this.corralDestinoMachoId) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Advertencia',
+        detail: 'Debe seleccionar corral destino para hembras y macho'
+      });
+      return;
+    }
+
+    this.reproductionService.endMatingSeason(temporada.id, {
+      corral_destino_hembras_id: this.corralDestinoHembrasId,
+      corral_destino_macho_id: this.corralDestinoMachoId
+    }).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'Temporada finalizada exitosamente'
+        });
+        this.showEndSeasonDialog.set(false);
+        this.loadSeasons();
+      },
+      error: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: error.error?.message || 'Error al finalizar temporada'
         });
       }
     });
   }
 
   cancelMatingSeason(temporada: TemporadaMonta): void {
-    this.confirmationService.confirm({
-      message: '¿Está seguro de cancelar esta temporada de monta?',
-      header: 'Confirmar Cancelación',
-      icon: 'pi pi-exclamation-triangle',
-      accept: () => {
-        this.reproductionService.cancelMatingSeason(temporada.id).subscribe({
-          next: () => {
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Éxito',
-              detail: 'Temporada cancelada exitosamente'
-            });
-            this.loadSeasons();
-          },
-          error: (error) => {
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Error',
-              detail: error.error?.message || 'Error al cancelar temporada'
-            });
-          }
+    this.selectedSeason.set(temporada);
+    this.corralDestinoHembrasId = null;
+    this.corralDestinoMachoId = null;
+    if (this.selectedFarm) {
+      this.loadCorrales(this.selectedFarm);
+    }
+    this.showEndSeasonDialog.set(true);
+  }
+
+  confirmCancelSeason(): void {
+    const temporada = this.selectedSeason();
+    if (!temporada) return;
+    
+    if (!this.corralDestinoHembrasId || !this.corralDestinoMachoId) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Advertencia',
+        detail: 'Debe seleccionar corral destino para hembras y macho'
+      });
+      return;
+    }
+
+    this.reproductionService.cancelMatingSeason(temporada.id, {
+      corral_destino_hembras_id: this.corralDestinoHembrasId,
+      corral_destino_macho_id: this.corralDestinoMachoId
+    }).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'Temporada cancelada exitosamente'
+        });
+        this.showEndSeasonDialog.set(false);
+        this.loadSeasons();
+      },
+      error: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: error.error?.message || 'Error al cancelar temporada'
         });
       }
     });
@@ -689,7 +770,7 @@ export class MatingSeason implements OnInit {
                 season: season,
                 macho: season.macho,
                 fechaMonta: female.fecha_monta,
-                estadoReproduction: female.estado_reproduction
+                estadoReproduction: female.estado_reproduccion
               };
               break;
             }
@@ -714,6 +795,31 @@ export class MatingSeason implements OnInit {
           summary: 'Error',
           detail: 'Error al buscar hembra'
         });
+      }
+    });
+  }
+
+  // =====================================================
+  // CORRALES Y RAZAS
+  // =====================================================
+
+  loadCorrales(codFinca: number): void {
+    this.loadingCorrales.set(true);
+    this.reproductionService.getCorrales(codFinca).subscribe({
+      next: (response) => {
+        this.corrales.set(response.data || []);
+        this.loadingCorrales.set(false);
+      },
+      error: () => {
+        this.loadingCorrales.set(false);
+      }
+    });
+  }
+
+  loadRazas(): void {
+    this.reproductionService.getRazas().subscribe({
+      next: (response) => {
+        this.razas.set(response.data || []);
       }
     });
   }

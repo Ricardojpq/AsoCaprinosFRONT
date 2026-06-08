@@ -1,6 +1,7 @@
 export interface SelectOption<T = any> {
   label: string;
   value: T;
+  tipo?: string;
 }
 
 export interface CatalogOptions {
@@ -18,6 +19,7 @@ export interface CatalogOptions {
   earInfo: SelectOption<string>[];
   hornInfo: SelectOption<string>[];
   registryType: SelectOption<string>[];
+  corrales: SelectOption<number>[];
 }
 
 export interface CatalogDto {

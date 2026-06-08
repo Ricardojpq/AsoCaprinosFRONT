@@ -16,6 +16,12 @@
     </ng-template>
   </p-toolbar>
 
+  <!-- Filtros Avanzados -->
+  <app-animal-filters
+    [catalogs]="state.catalogOptions()"
+    (onApplyFilters)="onApplyAdvancedFilters($event)"
+  />
+
   <!-- Lista de Animales -->
   <app-animal-list
     [animals]="state.animals()"

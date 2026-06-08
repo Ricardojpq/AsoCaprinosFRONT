@@ -45,11 +45,6 @@ export class Login {
     }
 
     ngOnInit() {
-        // Datos de prueba para desarrollo
-        this.loginForm.patchValue({
-          email: 'admin@asocabra.com',
-          password: 'password123'
-        });
     }
 
     get error() {

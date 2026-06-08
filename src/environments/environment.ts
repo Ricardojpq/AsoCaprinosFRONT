@@ -1,7 +1,7 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://api.asocabra.com',
-  appName: 'AsoCabra',
+  apiUrl: 'https://api.asocabravenezuela.com',
+  appName: 'AsoCaprinos',
   version: '1.0.0',
   defaultLanguage: 'es',
   supportedLanguages: ['es', 'en'],
