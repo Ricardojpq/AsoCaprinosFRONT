@@ -166,6 +166,23 @@
           />
         </div>
 
+        <!-- Corral -->
+        <div class="field">
+          <label for="cod_corral" class="block mb-2">Corral</label>
+          <p-select
+            id="cod_corral"
+            formControlName="cod_corral"
+            [options]="filteredCorrales()"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Seleccione corral"
+            class="w-full"
+            [filter]="true"
+            [showClear]="true"
+          />
+          <small class="text-gray-500">Solo muestra corrales compatibles con el sexo seleccionado</small>
+        </div>
+
         <!-- Estatus -->
         <div class="field">
           <label for="estatus" class="block mb-2">Estatus</label>
@@ -443,6 +460,7 @@
         </div>
       </div>
     </p-tabpanel>
+
   </p-tabs>
 
   <!-- Botones de Acción -->

@@ -1,0 +1,323 @@
+<div class="pedigree-page">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-title">
+      <div class="header-icon-wrap">
+        <lucide-icon [img]="gitForkIcon" size="20" class="text-white"></lucide-icon>
+      </div>
+      <h1>Árbol Genealógico</h1>
+    </div>
+
+    <!-- Search bar: solo cod_animal, finca viene del contexto -->
+    <div class="search-panel">
+      @if (selectedFinca()) {
+        <div class="finca-badge">
+          <lucide-icon [img]="gitForkIcon" size="13"></lucide-icon>
+          Finca {{ selectedFinca() }}
+        </div>
+      }
+      <input
+        type="text"
+        placeholder="Código del animal…"
+        class="search-input"
+        [ngModel]="searchCodAnimal()"
+        (ngModelChange)="searchCodAnimal.set($event)"
+        (keydown.enter)="search()"
+        autocomplete="off"
+      />
+      <button class="btn-search" (click)="search()" [disabled]="loading()">
+        @if (loading()) {
+          <span class="spinner"></span>
+        } @else {
+          <lucide-icon [img]="searchIcon" size="15"></lucide-icon>
+        }
+        Buscar
+      </button>
+    </div>
+  </div>
+
+  <!-- Error -->
+  @if (error()) {
+    <div class="error-banner">
+      <lucide-icon [img]="alertIcon" size="15"></lucide-icon>
+      <span>{{ error() }}</span>
+      <button (click)="error.set(null)" class="error-close">
+        <lucide-icon [img]="xIcon" size="13"></lucide-icon>
+      </button>
+    </div>
+  }
+
+  <!-- Canvas area -->
+  @if (root()) {
+    <div class="canvas-wrapper"
+      (mousedown)="onCanvasMouseDown($event)"
+      (wheel)="onCanvasWheel($event)"
+      [class.panning]="panning()"
+    >
+
+      <!-- Zoom controls -->
+      <div class="zoom-controls">
+        <button (click)="zoomIn()" title="Acercar"><lucide-icon [img]="zoomInIcon" size="14"></lucide-icon></button>
+        <span class="zoom-label">{{ (zoom() * 100) | number:'1.0-0' }}%</span>
+        <button (click)="zoomOut()" title="Alejar"><lucide-icon [img]="zoomOutIcon" size="14"></lucide-icon></button>
+        <button (click)="fitToView()" title="Ajustar vista"><lucide-icon [img]="maximizeIcon" size="14"></lucide-icon></button>
+      </div>
+
+      <!-- Legend -->
+      <div class="legend">
+        <span class="legend-item father">Línea Paterna</span>
+        <span class="legend-item mother">Línea Materna</span>
+      </div>
+
+      <!-- SVG + Nodes -->
+      <div
+        #canvasEl
+        class="canvas"
+        [style.transform]="'scale(' + zoom() + ') translate(' + panX() + 'px, ' + panY() + 'px)'"
+        [style.width.px]="layout().svgW"
+        [style.min-height.px]="layout().svgH"
+      >
+        <!-- SVG connections -->
+        <svg
+          class="connections-svg"
+          [attr.width]="layout().svgW"
+          [attr.height]="layout().svgH"
+        >
+          @for (conn of svgConnections(); track conn.key) {
+            <path
+              [attr.d]="conn.d"
+              [class]="'conn-path ' + conn.side + (conn.highlight ? ' highlighted' : '')"
+              fill="none"
+            />
+          }
+        </svg>
+
+        <!-- Nodes -->
+        @for (nl of layout().nodes; track nl.uniqueKey) {
+          <div
+            class="pedigree-node"
+            [class.selected]="isSelected(nl.node)"
+            [class.highlighted]="isHighlighted(nl.node)"
+            [class.external]="nl.node.es_externo"
+            [style.left.px]="nl.x"
+            [style.top.px]="nl.y"
+            [style.width.px]="NODE_W"
+            [style.min-height.px]="NODE_H"
+            (click)="selectNode(nl.node)"
+          >
+            <!-- Header del nodo -->
+            <div class="node-header" [ngClass]="nodeHeaderBg(nl.node, nl.generation)">
+              <div class="node-sex-icon">
+                @if (nl.node.sexo === 'M') {
+                  <lucide-icon [img]="maleIcon" size="12"></lucide-icon>
+                } @else if (nl.node.sexo === 'H') {
+                  <lucide-icon [img]="femaleIcon" size="12"></lucide-icon>
+                } @else {
+                  <lucide-icon [img]="userIcon" size="12"></lucide-icon>
+                }
+              </div>
+              <span class="node-name" [title]="nl.node.nomb_animal || nl.node.cod_animal">
+                {{ nl.node.nomb_animal || nl.node.cod_animal }}
+              </span>
+              @if (nl.node.es_externo) {
+                <span class="badge-ext">Ext.</span>
+              }
+            </div>
+
+            <!-- Cuerpo del nodo -->
+            <div class="node-body">
+              <div class="node-id">F{{ nl.node.cod_finca }} / {{ nl.node.cod_animal }}</div>
+
+              @if (nl.node.nomb_raza) {
+                <div class="node-raza">{{ nl.node.nomb_raza }}</div>
+              }
+              @if (nl.node.fec_nacim) {
+                <div class="node-date">{{ nl.node.fec_nacim | date:'dd/MM/yyyy' }}</div>
+              }
+
+              <div class="node-estado">
+                <span class="estado-badge" [ngClass]="getEstadoBadgeClass(nl.node.estado)">
+                  {{ getEstadoLabel(nl.node.estado) }}
+                </span>
+              </div>
+
+              @for (m of nl.node.metricas; track m.clave) {
+                <div class="node-metric">
+                  <span class="metric-label">{{ m.etiqueta }}:</span>
+                  <span class="metric-value">{{ m.valor }}</span>
+                </div>
+              }
+
+              <!-- Inbreeding editable -->
+              @if (!nl.node.es_externo) {
+                <div class="inbreeding-row" (click)="$event.stopPropagation()">
+                  @if (editingInbreedingKey() === nodeKey(nl.node)) {
+                    <div class="inbreeding-edit">
+                      <input
+                        type="number" min="0" max="100" step="0.01"
+                        class="inbreeding-input"
+                        [ngModel]="inbreedingInput()"
+                        (ngModelChange)="inbreedingInput.set($event)"
+                        (keydown.enter)="saveInbreeding(nl.node)"
+                        (keydown.escape)="cancelEditInbreeding()"
+                      />
+                      <button class="btn-save-ib" (click)="saveInbreeding(nl.node)" [disabled]="savingInbreeding()">✓</button>
+                      <button class="btn-cancel-ib" (click)="cancelEditInbreeding()">✕</button>
+                    </div>
+                  } @else {
+                    <div
+                      class="inbreeding-display"
+                      [ngClass]="inbreedingBg(nl.node.coef_consanguinidad)"
+                      (click)="startEditInbreeding(nl.node)"
+                      title="Click para editar Inbreeding %"
+                    >
+                      <lucide-icon [img]="dnaIcon" size="10"></lucide-icon>
+                      <span [ngClass]="inbreedingColor(nl.node.coef_consanguinidad)">
+                        {{ nl.node.coef_consanguinidad !== null ? (nl.node.coef_consanguinidad + '%') : '—' }}
+                      </span>
+                      <span class="ib-label">Inbreeding</span>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Acciones del nodo -->
+            <div class="node-footer" (click)="$event.stopPropagation()">
+              @if (nl.node.has_more && !nl.collapsed) {
+                <button class="btn-action expand" (click)="expandNode(nl.node)" [disabled]="expandingKey() === nodeKey(nl.node)">
+                  @if (expandingKey() === nodeKey(nl.node)) { <span class="spinner-sm"></span> }
+                  @else { <lucide-icon [img]="chevronRightIcon" size="11"></lucide-icon> }
+                  Expandir
+                </button>
+              }
+              @if (nl.node.padre || nl.node.madre) {
+                <button class="btn-action collapse" (click)="toggleCollapse(nl.node)">
+                  <lucide-icon [img]="nl.collapsed ? chevronRightIcon : chevronDownIcon" size="11"></lucide-icon>
+                  {{ nl.collapsed ? 'Ver padres' : 'Colapsar' }}
+                </button>
+              }
+              @if (!nl.node.es_externo) {
+                <button class="btn-action ficha" (click)="openFicha(nl.node)">
+                  <lucide-icon [img]="externalIcon" size="11"></lucide-icon>
+                  Ficha
+                </button>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+  } @else if (!loading()) {
+    <div class="empty-state">
+      <div class="empty-icon-wrap">
+        <lucide-icon [img]="gitForkIcon" size="32" class="text-amber-400 dark:text-amber-500"></lucide-icon>
+      </div>
+      <h2>Busca un animal para ver su árbol genealógico</h2>
+      <p>Ingresa el código del animal. La finca se toma automáticamente de la selección activa.</p>
+    </div>
+  }
+</div>
+
+<!-- Modal Ficha Animal -->
+@if (fichaVisible()) {
+  <div class="ficha-overlay" (click)="closeFicha()">
+    <div class="ficha-modal" (click)="$event.stopPropagation()">
+
+      <div class="ficha-header">
+        <div class="ficha-title">
+          <lucide-icon [img]="externalIcon" size="16"></lucide-icon>
+          <span>Ficha del Animal</span>
+        </div>
+        <button class="ficha-close" (click)="closeFicha()">
+          <lucide-icon [img]="xIcon" size="16"></lucide-icon>
+        </button>
+      </div>
+
+      @if (fichaLoading()) {
+        <div class="ficha-loading">
+          <span class="spinner ficha-spinner"></span>
+          <span>Cargando datos…</span>
+        </div>
+      } @else if (fichaAnimal()) {
+        <div class="ficha-body">
+
+          <!-- Nombre + badges -->
+          <div class="ficha-top">
+            <div class="ficha-avatar" [class.ficha-avatar-male]="fichaAnimal()!.sexo_animal === 'M'" [class.ficha-avatar-female]="fichaAnimal()!.sexo_animal === 'H'">
+              @if (fichaAnimal()!.sexo_animal === 'M') {
+                <lucide-icon [img]="maleIcon" size="22" class="text-white"></lucide-icon>
+              } @else {
+                <lucide-icon [img]="femaleIcon" size="22" class="text-white"></lucide-icon>
+              }
+            </div>
+            <div>
+              <div class="ficha-nombre">{{ fichaAnimal()!.nomb_animal || '(Sin nombre)' }}</div>
+              <div class="ficha-cod">F{{ fichaAnimal()!.cod_finca }} / {{ fichaAnimal()!.cod_animal }}</div>
+            </div>
+          </div>
+
+          <!-- Grid de datos -->
+          <div class="ficha-grid">
+            <div class="ficha-field">
+              <span class="ficha-label">Raza</span>
+              <span class="ficha-value">{{ fichaAnimal()!.raza?.nomb_raza || '—' }}</span>
+            </div>
+            <div class="ficha-field">
+              <span class="ficha-label">F. Nacimiento</span>
+              <span class="ficha-value">{{ fichaAnimal()!.fec_nacim | date:'dd/MM/yyyy' }}</span>
+            </div>
+            <div class="ficha-field">
+              <span class="ficha-label">Sexo</span>
+              <span class="ficha-value">{{ fichaAnimal()!.sexo_animal === 'M' ? 'Macho' : 'Hembra' }}</span>
+            </div>
+            <div class="ficha-field">
+              <span class="ficha-label">Estado</span>
+              <span class="ficha-value">{{ fichaAnimal()!.estatus || '—' }}</span>
+            </div>
+            <div class="ficha-field">
+              <span class="ficha-label">Peso Actual</span>
+              <span class="ficha-value">{{ fichaAnimal()!.peso_actual ? (fichaAnimal()!.peso_actual + ' kg') : '—' }}</span>
+            </div>
+            <div class="ficha-field">
+              <span class="ficha-label">% Sangre</span>
+              <span class="ficha-value">{{ fichaAnimal()!.porcen_sangre ? (fichaAnimal()!.porcen_sangre + '%') : '—' }}</span>
+            </div>
+            <div class="ficha-field">
+              <span class="ficha-label">Origen</span>
+              <span class="ficha-value">{{ fichaAnimal()!.origen || '—' }}</span>
+            </div>
+            <div class="ficha-field">
+              <span class="ficha-label">Concepción</span>
+              <span class="ficha-value">{{ fichaAnimal()!.tipo_concepcion || '—' }}</span>
+            </div>
+            @if (fichaAnimal()!.cod_padre) {
+              <div class="ficha-field">
+                <span class="ficha-label">Padre</span>
+                <span class="ficha-value">{{ fichaAnimal()!.cod_padre }}</span>
+              </div>
+            }
+            @if (fichaAnimal()!.cod_madre) {
+              <div class="ficha-field">
+                <span class="ficha-label">Madre</span>
+                <span class="ficha-value">{{ fichaAnimal()!.cod_madre }}</span>
+              </div>
+            }
+            @if (fichaAnimal()!.observac) {
+              <div class="ficha-field ficha-field-full">
+                <span class="ficha-label">Observaciones</span>
+                <span class="ficha-value">{{ fichaAnimal()!.observac }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      } @else {
+        <div class="ficha-loading">
+          <span class="text-gray-400 dark:text-slate-500 text-sm">No se pudo cargar la ficha.</span>
+        </div>
+      }
+    </div>
+  </div>
+}
