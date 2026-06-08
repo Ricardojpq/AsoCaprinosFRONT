@@ -64,6 +64,14 @@ export const routes: Routes = [
           ).then((c) => c.PhysicalCondition),
       },
       {
+        path: 'Animals/Pedigree',
+        canActivate: [modulePermissionGuard('Animals/Pedigree')],
+        loadComponent: () =>
+          import('@features/animals/pages/pedigree/pedigree').then(
+            (c) => c.PedigreePage
+          ),
+      },
+      {
         path: 'Animals/Estados',
         canActivate: [modulePermissionGuard('Animals')],
         loadComponent: () =>
@@ -112,6 +120,14 @@ export const routes: Routes = [
         canActivate: [modulePermissionGuard('Farms')],
         loadComponent: () =>
           import('@features/farms/farms').then((c) => c.Farms),
+      },
+      {
+        path: 'Corrals',
+        canActivate: [modulePermissionGuard('Corrals')],
+        loadComponent: () =>
+          import('@features/corrals/pages/corral-management/corral-management').then(
+            (c) => c.CorralManagement
+          ),
       },
       {
         path: 'Account',

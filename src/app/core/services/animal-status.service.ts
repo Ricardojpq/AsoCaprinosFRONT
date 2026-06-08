@@ -31,8 +31,7 @@ export interface StatusHistory {
   estado_id: number;
   fecha_inicio: string;
   fecha_fin?: string;
-  comments?: string;
-  tipo_estado?: StatusType;
+  observaciones?: string;
   estado?: StatusCatalog;
   duracion_dias?: number;
 }
@@ -41,14 +40,14 @@ export interface ChangeStatusRequest {
   animal_id: number;
   tipo_estado: string;
   nuevo_estado: string;
-  comments?: string;
+  observaciones?: string;
 }
 
 export interface BulkChangeStatusRequest {
   animal_ids: number[];
   tipo_estado: string;
   nuevo_estado: string;
-  comments?: string;
+  observaciones?: string;
 }
 
 export interface BulkChangeStatusResponse {

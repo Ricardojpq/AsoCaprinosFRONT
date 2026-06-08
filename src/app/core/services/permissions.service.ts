@@ -18,6 +18,10 @@ export class PermissionsService {
   private authService = inject(AuthService);
   
   private permisosMap = signal<Map<string, ModuloPermiso>>(new Map());
+  private readonly vistaAliases: ReadonlyArray<[string, string]> = [
+    ['reproduction', 'reproduccion'],
+    ['corrals', 'corrales'],
+  ];
   
   readonly isSuperAdmin = computed(() => {
     const user = this.authService.user();
@@ -33,25 +37,71 @@ export class PermissionsService {
 
   private loadPermisosFromUser(): void {
     const user = this.authService.user();
+    const map = new Map<string, ModuloPermiso>();
+
     if (user?.perfil?.perfil_modulos) {
-      const map = new Map<string, ModuloPermiso>();
-      
       for (const pm of user.perfil.perfil_modulos) {
-        if (pm.modulo?.vista) {
-          map.set(pm.modulo.vista.toLowerCase(), {
-            id_modulo: pm.id_modulo,
-            modulo: pm.modulo.modulo,
-            vista: pm.modulo.vista,
-            puede_ver: pm.puede_ver,
-            puede_crear: pm.puede_crear,
-            puede_editar: pm.puede_editar,
-            puede_eliminar: pm.puede_eliminar
-          });
+        if (!pm.modulo?.vista) {
+          continue;
+        }
+
+        const permiso: ModuloPermiso = {
+          id_modulo: pm.id_modulo,
+          modulo: pm.modulo.modulo,
+          vista: pm.modulo.vista,
+          puede_ver: pm.puede_ver,
+          puede_crear: pm.puede_crear,
+          puede_editar: pm.puede_editar,
+          puede_eliminar: pm.puede_eliminar
+        };
+
+        for (const candidate of this.getVistaCandidates(pm.modulo.vista)) {
+          map.set(candidate, permiso);
         }
       }
-      
-      this.permisosMap.set(map);
     }
+
+    this.permisosMap.set(map);
+  }
+
+  private normalizeVista(vista: string): string {
+    return vista.trim().replace(/^\/+|\/+$/g, '').toLowerCase();
+  }
+
+  private swapAlias(value: string, from: string, to: string): string {
+    const escapedFrom = from.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const segmentRegex = new RegExp(`(^|/)${escapedFrom}(?=/|$)`, 'g');
+    return value.replace(segmentRegex, (_, prefix: string) => `${prefix}${to}`);
+  }
+
+  private getVistaCandidates(vista: string): string[] {
+    const base = this.normalizeVista(vista);
+    if (!base) {
+      return [];
+    }
+
+    const candidates = new Set<string>([base]);
+
+    for (const [left, right] of this.vistaAliases) {
+      const snapshot = Array.from(candidates);
+      for (const candidate of snapshot) {
+        candidates.add(this.swapAlias(candidate, left, right));
+        candidates.add(this.swapAlias(candidate, right, left));
+      }
+    }
+
+    return Array.from(candidates);
+  }
+
+  private findPermission(vista: string): ModuloPermiso | undefined {
+    const map = this.permisosMap();
+    for (const candidate of this.getVistaCandidates(vista)) {
+      const permiso = map.get(candidate);
+      if (permiso) {
+        return permiso;
+      }
+    }
+    return undefined;
   }
 
   /**
@@ -67,7 +117,7 @@ export class PermissionsService {
    */
   canView(vista: string): boolean {
     if (this.isSuperAdmin()) return true;
-    const permiso = this.permisosMap().get(vista.toLowerCase());
+    const permiso = this.findPermission(vista);
     return permiso?.puede_ver ?? false;
   }
 
@@ -76,7 +126,7 @@ export class PermissionsService {
    */
   canCreate(vista: string): boolean {
     if (this.isSuperAdmin()) return true;
-    const permiso = this.permisosMap().get(vista.toLowerCase());
+    const permiso = this.findPermission(vista);
     return permiso?.puede_crear ?? false;
   }
 
@@ -85,7 +135,7 @@ export class PermissionsService {
    */
   canEdit(vista: string): boolean {
     if (this.isSuperAdmin()) return true;
-    const permiso = this.permisosMap().get(vista.toLowerCase());
+    const permiso = this.findPermission(vista);
     return permiso?.puede_editar ?? false;
   }
 
@@ -94,7 +144,7 @@ export class PermissionsService {
    */
   canDelete(vista: string): boolean {
     if (this.isSuperAdmin()) return true;
-    const permiso = this.permisosMap().get(vista.toLowerCase());
+    const permiso = this.findPermission(vista);
     return permiso?.puede_eliminar ?? false;
   }
 
@@ -113,7 +163,7 @@ export class PermissionsService {
         puede_eliminar: true
       };
     }
-    return this.permisosMap().get(vista.toLowerCase()) ?? null;
+    return this.findPermission(vista) ?? null;
   }
 
   /**
@@ -122,21 +172,25 @@ export class PermissionsService {
    */
   hasRouteAccess(route: string): boolean {
     if (this.isSuperAdmin()) return true;
-    
-    // Normalizar la ruta
-    const normalizedRoute = route.replace(/^\//, '').toLowerCase();
-    
-    // Buscar coincidencia exacta o parcial
-    const permiso = this.permisosMap().get(normalizedRoute);
-    if (permiso) return permiso.puede_ver;
-    
-    // Buscar por prefijo (para rutas anidadas)
-    for (const [vista, perm] of this.permisosMap().entries()) {
-      if (normalizedRoute.startsWith(vista) && perm.puede_ver) {
+
+    const normalizedRoute = this.normalizeVista(route.replace(/^\//, ''));
+    const candidates = this.getVistaCandidates(normalizedRoute);
+
+    for (const candidate of candidates) {
+      const permiso = this.permisosMap().get(candidate);
+      if (permiso?.puede_ver) {
         return true;
       }
     }
-    
+
+    for (const [vista, perm] of this.permisosMap().entries()) {
+      for (const candidate of candidates) {
+        if (candidate.startsWith(vista) && perm.puede_ver) {
+          return true;
+        }
+      }
+    }
+
     return false;
   }
 
