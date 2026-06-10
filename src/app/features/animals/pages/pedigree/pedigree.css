@@ -658,6 +658,42 @@
 
 :host-context(.dark) .node-header-ext { background: #374151; }
 
+/* ---- Nodo Ghost (padre/madre sin registro en BD) ---- */
+.pedigree-node-ghost {
+  border-style: dashed;
+  border-color: #64748b;
+  opacity: 0.55;
+  cursor: default;
+  pointer-events: none;
+}
+
+.pedigree-node-ghost:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.node-header-ghost {
+  background: #475569;
+}
+
+:host-context(.dark) .node-header-ghost {
+  background: #1e293b;
+}
+
+.node-body-ghost {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px 10px;
+}
+
+.ghost-label {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  text-align: center;
+  font-style: italic;
+}
+
 /* ---- Semáforo Inbreeding ---- */
 .ib-neutral { color: #9ca3af; }
 .ib-ok      { color: #059669; }

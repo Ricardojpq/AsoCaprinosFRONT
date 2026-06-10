@@ -95,6 +95,31 @@
 
         <!-- Nodes -->
         @for (nl of layout().nodes; track nl.uniqueKey) {
+
+          <!-- Ghost placeholder: padre/madre sin registro -->
+          @if (nl.isGhost) {
+            <div
+              class="pedigree-node pedigree-node-ghost"
+              [style.left.px]="nl.x"
+              [style.top.px]="nl.y"
+              [style.width.px]="NODE_W"
+              [style.min-height.px]="NODE_H"
+            >
+              <div class="node-header node-header-ghost">
+                <div class="node-sex-icon">
+                  @if (nl.ghostSex === 'M') {
+                    <lucide-icon [img]="maleIcon" size="12"></lucide-icon>
+                  } @else {
+                    <lucide-icon [img]="femaleIcon" size="12"></lucide-icon>
+                  }
+                </div>
+                <span class="node-name">{{ nl.ghostSex === 'M' ? 'Padre' : 'Madre' }} no registrado</span>
+              </div>
+              <div class="node-body node-body-ghost">
+                <div class="ghost-label">Sin registro en la base de datos</div>
+              </div>
+            </div>
+          } @else {
           <div
             class="pedigree-node"
             [class.selected]="isSelected(nl.node)"
@@ -206,6 +231,7 @@
               }
             </div>
           </div>
+          }
         }
       </div>
     </div>

@@ -45,6 +45,8 @@ interface NodeLayout {
   side: 'father' | 'mother' | 'root';
   collapsed: boolean;
   uniqueKey: string;
+  isGhost?: boolean;
+  ghostSex?: 'M' | 'H';
 }
 
 @Component({
@@ -150,6 +152,31 @@ export class PedigreePage {
       if (!collapsed) {
         if (node.padre) fatherNL = buildLayout(node.padre, gen + 1, 'father', path + 'P');
         if (node.madre) motherNL = buildLayout(node.madre, gen + 1, 'mother', path + 'M');
+
+        // Ghost placeholder: si solo uno de los dos padres está presente, crear placeholder
+        // para el lado faltante y mantener simetría visual.
+        const ghostX = 20 + (gen + 1) * (this.NODE_W + this.H_GAP);
+        if (fatherNL && !motherNL && !node.cod_madre) {
+          const ghostY = leafSlotY;
+          leafSlotY += this.NODE_H + this.V_GAP;
+          const ghostNL: NodeLayout = {
+            node: { ...node, cod_animal: '__ghost_m_' + path, nomb_animal: null, sexo: 'H', id: null, es_externo: false, has_more: false, metricas: [] },
+            x: ghostX, y: ghostY, generation: gen + 1, side: 'mother',
+            collapsed: false, uniqueKey: path + 'Mghost', isGhost: true, ghostSex: 'H',
+          };
+          nodes.push(ghostNL);
+          motherNL = ghostNL;
+        } else if (motherNL && !fatherNL && !node.cod_padre) {
+          const ghostY = leafSlotY;
+          leafSlotY += this.NODE_H + this.V_GAP;
+          const ghostNL: NodeLayout = {
+            node: { ...node, cod_animal: '__ghost_p_' + path, nomb_animal: null, sexo: 'M', id: null, es_externo: false, has_more: false, metricas: [] },
+            x: ghostX, y: ghostY, generation: gen + 1, side: 'father',
+            collapsed: false, uniqueKey: path + 'Pghost', isGhost: true, ghostSex: 'M',
+          };
+          nodes.push(ghostNL);
+          fatherNL = ghostNL;
+        }
       }
 
       let y: number;
@@ -183,6 +210,7 @@ export class PedigreePage {
 
     for (const n of nodes) {
       if (n.generation === 0) continue;
+      if (n.isGhost) continue;
       const parentNL = this.findParentLayout(nodes, n);
       if (!parentNL) continue;
 
