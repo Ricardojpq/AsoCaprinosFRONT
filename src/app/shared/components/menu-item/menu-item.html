@@ -48,16 +48,18 @@
     <span class="layout-menuitem-text">{{ item.label }}</span>
   </a>
   } @if (item.items && item.visible !== false) {
-  <ul [@children]="submenuAnimation">
-    @for (child of item.items; track $index) {
-    <li
-      app-menuitem
-      [item]="child"
-      [index]="$index"
-      [parentKey]="key"
-      [class]="child['badgeClass'] + ' my-2'"
-    ></li>
-    }
+  <ul class="submenu-children" [class.open]="submenuAnimation === 'expanded'">
+    <div>
+      @for (child of item.items; track $index) {
+      <li
+        app-menuitem
+        [item]="child"
+        [index]="$index"
+        [parentKey]="key"
+        [class]="child['badgeClass'] + ' my-2'"
+      ></li>
+      }
+    </div>
   </ul>
   }
 </ng-container>

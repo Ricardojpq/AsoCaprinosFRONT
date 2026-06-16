@@ -3,7 +3,6 @@ import { Component, HostBinding, Input } from '@angular/core';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { LayoutService } from '@layout/services/layout-service';
 import { RippleModule } from 'primeng/ripple';
-import { animate, state, style, transition, trigger } from '@angular/animations';
 import { filter, Subscription } from 'rxjs';
 // import { MenuItem } from 'primeng/api';
 import { MenuItem } from '@core/models/menu-item';
@@ -13,23 +12,6 @@ import { LucideAngularModule } from "lucide-angular";
   imports: [CommonModule, RouterModule, RippleModule, LucideAngularModule],
   templateUrl: './menu-item.html',
   styleUrl: './menu-item.css',
-   animations: [
-        trigger('children', [
-            state(
-                'collapsed',
-                style({
-                    height: '0'
-                })
-            ),
-            state(
-                'expanded',
-                style({
-                    height: '*'
-                })
-            ),
-            transition('collapsed <=> expanded', animate('400ms cubic-bezier(0.86, 0, 0.07, 1)'))
-        ])
-    ],
     providers: [LayoutService]
 })
 export class AppMenuItem {
